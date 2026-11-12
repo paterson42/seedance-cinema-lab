@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0b">
+  <title>SEEDANCE CINEMA LAB — 나만의 영화 만들기</title>
+  <meta name="description" content="장르와 키워드로 AI가 만드는 나만의 영화 포스터와 트레일러. Seedance Seoul Cinema Lab.">
+  <!--OG-->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="top">
+    <a class="brand" href="/" data-action="home" aria-label="처음으로">
+      <span class="brand-mark">Seedance</span><span class="brand-dot"></span><span class="brand-sub">@ SEOUL</span>
+    </a>
+    <div class="top-right">
+      <span class="mode-badge" id="modeBadge" hidden>DEMO MODE</span>
+      <span class="step-count" id="stepCount"></span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+  </header>
+
+  <div class="net-banner" id="netBanner" role="status" hidden>연결이 불안정해요. 자동으로 다시 시도하는 중…</div>
+
+  <main id="app" class="app" aria-live="polite">
+    <section class="boot"><div class="spinner"></div></section>
+  </main>
+
+  <footer class="foot">
+    <span>A LITTLE CHANCE. A LOT OF CINEMA.</span>
+    <span>Powered by Seed · Seedream · Seedance — BytePlus ModelArk</span>
+  </footer>
+
+  <div class="slate-wrap" id="slate" hidden aria-hidden="true">
+    <div class="slate">
+      <div class="slate-stick"><i></i></div>
+      <div class="slate-bar"><i></i></div>
+      <div class="slate-body">
+        <div class="slate-prod">SEEDANCE CINEMA LAB</div>
+        <div class="slate-grid">
+          <div><small>SCENE</small><b id="slScene">01</b></div>
+          <div><small>TAKE</small><b id="slTake">1</b></div>
+          <div><small>ROLL</small><b>A01</b></div>
+        </div>
+        <div class="slate-row"><small>TITLE</small><b id="slTitle"></b></div>
+        <div class="slate-row"><small>DIRECTOR</small><b id="slDir">YOU</b></div>
+        <div class="slate-foot"><span id="slDate"></span><span>SEOUL 2026</span></div>
+      </div>
+      <div class="slate-action">ACTION!</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

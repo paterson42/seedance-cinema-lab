@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOW SHOWING — Seedance Cinema Lab 로비 스크린</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/screen/screen.css">
+  <style>
+    body { background:
+      radial-gradient(ellipse 80% 55% at 50% 38%, rgba(120, 28, 30, .55), transparent 70%),
+      repeating-linear-gradient(90deg, #120708 0 calc(var(--u) * 6), #0d0506 calc(var(--u) * 6) calc(var(--u) * 6.2)),
+      #0b0506; }
+    /* floor */
+    body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 24vh; pointer-events: none; z-index: 0;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.85) 60%), repeating-linear-gradient(90deg, rgba(255,255,255,.015) 0 2px, transparent 2px 40px); }
+
+    .wall { position: fixed; inset: 0; z-index: 1; display: grid; grid-template-rows: auto 1fr auto; }
+
+    /* ── marquee header ── */
+    .marquee { position: relative; width: fit-content; margin: calc(var(--u) * 2.4) auto 0; padding: calc(var(--u) * 2.2) calc(var(--u) * 6) calc(var(--u) * 2.6);
+      border-radius: calc(var(--u) * 1.2); background: linear-gradient(#1a0d06, #0c0604);
+      box-shadow: 0 0 0 calc(var(--u) * .35) #3a2410, 0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(255,170,60,.18); text-align: center; }
+    .marquee h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 8.4); line-height: .95; letter-spacing: .06em;
+      color: #fff6df; text-shadow: 0 0 calc(var(--u) * 1) rgba(255,200,120,.9), 0 0 calc(var(--u) * 4) rgba(255,150,40,.55); }
+    .marquee p { margin: calc(var(--u) * .4) 0 0; font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: .4em; color: #e9c58e; }
+    .bulbs { position: absolute; inset: calc(var(--u) * .6); pointer-events: none; border-radius: calc(var(--u) * .8);
+      background:
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2.4) calc(var(--u) * 2.4) repeat-x,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 100% / calc(var(--u) * 2.4) calc(var(--u) * 2.4) repeat-x,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2.4) calc(var(--u) * 2.4) repeat-y,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 100% 0 / calc(var(--u) * 2.4) calc(var(--u) * 2.4) repeat-y;
+      animation: chase 1.1s steps(2) infinite; }
+    .bulbs.b2 { animation-delay: -.55s; filter: brightness(.45); background-position: calc(var(--u) * 1.2) 0, calc(var(--u) * 1.2) 100%, 0 calc(var(--u) * 1.2), 100% calc(var(--u) * 1.2); }
+    @keyframes chase { 50% { filter: brightness(.45); } }
+    .side { position: absolute; top: calc(var(--u) * 4); font-family: var(--mono); color: var(--muted); font-size: calc(var(--u) * 1.5); letter-spacing: .14em; }
+    .side.l { left: calc(var(--u) * 4); } .side.r { right: calc(var(--u) * 4); text-align: right; }
+    .side b { display: block; font-family: var(--display); font-weight: 400; color: var(--ink); font-size: calc(var(--u) * 4.4); letter-spacing: .04em; line-height: 1; }
+
+    /* ── lightbox frames ── */
+    .frames { display: flex; justify-content: center; align-items: center; gap: var(--gap); padding: 0 calc(var(--u) * 4); --gap: calc(var(--u) * 7); }
+    .slot { position: relative; width: var(--fw); flex: 0 0 auto; }
+    .slot::before { /* ceiling spotlight */ content: ''; position: absolute; left: 50%; top: calc(var(--u) * -16); width: 170%; height: calc(var(--fh) + var(--u) * 26);
+      transform: translateX(-50%); pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 50% 60% at 50% 0%, rgba(255,236,200,.13), transparent 70%); }
+    .lightbox { position: relative; z-index: 1; height: var(--fh); padding: calc(var(--u) * 1.3); border-radius: calc(var(--u) * .5);
+      background: linear-gradient(145deg, #57595e, #1b1c1f 30%, #3b3d42 55%, #121316 80%, #45474c);
+      box-shadow: 0 calc(var(--u) * 3) calc(var(--u) * 6) rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.12); }
+    .glass { position: relative; height: 100%; overflow: hidden; background: #000; border-radius: 2px;
+      box-shadow: 0 0 calc(var(--u) * 5) var(--glow, rgba(255,240,210,.25)), inset 0 0 0 1px rgba(0,0,0,.6); }
+    .glass img { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.06) saturate(1.05); }
+    .glass::after { /* glass sheen */ content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(115deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 62%, rgba(255,255,255,.06) 75%, rgba(255,255,255,0) 82%); }
+    .glass .layer { position: absolute; inset: 0; transition: opacity 1.1s ease, transform 1.4s cubic-bezier(.2,.8,.2,1); }
+    .glass .layer.out { opacity: 0; transform: scale(1.04); }
+    .plate { position: relative; z-index: 1; margin: calc(var(--u) * 1.6) auto 0; width: 86%; padding: calc(var(--u) * .9) calc(var(--u) * 1.4); border-radius: 3px; text-align: center;
+      background: linear-gradient(#b9965a, #8a6a34 55%, #a8864c); color: #1d1405; box-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 1.6) rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.4); }
+    .plate b { display: block; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 2.2); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .plate span { display: block; font-family: var(--mono); font-size: calc(var(--u) * 1.15); letter-spacing: .12em; margin-top: calc(var(--u) * .2); opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .new-tag { position: absolute; z-index: 3; top: calc(var(--u) * -1.6); right: calc(var(--u) * -1.6); font-family: var(--display); font-size: calc(var(--u) * 2.2); letter-spacing: .08em;
+      background: var(--accent); color: #0b0d02; padding: calc(var(--u) * .5) calc(var(--u) * 1.2) calc(var(--u) * .2); transform: rotate(6deg); box-shadow: 0 0 calc(var(--u) * 3) rgba(212,255,58,.5); }
+    .soon { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: calc(var(--u) * 1.2);
+      background: radial-gradient(circle at 50% 40%, #241414, #0a0606 70%); }
+    .soon b { font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 6); letter-spacing: .08em; color: #e9dcc6; line-height: .9; }
+    .soon span { font-size: calc(var(--u) * 1.6); color: var(--muted); line-height: 1.5; }
+
+    /* ── ticker ── */
+    .ticker { position: relative; z-index: 2; display: flex; align-items: stretch; height: calc(var(--u) * 6.4); background: #050303; border-top: 1px solid rgba(255,220,160,.22); }
+    .ticker .lab { flex: 0 0 auto; display: flex; align-items: center; gap: calc(var(--u) * 1); padding: 0 calc(var(--u) * 3); background: var(--accent); color: #0b0d02;
+      font-family: var(--display); font-size: calc(var(--u) * 3); letter-spacing: .08em; }
+    .ticker .lab i { width: calc(var(--u) * 1); height: calc(var(--u) * 1); border-radius: 50%; background: #e0261b; animation: blink 1.4s infinite; }
+    .ticker .run { position: relative; flex: 1; overflow: hidden; }
+    .ticker .track { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; white-space: nowrap; gap: calc(var(--u) * 5); padding-left: calc(var(--u) * 3);
+      font-size: calc(var(--u) * 2.3); font-weight: 700; color: #efe3cc; animation: ticker var(--dur, 40s) linear infinite; }
+    .ticker .track em { font-style: normal; color: var(--accent); font-family: var(--mono); font-weight: 500; font-size: calc(var(--u) * 1.6); letter-spacing: .1em; margin-right: calc(var(--u) * 1); }
+    .ticker .cta { flex: 0 0 auto; display: flex; align-items: center; padding: 0 calc(var(--u) * 3); font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: .08em; color: var(--muted); border-left: 1px solid rgba(255,255,255,.1); }
+    .ticker .cta b { color: var(--ink); margin-left: calc(var(--u) * .8); font-family: var(--sans); }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    @keyframes blink { 50% { opacity: .2; } }
+
+    /* ── premiere takeover (new submission) ── */
+    .premiere { position: fixed; inset: 0; z-index: 50; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: calc(var(--u) * 6);
+      padding: 0 calc(var(--u) * 12); background: radial-gradient(ellipse 60% 70% at 70% 50%, rgba(var(--g), .28), transparent 70%), rgba(4,2,3,.96);
+      opacity: 0; pointer-events: none; transition: opacity .8s ease; }
+    .premiere.on { opacity: 1; }
+    .premiere .txt { transform: translateY(calc(var(--u) * 3)); opacity: 0; transition: all 1s cubic-bezier(.2,.8,.2,1) .5s; }
+    .premiere.on .txt { transform: none; opacity: 1; }
+    .premiere .eyebrow { font-family: var(--mono); font-size: calc(var(--u) * 1.8); letter-spacing: .4em; color: var(--accent); }
+    .premiere .wp { font-family: var(--display); font-size: calc(var(--u) * 10); line-height: .9; letter-spacing: .03em; margin: calc(var(--u) * 1) 0 calc(var(--u) * 3);
+      background: linear-gradient(180deg, #fff, #d9c9a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .premiere h2 { margin: 0; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 8); line-height: 1.05; word-break: keep-all; }
+    .premiere .tag { margin: calc(var(--u) * 2) 0 0; font-size: calc(var(--u) * 2.4); color: #d8d0c1; font-weight: 500; }
+    .premiere .by { margin-top: calc(var(--u) * 4); font-family: var(--mono); font-size: calc(var(--u) * 1.8); letter-spacing: .2em; color: var(--muted); }
+    .premiere .by b { display: block; font-family: var(--kr); font-weight: 400; letter-spacing: 0; font-size: calc(var(--u) * 4.4); color: var(--ink); margin-top: calc(var(--u) * .4); }
+    .premiere .kw { margin-top: calc(var(--u) * 2.4); display: flex; flex-wrap: wrap; gap: calc(var(--u) * 1); }
+    .premiere .kw span { font-size: calc(var(--u) * 1.6); padding: calc(var(--u) * .5) calc(var(--u) * 1.3); border-radius: 99px; border: 1px solid rgba(255,255,255,.2); color: #d8d0c1; }
+    .premiere .pic { justify-self: center; position: relative; height: calc(var(--u) * 80); aspect-ratio: 2 / 3; }
+    .premiere .pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px;
+      box-shadow: 0 0 calc(var(--u) * 10) rgba(var(--g), .45), 0 calc(var(--u) * 4) calc(var(--u) * 8) rgba(0,0,0,.8);
+      transform: scale(.86) rotate(-2deg); opacity: 0; transition: all 1.3s cubic-bezier(.2,.8,.2,1) .2s; }
+    .premiere.on .pic img { transform: none; opacity: 1; }
+    .premiere .pic::after { /* spotlight sweep */ content: ''; position: absolute; inset: -20%; pointer-events: none; mix-blend-mode: screen;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%); transform: translateX(-80%); }
+    .premiere.on .pic::after { animation: sweep 2.6s ease-in-out 1s; }
+    @keyframes sweep { to { transform: translateX(80%); } }
+    .flash { position: fixed; inset: 0; z-index: 60; background: #fff; opacity: 0; pointer-events: none; }
+    .flash.go { animation: flash .9s ease-out; }
+    @keyframes flash { 0% { opacity: .0; } 8% { opacity: .55; } 100% { opacity: 0; } }
+
+    @media (orientation: portrait) {
+      .premiere { grid-template-columns: 1fr; grid-template-rows: auto auto; padding: calc(var(--u) * 6); gap: calc(var(--u) * 3); text-align: center; align-content: center; }
+      .premiere .pic { height: calc(var(--u) * 60); grid-row: 1; }
+      .premiere .kw { justify-content: center; }
+      .side { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="wall">
+    <header style="position:relative">
+      <div class="side l">SEEDANCE CINEMA LAB<b id="clock">--:--</b></div>
+      <div class="marquee"><div class="bulbs"></div><div class="bulbs b2"></div>
+        <h1>NOW SHOWING</h1><p>오늘의 상영작 · SEOUL 2026</p></div>
+      <div class="side r">PREMIERES TODAY<b id="count">0</b></div>
+    </header>
+    <section class="frames" id="frames"></section>
+    <footer class="ticker">
+      <div class="lab"><i></i>PREMIERE</div>
+      <div class="run"><div class="track" id="track"></div></div>
+      <div class="cta">부스 QR을 스캔하고<b>나만의 영화를 만들어 보세요</b></div>
+    </footer>
+  </div>
+
+  <div class="premiere" id="premiere" aria-live="polite">
+    <div class="txt">
+      <div class="eyebrow">JUST SUBMITTED · 방금 도착한 신작</div>
+      <div class="wp">WORLD PREMIERE</div>
+      <h2 id="pTitle"></h2>
+      <p class="tag" id="pTag"></p>
+      <div class="by">A FILM BY<b id="pDir"></b></div>
+      <div class="kw" id="pKw"></div>
+    </div>
+    <div class="pic"><img id="pImg" alt=""></div>
+  </div>
+  <div class="flash" id="flash"></div>
+
+  <script type="module">
+    import { $, esc, pad, sleep, watchFeed, screenChrome, clock, preload } from '/screen/screen.js';
+
+    const chrome = screenChrome();
+    clock($('#clock'));
+    const ROTATE_MS = 14000;      // each frame swaps to the next poster
+    const PREMIERE_MS = 9000;     // takeover length for a brand-new poster
+
+    let items = [];               // newest first
+    let known = null;             // ids already seen (null = first load)
+    const fresh = [];             // new submissions waiting for their premiere
+    const newIds = new Set();     // shown with a NEW tag on the wall for a while
+    let slots = [];               // DOM slots
+    let cursor = 0;               // rotation cursor into items
+    let busy = false;
+
+    const hexRgb = (h) => { const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})/i.exec(h || ''); return m ? m.slice(1).map((x) => parseInt(x, 16)).join(',') : '255,240,210'; };
+
+    function layout() {
+      const vw = innerWidth, vh = innerHeight, u = Math.min(vh / 100, vw * 0.5625 / 100);
+      const fh = Math.min(vh * 0.6, vh - u * 40);
+      const fw = fh * 2 / 3 + u * 2.6;
+      const gap = u * 7;
+      const n = Math.max(1, Math.min(8, Math.floor((vw - u * 8 + gap) / (fw + gap))));
+      const frames = $('#frames');
+      frames.style.setProperty('--fh', `${fh}px`);
+      frames.style.setProperty('--fw', `${fw}px`);
+      if (slots.length === n) return;
+      frames.innerHTML = '';
+      slots = Array.from({ length: n }, () => {
+        const el = document.createElement('div');
+        el.className = 'slot';
+        el.innerHTML = '<div class="lightbox"><div class="glass"></div></div><div class="plate"><b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span></div>';
+        frames.append(el);
+        return { el, id: undefined };
+      });
+      fillAll();
+    }
+
+    function setSlot(slot, item) {
+      const glass = slot.el.querySelector('.glass');
+      const id = item?.id ?? null;
+      const old = [...glass.querySelectorAll('.layer')];
+      const layer = document.createElement('div');
+      layer.className = 'layer out';
+      layer.innerHTML = item
+        ? `<img src="${esc(item.poster)}" alt="${esc(item.title)}">`
+        : '<div class="soon"><b>COMING<br>SOON</b><span>다음 상영작은<br>당신의 영화입니다</span></div>';
+      glass.append(layer);
+      void layer.offsetWidth; // commit the hidden state so the fade-in runs
+      layer.classList.remove('out');
+      old.forEach((o) => { o.classList.add('out'); setTimeout(() => o.remove(), 1500); });
+      glass.style.setProperty('--glow', item ? `rgba(${hexRgb(item.genre?.color)}, .38)` : 'rgba(255,240,210,.12)');
+      slot.el.querySelector('.plate').innerHTML = item
+        ? `<b>〈${esc(item.title)}〉</b><span>A FILM BY ${esc(item.director)} · ${esc(item.genre?.en || '')} · NO.${pad(item.seed)}</span>`
+        : '<b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span>';
+      slot.el.querySelector('.new-tag')?.remove();
+      if (item && newIds.has(item.id)) slot.el.insertAdjacentHTML('afterbegin', '<div class="new-tag">NEW</div>');
+      slot.id = id;
+    }
+
+    function fillAll() {
+      cursor = 0;
+      slots.forEach((s, i) => { setSlot(s, items[i] || null); });
+      cursor = Math.min(items.length, slots.length);
+    }
+
+    // Swap one frame at a time to the next poster that is not already on the wall.
+    let rotIdx = 0;
+    function rotate() {
+      if (busy || items.length <= slots.length) return;
+      const onWall = new Set(slots.map((s) => s.id));
+      for (let tries = 0; tries < items.length; tries++) {
+        const next = items[cursor % items.length];
+        cursor++;
+        if (!onWall.has(next.id)) {
+          setSlot(slots[rotIdx % slots.length], next);
+          rotIdx++;
+          return;
+        }
+      }
+    }
+    setInterval(rotate, ROTATE_MS / Math.max(1, slots.length || 3));
+
+    function ticker() {
+      const list = items.slice(0, 20);
+      const html = list.length
+        ? list.map((it) => `<span><em>NO.${pad(it.seed)}</em>${esc(it.director)} 감독 〈${esc(it.title)}〉 — ${esc(it.tagline || '')}</span>`).join('<span>★</span>')
+        : '<span>곧 첫 번째 영화가 개봉합니다 ★ 장르를 고르고, 키워드를 뽑고, 당신이 감독이 되어 보세요 ★ Seed · Seedream · Seedance</span>';
+      // two copies so the loop is seamless (animates to -50%)
+      $('#track').innerHTML = `${html}<span>★</span>${html}<span>★</span>`;
+      $('#track').style.setProperty('--dur', `${Math.max(30, list.length * 9)}s`);
+      $('#count').textContent = items.length;
+    }
+
+    async function premiere(it) {
+      busy = true;
+      await preload(it.poster);
+      const p = $('#premiere');
+      p.style.setProperty('--g', hexRgb(it.genre?.color));
+      $('#pTitle').textContent = `〈${it.title}〉`;
+      $('#pTag').textContent = it.tagline ? `“${it.tagline}”` : '';
+      $('#pDir').textContent = `${it.director} 감독`;
+      $('#pKw').innerHTML = (it.keywords || []).map((k) => `<span>#${esc(k.replace(/\s/g, ''))}</span>`).join('');
+      $('#pImg').src = it.poster;
+      $('#flash').classList.remove('go'); void $('#flash').offsetWidth; $('#flash').classList.add('go');
+      p.classList.add('on');
+      await sleep(PREMIERE_MS);
+      p.classList.remove('on');
+      await sleep(700);
+      // Hang it in the first frame; the rest of the wall shifts along.
+      const onWall = slots.map((s) => s.id);
+      if (!onWall.includes(it.id)) {
+        for (let i = slots.length - 1; i > 0; i--) {
+          const prev = items.find((x) => x.id === slots[i - 1].id) || null;
+          if (slots[i].id !== (prev?.id ?? null)) setSlot(slots[i], prev);
+        }
+        setSlot(slots[0], it);
+      }
+      busy = false;
+    }
+
+    (async function premiereLoop() {
+      for (;;) {
+        if (fresh.length) await premiere(fresh.shift());
+        else await sleep(1000);
+      }
+    })();
+
+    watchFeed('poster', (list) => {
+      const ids = new Set(list.map((x) => x.id));
+      const changed = list.length !== items.length || list.some((x, i) => items[i]?.id !== x.id || items[i]?.poster !== x.poster);
+      if (known) {
+        for (const it of [...list].reverse()) if (!known.has(it.id)) { fresh.push(it); newIds.add(it.id); setTimeout(() => newIds.delete(it.id), 10 * 60000); }
+      }
+      known = new Set([...(known || []), ...ids]);
+      items = list;
+      if (!changed) return;
+      ticker();
+      // Posters an operator hid disappear from the wall right away.
+      slots.forEach((s) => { if (s.id && !ids.has(s.id)) setSlot(s, null); });
+      if (!slots.some((s) => s.id) || slots.some((s) => s.id === null && items.length > slots.filter((x) => x.id).length)) {
+        const free = slots.filter((s) => !s.id);
+        const onWall = new Set(slots.map((s) => s.id));
+        const pending = new Set(fresh.map((f) => f.id));
+        const rest = items.filter((x) => !onWall.has(x.id) && !pending.has(x.id));
+        free.forEach((s, i) => rest[i] && setSlot(s, rest[i]));
+      }
+      if (chrome.stale() && !busy && !fresh.length) location.reload();
+    });
+
+    addEventListener('resize', layout);
+    layout();
+    ticker();
+  </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCREEN 01 — Seedance Cinema Lab 예고편 상영관</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/screen/screen.css">
+  <style>
+    body { background: #000; }
+    .hall { position: fixed; inset: 0; display: grid; grid-template-rows: 1fr auto; }
+
+    /* ── the screen ── */
+    .stage { position: relative; display: grid; place-items: center; overflow: hidden;
+      padding: calc(var(--u) * 7) calc(var(--u) * 13) calc(var(--u) * 2); }
+    .screen { position: relative; width: min(100%, calc((100vh - var(--u) * 17) * 16 / 9)); aspect-ratio: 16 / 9; overflow: hidden; background: #000;
+      box-shadow: 0 0 calc(var(--u) * 10) rgba(160,190,255,.10), 0 0 0 1px rgba(255,255,255,.04); }
+    /* projector beam & dust over the whole screen */
+    .screen::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 8;
+      background: radial-gradient(ellipse 70% 90% at 50% 120%, rgba(255,255,255,.05), transparent 60%), radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.55)); }
+    .scene { position: absolute; inset: 0; opacity: 0; transition: opacity .9s ease; }
+    .scene.on { opacity: 1; }
+
+    /* pre-show card */
+    .pre { display: grid; place-items: center; background: #050605; }
+    .pre .card { width: 62%; padding: calc(var(--u) * 4) calc(var(--u) * 5); border: calc(var(--u) * .35) solid var(--accent); text-align: center;
+      box-shadow: 0 0 calc(var(--u) * 6) rgba(212,255,58,.12), inset 0 0 calc(var(--u) * 6) rgba(212,255,58,.06); }
+    .pre small { display: block; font-family: var(--mono); font-size: calc(var(--u) * 1.6); letter-spacing: .4em; color: var(--accent); }
+    .pre h3 { margin: calc(var(--u) * 1.6) 0; font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 6.4); letter-spacing: .05em; line-height: 1; }
+    .pre p { margin: 0; font-size: calc(var(--u) * 2.1); color: #cfd3c4; line-height: 1.6; }
+    .pre p b { color: var(--ink); }
+    .pre .meta { margin-top: calc(var(--u) * 3); display: flex; justify-content: center; gap: calc(var(--u) * 4); font-family: var(--mono); font-size: calc(var(--u) * 1.4); letter-spacing: .16em; color: var(--muted); }
+
+    /* the trailer itself: vertical video centred, its own poster blurred behind */
+    .play { background: #000; }
+    .play .bd { position: absolute; inset: -6%; background-size: cover; background-position: center; filter: blur(calc(var(--u) * 4)) brightness(.38) saturate(1.2); transform: scale(1.08); }
+    .play video { position: absolute; left: 50%; top: 0; height: 100%; max-width: 100%; transform: translateX(-50%); object-fit: contain; background: #000;
+      box-shadow: 0 0 calc(var(--u) * 8) rgba(0,0,0,.9); }
+    .play .lower { position: absolute; z-index: 3; left: calc(var(--u) * 4); bottom: calc(var(--u) * 4); opacity: 0; transform: translateY(calc(var(--u) * 1.5)); transition: all .9s ease; }
+    .play .lower.on { opacity: 1; transform: none; }
+    .play .lower small { display: block; font-family: var(--mono); font-size: calc(var(--u) * 1.4); letter-spacing: .3em; color: var(--accent); }
+    .play .lower b { display: block; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 3.6); margin-top: calc(var(--u) * .5); text-shadow: 0 2px 20px #000; }
+    .play .tagbox { position: absolute; z-index: 3; right: calc(var(--u) * 4); top: calc(var(--u) * 4); text-align: right; font-family: var(--mono); font-size: calc(var(--u) * 1.4); letter-spacing: .16em; color: rgba(255,255,255,.75); }
+    .play .tagbox b { display: inline-block; font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 2.4); letter-spacing: .1em; color: #000; background: var(--g, var(--accent)); padding: calc(var(--u) * .3) calc(var(--u) * 1) 0; margin-bottom: calc(var(--u) * .6); }
+    .play .prog { position: absolute; z-index: 3; left: 0; bottom: 0; height: calc(var(--u) * .4); width: 0; background: var(--accent); opacity: .8; }
+
+    /* end title card */
+    .end { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: calc(var(--u) * 6); padding: 0 calc(var(--u) * 9);
+      background: radial-gradient(ellipse 60% 80% at 25% 50%, rgba(var(--rgb), .25), transparent 70%), #040404; }
+    .end img { height: calc(var(--u) * 62); aspect-ratio: 2 / 3; object-fit: cover; box-shadow: 0 0 calc(var(--u) * 8) rgba(var(--rgb), .4), 0 calc(var(--u) * 3) calc(var(--u) * 6) #000; }
+    .end .t small { font-family: var(--mono); font-size: calc(var(--u) * 1.6); letter-spacing: .4em; color: var(--muted); }
+    .end h2 { margin: calc(var(--u) * 1.2) 0 0; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 8); line-height: 1.05; word-break: keep-all; }
+    .end .tl { margin: calc(var(--u) * 1.8) 0 0; font-size: calc(var(--u) * 2.3); color: #d6d0c4; font-weight: 500; }
+    .end .billing { margin-top: calc(var(--u) * 3.4); padding-top: calc(var(--u) * 2); border-top: 1px solid rgba(255,255,255,.14);
+      font-family: 'Bebas Neue', var(--sans); font-size: calc(var(--u) * 2); letter-spacing: .1em; line-height: 1.35; color: #b8b2a6; max-width: calc(var(--u) * 80); }
+    .end .billing b { color: var(--ink); font-family: var(--sans); font-weight: 700; letter-spacing: 0; }
+    .end .soon { margin-top: calc(var(--u) * 3); font-family: var(--display); font-size: calc(var(--u) * 7); letter-spacing: .08em; line-height: 1; color: var(--accent);
+      text-shadow: 0 0 calc(var(--u) * 3) rgba(212,255,58,.35); }
+
+    /* idle (nothing submitted yet) */
+    .idle { display: grid; place-content: center; text-align: center; gap: calc(var(--u) * 2); background: radial-gradient(ellipse at center, #14110d, #000 70%); }
+    .idle b { font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 10); letter-spacing: .06em; line-height: .9; }
+    .idle span { font-size: calc(var(--u) * 2.4); color: var(--muted); }
+
+    /* ── curtains & valance ── */
+    .curtain { position: absolute; top: 0; bottom: 0; width: 52%; z-index: 20; pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.55), transparent 12%, transparent 88%, rgba(0,0,0,.55)),
+        repeating-linear-gradient(90deg, #5c0710 0, #8e1220 calc(var(--u) * 2.2), #b31c2c calc(var(--u) * 3.2), #8e1220 calc(var(--u) * 4.2), #4a050c calc(var(--u) * 6.4));
+      box-shadow: 0 0 calc(var(--u) * 6) rgba(0,0,0,.9);
+      transition: transform 2.2s cubic-bezier(.6,.05,.25,1); }
+    .curtain::after { /* stage light on the fabric */ content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,190,150,.12), transparent 30%, transparent 70%, rgba(0,0,0,.6)); }
+    .curtain.l { left: 0; transform: translateX(calc(-100% + var(--u) * 12)); }
+    .curtain.r { right: 0; transform: translateX(calc(100% - var(--u) * 12)); }
+    .hall.closed .curtain.l, .hall.closed .curtain.r { transform: none; }
+    .valance { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--u) * 7.5); z-index: 25; pointer-events: none;
+      background: repeating-linear-gradient(90deg, #6d0a15 0, #a3182a calc(var(--u) * 2), #6d0a15 calc(var(--u) * 4));
+      -webkit-mask: radial-gradient(circle calc(var(--u) * 2.6) at 50% 0, #000 98%, transparent) 0 0 / calc(var(--u) * 5.2) 100% repeat-x, linear-gradient(#000, #000) 0 0 / 100% calc(var(--u) * 5) no-repeat;
+              mask: radial-gradient(circle calc(var(--u) * 2.6) at 50% calc(var(--u) * 5), #000 98%, transparent) 0 0 / calc(var(--u) * 5.2) 100% repeat-x, linear-gradient(#000, #000) 0 0 / 100% calc(var(--u) * 5) no-repeat;
+      filter: drop-shadow(0 calc(var(--u) * 1) calc(var(--u) * 2) rgba(0,0,0,.8)); }
+    .curtain-title { position: absolute; z-index: 30; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; opacity: 0; transition: opacity .8s; }
+    .hall.closed .curtain-title { opacity: 1; transition-delay: 1.4s; }
+    .curtain-title small { font-family: var(--mono); font-size: calc(var(--u) * 1.8); letter-spacing: .5em; color: #ffd9a8; }
+    .curtain-title b { font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 11); line-height: .9; letter-spacing: .05em; color: #fff3dc;
+      text-shadow: 0 0 calc(var(--u) * 2) rgba(255,190,120,.8), 0 0 calc(var(--u) * 6) rgba(255,120,60,.5); }
+    .curtain-title span { display: block; margin-top: calc(var(--u) * 1.4); font-size: calc(var(--u) * 2.4); color: #f2d6c0; }
+
+    /* ── bottom bar ── */
+    .bar { position: relative; z-index: 40; display: flex; align-items: center; gap: calc(var(--u) * 4); height: calc(var(--u) * 8); padding: 0 calc(var(--u) * 4);
+      background: linear-gradient(#0a0a0a, #000); border-top: 1px solid rgba(255,255,255,.08); font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: .12em; color: var(--muted); }
+    .bar .screen-no { font-family: var(--display); font-size: calc(var(--u) * 3.6); letter-spacing: .06em; color: var(--ink); line-height: 1; }
+    .bar .now, .bar .next { display: flex; align-items: center; gap: calc(var(--u) * 1.2); white-space: nowrap; overflow: hidden; min-width: 0; }
+    .bar .now b, .bar .next b { font-family: var(--sans); letter-spacing: 0; color: var(--ink); font-size: calc(var(--u) * 2); overflow: hidden; text-overflow: ellipsis; }
+    .bar .now i { width: calc(var(--u) * 1); height: calc(var(--u) * 1); border-radius: 50%; background: #e0261b; box-shadow: 0 0 10px #e0261b; animation: blink 1.4s infinite; flex: none; }
+    .bar .next { flex: 1; }
+    .bar .q { margin-left: auto; white-space: nowrap; }
+    .bar .q b { color: var(--accent); font-size: calc(var(--u) * 2.2); }
+    .bar .clock { font-family: var(--display); font-size: calc(var(--u) * 3.2); color: var(--ink); letter-spacing: .04em; }
+    @keyframes blink { 50% { opacity: .2; } }
+
+    @media (orientation: portrait) {
+      .stage { padding: calc(var(--u) * 8) calc(var(--u) * 3) calc(var(--u) * 2); }
+      .screen { width: 100%; height: 100%; aspect-ratio: auto; }
+      .end { grid-template-columns: 1fr; text-align: center; justify-items: center; padding: calc(var(--u) * 4); align-content: center; }
+      .end img { height: calc(var(--u) * 50); }
+      .pre .card { width: 88%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="hall closed" id="hall">
+    <section class="stage">
+      <div class="screen" id="screen">
+        <div class="scene idle on" id="sIdle"><b>NEXT SHOWING<br>SOON</b><span>첫 번째 예고편을 기다리고 있어요</span></div>
+        <div class="scene pre" id="sPre"><div class="card">
+          <small>THE FOLLOWING PREVIEW</small>
+          <h3>다음 예고편</h3>
+          <p>이 예고편은 <b id="preDir"></b> 감독이<br>Seedance Cinema Lab 부스에서 만들었습니다.</p>
+          <div class="meta"><span>ALL AUDIENCES</span><span id="preSeed"></span><span>SEED · SEEDREAM · SEEDANCE</span></div>
+        </div></div>
+        <div class="scene play" id="sPlay">
+          <div class="bd" id="playBd"></div>
+          <video id="vid" muted playsinline preload="auto"></video>
+          <div class="tagbox" id="playTag"></div>
+          <div class="lower" id="playLower"><small>A FILM BY</small><b id="playDir"></b></div>
+          <div class="prog" id="prog"></div>
+        </div>
+        <div class="scene end" id="sEnd">
+          <img id="endImg" alt="">
+          <div class="t">
+            <small id="endGenre"></small>
+            <h2 id="endTitle"></h2>
+            <p class="tl" id="endTag"></p>
+            <div class="billing" id="endBill"></div>
+            <div class="soon">COMING SOON</div>
+          </div>
+        </div>
+      </div>
+      <div class="curtain l"></div><div class="curtain r"></div>
+      <div class="valance"></div>
+      <div class="curtain-title"><small>SEEDANCE CINEMA LAB</small><b>NOW SHOWING</b><span>부스 QR을 스캔하고 나만의 예고편을 만들어 보세요</span></div>
+    </section>
+    <footer class="bar">
+      <span class="screen-no">SCREEN 01</span>
+      <span class="now"><i></i>NOW <b id="nowT">—</b></span>
+      <span class="next">UP NEXT <b id="nextT">—</b></span>
+      <span class="q">상영 대기 <b id="qn">0</b>편</span>
+      <span class="clock" id="clock">--:--</span>
+    </footer>
+  </div>
+  <video id="pre" muted preload="auto" hidden></video>
+
+  <script type="module">
+    import { $, esc, pad, sleep, watchFeed, screenChrome, clock, preload } from '/screen/screen.js';
+
+    const chrome = screenChrome();
+    clock($('#clock'));
+    const PRE_MS = 4000, END_MS = 7000, MAX_VIDEO_MS = 40000;
+
+    let items = [];          // newest first (live trailers)
+    let known = null;
+    const fresh = [];        // new submissions — they jump the rotation
+    let rot = 0;
+    let current = null;
+
+    const hexRgb = (h) => { const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})/i.exec(h || ''); return m ? m.slice(1).map((x) => parseInt(x, 16)).join(',') : '212,255,58'; };
+    const show = (id) => document.querySelectorAll('.scene').forEach((s) => s.classList.toggle('on', s.id === id));
+    const alive = (it) => items.some((x) => x.id === it.id);
+
+    function pick() {
+      while (fresh.length) { const f = fresh.shift(); if (alive(f)) return f; }
+      if (!items.length) return null;
+      // Rotation oldest→newest pass over the list, skipping the one that just played.
+      for (let i = 0; i < items.length; i++) {
+        const it = items[rot++ % items.length];
+        if (items.length === 1 || it.id !== current?.id) return it;
+      }
+      return items[0];
+    }
+    function peek() {
+      const f = fresh.find(alive);
+      if (f) return f;
+      return items.length ? items[rot % items.length] : null;
+    }
+    function hud() {
+      const nx = peek();
+      $('#nowT').textContent = current ? `〈${current.title}〉 ${current.director} 감독` : '—';
+      $('#nextT').textContent = nx && nx.id !== current?.id ? `〈${nx.title}〉 ${nx.director} 감독` : '—';
+      $('#qn').textContent = fresh.filter(alive).length;
+    }
+
+    function playVideo(src) {
+      return new Promise((resolve) => {
+        const v = $('#vid');
+        let done = false;
+        const finish = () => { if (done) return; done = true; clearTimeout(t); v.onended = v.onerror = v.ontimeupdate = null; resolve(); };
+        const t = setTimeout(finish, MAX_VIDEO_MS);
+        v.onended = finish;
+        v.onerror = finish;
+        v.ontimeupdate = () => { if (current && !alive(current)) { v.pause(); return finish(); } if (v.duration) $('#prog').style.width = `${(100 * v.currentTime) / v.duration}%`; };
+        v.src = src;
+        v.currentTime = 0;
+        v.play().catch(() => setTimeout(finish, 3000));
+      });
+    }
+
+    async function feature(it) {
+      current = it;
+      hud();
+      await preload(it.poster);
+      // pre-show
+      $('#preDir').textContent = it.director;
+      $('#preSeed').textContent = `SEED NO.${pad(it.seed)}`;
+      show('sPre');
+      $('#hall').classList.remove('closed');
+      await sleep(PRE_MS);
+      // trailer
+      $('#playBd').style.backgroundImage = `url("${it.poster}")`;
+      $('#playTag').innerHTML = `<b style="--g:${esc(it.genre?.color || '')}">${esc(it.genre?.en || '')}</b><br>NO.${pad(it.seed)}`;
+      $('#playDir').textContent = `${it.director} 감독`;
+      $('#playLower').classList.remove('on');
+      $('#prog').style.width = '0';
+      show('sPlay');
+      setTimeout(() => $('#playLower').classList.add('on'), 900);
+      setTimeout(() => $('#playLower').classList.remove('on'), 5200);
+      await playVideo(it.video);
+      if (!alive(it)) return; // an operator hid it mid-show
+      // end title card
+      const rgb = hexRgb(it.genre?.color);
+      $('#sEnd').style.setProperty('--rgb', rgb);
+      $('#endImg').src = it.poster;
+      $('#endGenre').textContent = `${it.genre?.en || ''} · ${it.genre?.ko || ''}`;
+      $('#endTitle').textContent = `〈${it.title}〉`;
+      $('#endTag').textContent = it.tagline ? `“${it.tagline}”` : '';
+      $('#endBill').innerHTML = `DIRECTED BY <b>${esc(it.director)}</b> &nbsp; SCREENPLAY BY <b>Seed</b> &nbsp; KEY ART BY <b>Seedream</b> &nbsp; MOTION BY <b>Seedance</b><br>`
+        + `STARRING ${(it.keywords || []).map((k) => `<b>${esc(k)}</b>`).join(' · ')} &nbsp; SEED NO.${pad(it.seed)}`;
+      show('sEnd');
+      // warm up the next trailer while the end card is up
+      const nx = peek();
+      if (nx?.video) { $('#pre').src = nx.video; preload(nx.poster); }
+      await sleep(END_MS);
+    }
+
+    (async function program() {
+      for (;;) {
+        const it = pick();
+        if (!it) {
+          current = null; hud();
+          $('#hall').classList.add('closed');
+          show('sIdle');
+          await sleep(2000);
+          continue;
+        }
+        await feature(it);
+        // close the curtain between features when there is a premiere waiting
+        if (fresh.some(alive)) { $('#hall').classList.add('closed'); await sleep(2600); }
+        if (chrome.stale()) location.reload();
+      }
+    })();
+
+    watchFeed('trailer', (list) => {
+      if (known) for (const it of [...list].reverse()) if (!known.has(it.id)) fresh.push(it);
+      known = new Set([...(known || []), ...list.map((x) => x.id)]);
+      items = list;
+      hud();
+    });
+  </script>
+</body>
+</html>

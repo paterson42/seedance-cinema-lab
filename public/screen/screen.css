@@ -1,0 +1,34 @@
+/* Shared base for the on-site big screens. Everything is sized in --u
+   (1/100 of a 16:9 frame's height) so it scales from a laptop to an LED wall. */
+:root {
+  --u: min(1vh, 0.5625vw);
+  --accent: #d4ff3a;
+  --ink: #f4f1ea;
+  --muted: #a39f94;
+  --bg: #050405;
+  --display: 'Bebas Neue', 'Black Han Sans', sans-serif;
+  --kr: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sans: 'Noto Sans KR', system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+body.no-cursor, body.no-cursor * { cursor: none !important; }
+img, video { display: block; }
+
+.grain { position: fixed; inset: -50%; pointer-events: none; z-index: 90; opacity: .07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1.2s steps(6) infinite; }
+@keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); } 60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); } }
+
+.scr-hint { position: fixed; left: 50%; bottom: calc(var(--u) * 3); transform: translateX(-50%); z-index: 100;
+  font-family: var(--mono); font-size: calc(var(--u) * 1.5); letter-spacing: .06em; color: var(--muted);
+  background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.15); border-radius: 99px; padding: calc(var(--u) * .8) calc(var(--u) * 2);
+  transition: opacity .6s; }
+.scr-hint.out { opacity: 0; pointer-events: none; }
+.scr-offline { position: fixed; right: calc(var(--u) * 2); top: calc(var(--u) * 2); z-index: 100; font-family: var(--mono); font-size: calc(var(--u) * 1.3);
+  color: #ffb3a8; background: rgba(60,0,0,.75); border: 1px solid rgba(255,90,70,.4); border-radius: 6px; padding: calc(var(--u) * .5) calc(var(--u) * 1.2); }
+.scr-offline[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

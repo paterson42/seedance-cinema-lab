@@ -1,0 +1,14 @@
+{
+  "name": "seedance-seoul-cinema-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seedance Seoul Cinema Lab — 체험 부스용 인터랙티브 웹 서비스 (포스터: Seedream, 트레일러: Seedance, 결과 전달: 카카오톡)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning server/index.js",
+    "dev": "node --no-warnings=ExperimentalWarning --watch server/index.js"
+  }
+}

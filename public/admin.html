@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cinema Lab 운영자</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { --bg:#0b0b0c; --panel:#141416; --line:rgba(255,255,255,.1); --text:#eee; --muted:#999; --accent:#d4ff3a; --bad:#ff6b5a; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2; gap:12px; flex-wrap:wrap; }
+    h1 { font-size:16px; margin:0; } h2 { font-size:13px; letter-spacing:.08em; color:var(--muted); margin:0 0 12px; text-transform:uppercase; }
+    main { padding:20px; display:grid; gap:16px; max-width:1200px; margin:0 auto; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; overflow:auto; }
+    .stat b { display:block; font-size:28px; font-variant-numeric: tabular-nums; }
+    .stat span { color:var(--muted); font-size:12px; }
+    .pill { font:11px ui-monospace, Menlo, monospace; padding:3px 8px; border-radius:99px; border:1px solid var(--line); }
+    .pill.live { color:var(--accent); border-color:var(--accent); }
+    table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    th { color:var(--muted); font-weight:500; }
+    .bar { height:22px; background:rgba(212,255,58,.15); border-radius:4px; position:relative; }
+    .bar i { position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:4px; opacity:.75; }
+    .bar span { position:relative; padding-left:8px; line-height:22px; color:#000; font-weight:600; mix-blend-mode:difference; filter:invert(1); }
+    .funnel { display:grid; grid-template-columns:150px 1fr 60px; gap:6px 12px; align-items:center; }
+    .ok { color:var(--accent); } .bad { color:var(--bad); }
+    textarea { width:100%; min-height:420px; background:#0e0e10; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:12px; font:12px/1.5 ui-monospace, Menlo, monospace; }
+    button, input { font:inherit; color:inherit; }
+    button { background:var(--accent); color:#000; border:0; border-radius:8px; padding:8px 14px; font-weight:700; cursor:pointer; }
+    input { background:#0e0e10; border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+    a { color:var(--accent); }
+    .muted { color:var(--muted); }
+    #login { max-width:360px; margin:15vh auto; display:grid; gap:10px; padding:0 20px; }
+    pre { white-space:pre-wrap; margin:0; font-size:12px; }
+    .shots { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
+    .shot { border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#0e0e10; }
+    .shot img { display:block; width:100%; aspect-ratio:2/3; object-fit:cover; }
+    .shot .b { padding:10px; display:grid; gap:6px; font-size:12px; }
+    .shot .b b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .shot .row { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+    .shot button { padding:5px 9px; font-size:11.5px; }
+    .shot button.off { background:#2a2a2e; color:var(--text); }
+    .s-live { color:var(--accent); } .s-hidden { color:var(--bad); } .s-pending { color:#ffc04d; }
+  </style>
+</head>
+<body>
+  <div id="login" hidden>
+    <h1>운영자 토큰</h1>
+    <p class="muted">서버 콘솔에 출력된 admin 토큰(또는 .env 의 ADMIN_TOKEN)을 입력하세요.</p>
+    <input id="tok" type="password" autocomplete="off">
+    <button id="go">접속</button>
+  </div>
+  <div id="dash" hidden>
+    <header>
+      <h1>Seedance Cinema Lab · 운영자</h1>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="pill" id="mode"></span><span class="pill" id="models"></span><span class="pill" id="kakaoP"></span>
+        <span class="muted" id="updated"></span>
+      </div>
+    </header>
+    <main>
+      <div class="grid" id="stats"></div>
+      <div class="card"><h2>퍼널 (세션 수 기준)</h2><div class="funnel" id="funnel"></div></div>
+      <div class="card">
+        <h2>대형 스크린 — 제출된 포스터 · 트레일러</h2>
+        <p class="muted" id="screenNote"></p>
+        <div class="shots" id="screen"></div>
+      </div>
+      <div class="card"><h2>최근 체험 (최대 50)</h2><table id="recent"></table></div>
+      <div class="card"><h2>카카오톡 발송 기록</h2><table id="outbox"></table></div>
+      <div class="card"><h2>최근 생성 실패</h2><table id="failures"></table></div>
+      <div class="card">
+        <h2>콘텐츠 관리 — 장르 · 키워드 풀 · 안내 문구 (config/content.json)</h2>
+        <p class="muted">저장 즉시 반영됩니다. 이전 버전은 content.json.bak 으로 보관돼요. 키워드 수/카테고리 내용은 자유롭게 조정할 수 있지만 카테고리 6개(who·when·where·what·how·why)와 what 의 n(제목용 명사)은 필수입니다.</p>
+        <textarea id="content" spellcheck="false"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px"><button id="save">콘텐츠 저장</button><span id="saveMsg" class="muted"></span></div>
+      </div>
+    </main>
+  </div>
+<script>
+const qs = new URLSearchParams(location.search);
+let token = qs.get('token') || sessionStorage.getItem('scl_admin') || '';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const t = (ms) => ms ? new Date(ms).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+const req = (path, opts = {}) => fetch(path, { ...opts, headers: { 'x-admin-token': token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+const NAMES = { session_start: '진입(QR)', phone_ok: '번호 입력', genre_selected: '장르 선택', story_built: '스토리/프롬프트', poster_requested: '포스터 요청', poster_done: '포스터 완성', video_requested: '영상 요청', video_done: '영상 완성', kakao_sent: '카카오톡 발송', result_viewed: '결과 링크 열람' };
+const st = (s) => `<span class="${s === 'done' || s === 'sent' || s === 'mock_sent' ? 'ok' : s === 'failed' ? 'bad' : ''}">${esc(s || '-')}</span>`;
+
+async function load() {
+  const r = await req('/api/admin/stats');
+  if (r.status === 401) return showLogin();
+  const d = await r.json();
+  sessionStorage.setItem('scl_admin', token);
+  if (qs.has('token')) history.replaceState(null, '', '/admin');
+  $('#login').hidden = true; $('#dash').hidden = false;
+  $('#mode').textContent = d.mode === 'mock' ? 'DEMO (MOCK)' : 'LIVE';
+  $('#mode').className = 'pill ' + (d.mode === 'mock' ? '' : 'live');
+  $('#models').textContent = `${d.models.image} · ${d.models.video}`;
+  $('#kakaoP').textContent = `kakao: ${d.kakaoProvider}`;
+  $('#updated').textContent = '갱신 ' + new Date().toLocaleTimeString('ko-KR');
+  const stats = [
+    ['리드(번호)', d.leads], ['고유 번호', d.uniquePhones],
+    ['포스터 대기/생성', `${d.queue.posterQueued} / ${d.queue.posterRunning}`], ['영상 대기/생성', `${d.queue.videoQueued} / ${d.queue.videoRunning}`],
+    ['평균 포스터(초)', d.avgPosterSec ?? '-'], ['평균 영상(초)', d.avgVideoSec ?? '-'],
+  ];
+  $('#stats').innerHTML = stats.map(([k, v]) => `<div class="card stat"><b>${esc(v)}</b><span>${k}</span></div>`).join('');
+  const max = Math.max(1, ...d.funnel.map((f) => f.sessions));
+  $('#funnel').innerHTML = d.funnel.map((f) => `<span>${NAMES[f.name] || f.name}</span><div class="bar"><i style="width:${(f.sessions / max) * 100}%"></i></div><b style="text-align:right">${f.sessions}</b>`).join('');
+  $('#recent').innerHTML = `<tr><th>시간</th><th>번호</th><th>감독</th><th>장르</th><th>제목</th><th>포스터</th><th>영상</th><th>카톡</th><th>마케팅</th><th>결과</th></tr>` +
+    d.recent.map((s) => `<tr><td>${t(s.created)}</td><td>${esc(s.phone)}</td><td>${esc(s.director)}</td><td>${esc(s.genre)}</td><td>${esc(s.title)}</td><td>${st(s.poster)}</td><td>${st(s.video)}</td><td>${st(s.kakao)}</td><td>${s.marketing ? 'Y' : ''}</td><td>${s.result ? `<a href="${esc(s.result)}" target="_blank">열기</a>` : ''}</td></tr>`).join('');
+  $('#outbox').innerHTML = `<tr><th>시간</th><th>수신</th><th>템플릿</th><th>상태</th><th>메시지</th></tr>` +
+    d.outbox.map((o) => { const p = JSON.parse(o.payload || '{}'); return `<tr><td>${t(o.ts)}</td><td>${esc(o.phone_masked)}</td><td>${esc(o.template)}</td><td>${st(o.status)}${o.error ? `<br><small class="bad">${esc(o.error)}</small>` : ''}</td><td><pre>${esc(p.text)}\n${esc(p.variables?.link)}</pre></td></tr>`; }).join('');
+  $('#failures').innerHTML = `<tr><th>시간</th><th>종류</th><th>내용</th></tr>` + d.failures.map((f) => `<tr><td>${t(f.ts)}</td><td>${esc(f.name)}</td><td><pre>${esc(f.meta)}</pre></td></tr>`).join('');
+}
+
+const SL = { live: '상영 중', hidden: '숨김', pending: '승인 대기' };
+async function loadScreen() {
+  const r = await req('/api/admin/screen');
+  if (!r.ok) return;
+  const d = await r.json();
+  $('#screenNote').innerHTML = `${d.autoApprove ? '자동 승인 중 — 제출 즉시 상영됩니다. 부적절한 작품은 숨기기를 눌러 바로 내릴 수 있어요.' : '수동 승인 모드 — 승인해야 상영됩니다.'} (SCREEN_AUTO_APPROVE) · 화면 주소: <a href="/screen/poster" target="_blank">/screen/poster</a> · <a href="/screen/trailer" target="_blank">/screen/trailer</a>`;
+  const ctl = (it, kind, status) => !status ? '<span class="muted">-</span>'
+    : `<span class="s-${status}">${SL[status]}</span> <button class="${status === 'live' ? 'off' : ''}" data-id="${esc(it.id)}" data-kind="${kind}" data-to="${status === 'live' ? 'hidden' : 'live'}">${status === 'live' ? '숨기기' : '상영'}</button>`;
+  $('#screen').innerHTML = d.items.length ? d.items.map((it) => `<div class="shot"><img src="${esc(it.poster)}" alt="" loading="lazy"><div class="b">
+      <b>〈${esc(it.title)}〉</b><span class="muted">${esc(it.director)} · ${esc(it.genre?.ko)} · ${t(Math.max(it.posterAt || 0, it.trailerAt || 0))}</span>
+      <div class="row"><span>포스터</span><span>${ctl(it, 'poster', it.posterStatus)}</span></div>
+      <div class="row"><span>트레일러</span><span>${ctl(it, 'trailer', it.trailerStatus)}</span></div></div></div>`).join('')
+    : '<p class="muted">아직 제출된 작품이 없어요.</p>';
+}
+$('#screen').onclick = async (e) => {
+  const b = e.target.closest('button[data-id]');
+  if (!b) return;
+  b.disabled = true;
+  await req('/api/admin/screen', { method: 'POST', body: JSON.stringify({ id: b.dataset.id, kind: b.dataset.kind, status: b.dataset.to }) });
+  loadScreen();
+};
+
+async function loadContent() {
+  const r = await req('/api/admin/content');
+  if (r.ok) $('#content').value = JSON.stringify(await r.json(), null, 2);
+}
+
+function showLogin() { $('#dash').hidden = true; $('#login').hidden = false; }
+$('#go').onclick = () => { token = $('#tok').value.trim(); load().then(loadContent).then(loadScreen); };
+$('#save').onclick = async () => {
+  let body;
+  try { body = JSON.parse($('#content').value); } catch (e) { $('#saveMsg').textContent = 'JSON 형식 오류: ' + e.message; return; }
+  const r = await req('/api/admin/content', { method: 'PUT', body: JSON.stringify(body) });
+  const d = await r.json();
+  $('#saveMsg').textContent = r.ok ? '저장 완료 ✓' : d.error;
+};
+if (token) load().then(loadContent).then(loadScreen); else showLogin();
+setInterval(() => { if (!$('#dash').hidden) { load(); loadScreen(); } }, 10000);
+</script>
+</body>
+</html>

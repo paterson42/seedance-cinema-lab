@@ -1,0 +1,8 @@
+node_modules/
+data/
+.env
+config/content.json.bak
+.DS_Store
+
+# internal planning document (kept locally, not published)
+*PRD.md
