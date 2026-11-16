@@ -1,6 +1,7 @@
 // BytePlus ModelArk adapters: Seed (LLM), Seedream (image), Seedance (video).
 // When config.mock is true, every call is served locally (ffmpeg if available) so the
 // whole booth flow can be rehearsed without an API key.
+// "poster" = the ad key visual (2:3), "video" = the short-form ad made from it.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -176,32 +177,45 @@ async function mockImage({ seed, genreId }) {
   const [accent, dark] = g.palette;
   const out = path.join(MEDIA_DIR, `_mock_${seed}_${Date.now()}.jpg`);
   if (await hasFfmpeg()) {
+    // Studio backdrop + spotlight, a podium, and a product silhouette (bottle / can / box by seed).
     const W = 800, H = 1200;
-    const s = seed % 1000;
-    const cx = 0.25 + ((seed % 97) / 97) * 0.5;
-    const cy = 0.18 + ((seed % 53) / 53) * 0.2;
-    // Gradient sky + glowing orb + layered ridge silhouettes, then grain + vignette.
     const [ar, ag, ab] = rgb(accent), [dr, dg, db] = rgb(dark);
-    const t = `pow(1-Y/H\\,1.6)`;
-    const glow = `exp(-(pow(X-${W * cx}\\,2)+pow(Y-${H * cy}\\,2))/${Math.round((W * 0.45) ** 2)})`;
-    const ch = (a, d) => `'min(255\\,${a}*${t}*0.75+${d}*(1-${t})+${a}*0.6*${glow})'`;
+    const cx = W / 2, gy = H * 0.3;
+    const shape = seed % 3;
+    const bw = [150, 210, 280][shape], bh = [400, 330, 300][shape];
+    const capW = [70, 190, 0][shape], capH = [70, 18, 0][shape];
+    const floorY = H * 0.56, top = floorY - bh, pr = 250, pe = 46;
+    const t = 'pow(1-Y/H,1.4)';
+    const glow = `exp(-(pow(X-${cx},2)+pow(Y-${gy},2))/${Math.round((W * 0.5) ** 2)})`;
+    const bg = (a, d) => `'min(255,${a}*${t}*0.45+${d}*(1-${t})+${a}*0.75*${glow})'`;
+    const inTop = `lte(pow((X-${cx})/${pr},2)+pow((Y-${floorY})/${pe},2),1)`;
+    const inBase = `lte(pow((X-${cx})/${pr},2)+pow((Y-${floorY + 90})/${pe},2),1)`;
+    const inSide = `between(X,${cx - pr},${cx + pr})*between(Y,${floorY},${floorY + 90})`;
+    const pod = (a, d) => `'if(${inTop},${Math.round(a * 0.55 + 110)},${Math.round(a * 0.25 + d)}*(1-0.5*pow((X-${cx})/${pr},2)))'`;
+    const inBody = `between(X,${cx - bw / 2},${cx + bw / 2})*between(Y,${top},${floorY})`;
+    const inCap = capW ? `between(X,${cx - capW / 2},${cx + capW / 2})*between(Y,${top - capH},${top})` : '0';
+    const inLabel = `between(Y,${top + bh * 0.3},${top + bh * 0.68})`;
+    const shade = `(1-0.45*pow((X-${cx})/${bw / 2},2))`;
+    const prod = (a) => `'if(${inCap},70,if(${inLabel},${a},238)*${shade})'`;
     const filter = [
-      `color=c=black:s=${W}x${H}:d=1,format=rgb24,geq=r=${ch(ar, dr)}:g=${ch(ag, dg)}:b=${ch(ab, db)}[sky]`,
-      `color=c=black@0:s=${W}x${H}:d=1,format=rgba,geq=r=255:g=255:b=235:a='255*exp(-(pow(X-${W * cx}\\,2)+pow(Y-${H * cy}\\,2))/${Math.round((W * 0.07) ** 2)})'[orb]`,
-      `color=c=black@0:s=${W}x${H}:d=1,format=rgba,geq=r=8:g=8:b=12:a='if(gt(Y,${H * 0.62}+${H * 0.05}*sin(X/${61 + (s % 30)}+${s})+${H * 0.02}*sin(X/${19 + (s % 11)})),200,0)'[ridge1]`,
-      `color=c=black@0:s=${W}x${H}:d=1,format=rgba,geq=r=0:g=0:b=0:a='if(gt(Y,${H * 0.74}+${H * 0.04}*sin(X/${43 + (s % 20)}+${s * 2})+${H * 0.012}*sin(X/7)),255,0)'[ridge2]`,
-      `[sky][orb]overlay[a];[a][ridge1]overlay[b];[b][ridge2]overlay,noise=alls=14:allf=t,vignette=PI/3.2[out]`,
+      `color=c=black:s=${W}x${H}:d=1,format=rgb24,geq=r=${bg(ar, dr)}:g=${bg(ag, dg)}:b=${bg(ab, db)}[bg]`,
+      `color=c=black@0:s=${W}x${H}:d=1,format=rgba,geq=r=${pod(ar, dr)}:g=${pod(ag, dg)}:b=${pod(ab, db)}:a='255*gt(${inTop}+${inBase}+${inSide},0)'[pod]`,
+      `color=c=black@0:s=${W}x${H}:d=1,format=rgba,geq=r=${prod(ar)}:g=${prod(ag)}:b=${prod(ab)}:a='255*gt(${inBody}+${inCap},0)'[prod]`,
+      '[bg][pod]overlay[a];[a][prod]overlay,noise=alls=10:allf=t,vignette=PI/3.6[out]',
     ].join(';');
     await run('ffmpeg', ['-y', '-v', 'error', '-filter_complex', filter, '-map', '[out]', '-frames:v', '1', '-q:v', '3', out]);
     const buffer = fs.readFileSync(out);
     fs.unlinkSync(out);
     return { buffer, ext: 'jpg' };
   }
-  // No ffmpeg: a simple SVG poster background.
+  // No ffmpeg: a simple SVG key-visual background (product on a podium).
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
-<defs><radialGradient id="g" cx="50%" cy="25%" r="80%"><stop offset="0" stop-color="${accent}"/><stop offset=".55" stop-color="${dark}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
-<rect width="800" height="1200" fill="url(#g)"/><circle cx="${300 + (seed % 200)}" cy="300" r="90" fill="#fff" opacity=".85"/>
-<path d="M0 820 Q200 700 400 800 T800 760 V1200 H0Z" fill="#000" opacity=".8"/><path d="M0 930 Q250 850 500 930 T800 900 V1200 H0Z" fill="#000"/></svg>`;
+<defs><radialGradient id="g" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="${accent}"/><stop offset=".6" stop-color="${dark}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
+<rect width="800" height="1200" fill="url(#g)"/>
+<ellipse cx="400" cy="1002" rx="250" ry="46" fill="#000" opacity=".55"/><rect x="150" y="912" width="500" height="90" fill="#000" opacity=".55"/>
+<ellipse cx="400" cy="912" rx="250" ry="46" fill="#fff" opacity=".5"/>
+<rect x="${325 - (seed % 3) * 30}" y="560" width="${150 + (seed % 3) * 60}" height="352" rx="14" fill="#eeeee6"/>
+<rect x="${325 - (seed % 3) * 30}" y="670" width="${150 + (seed % 3) * 60}" height="130" fill="${accent}"/></svg>`;
   return { buffer: Buffer.from(svg), ext: 'svg' };
 }
 

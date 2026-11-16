@@ -26,13 +26,13 @@ export function kakaoEnabled() {
 export async function sendTrailerReady(session) {
   if (!session.phone_enc) return 'skipped';
   const link = `${config.publicBaseUrl}/r/${session.result_token}`;
-  const title = session.story?.title || '나의 영화';
-  const director = session.director || 'YOU';
+  const title = session.story?.title || '나의 신상품';
+  const director = session.director || 'MY BRAND';
   const payload = {
     template_code: config.kakao.templateCode,
-    variables: { director, title, link },
-    text: `[Seedance Cinema Lab]\n${director} 감독님의 영화 <${title}> 트레일러가 완성되었습니다!\n\n아래 버튼을 눌러 포스터와 트레일러를 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
-    buttons: [{ type: 'WL', name: '내 영화 보러가기', url_mobile: link, url_pc: link }],
+    variables: { brand: director, director, title, link },
+    text: `[Seedance Commerce Lab]\n${director} 브랜드의 신상품 <${title}> 광고 영상이 완성되었습니다!\n\n아래 버튼을 눌러 키비주얼과 광고 영상을 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
+    buttons: [{ type: 'WL', name: '내 광고 보러가기', url_mobile: link, url_pc: link }],
   };
 
   if (config.kakao.provider !== 'webhook') {

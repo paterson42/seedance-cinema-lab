@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "cinema-lab",
+      "name": "commerce-lab",
       "runtimeExecutable": "/Users/bytedance/.local/node/bin/node",
       "runtimeArgs": ["--no-warnings=ExperimentalWarning", "--watch", "server/index.js"],
       "port": 3000

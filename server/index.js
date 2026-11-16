@@ -50,7 +50,7 @@ function cookies(req) {
 
 const SECURE = config.publicBaseUrl.startsWith('https');
 function sessionCookie(id) {
-  return `scl_sid=${id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
+  return `scm_sid=${id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
 }
 
 const routes = [];
@@ -141,7 +141,7 @@ function resultView(s) {
 
 // ───────────── session helpers ─────────────
 function current(req) {
-  return getSession(cookies(req).scl_sid);
+  return getSession(cookies(req).scm_sid);
 }
 function requireSession(req, { phone = true } = {}) {
   const s = current(req);
@@ -198,7 +198,7 @@ route('POST', '/api/session/phone', async (req, res) => {
 route('POST', '/api/session/genre', async (req, res) => {
   const s = requireSession(req);
   const { genre } = await readBody(req);
-  if (!getContent().genres.some((g) => g.id === genre)) fail(400, '장르를 다시 선택해 주세요.');
+  if (!getContent().genres.some((g) => g.id === genre)) fail(400, '광고 무드를 다시 선택해 주세요.');
   const updated = updateSession(s.id, { genre });
   logEvent(s.id, 'genre_selected', { genre });
   json(res, 200, { session: sessionView(updated) });
@@ -206,11 +206,11 @@ route('POST', '/api/session/genre', async (req, res) => {
 
 route('POST', '/api/story', async (req, res) => {
   const s = requireSession(req);
-  if (!s.genre) fail(400, '장르를 먼저 선택해 주세요.');
+  if (!s.genre) fail(400, '광고 무드를 먼저 선택해 주세요.');
   rateLimit(`story:${s.id}`, 30, 600000);
   const { keywords, director: rawDirector } = await readBody(req);
   const director = String(rawDirector || '').replace(/[<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
-  if (!director) fail(400, '감독 이름을 입력해 주세요.', 'NO_DIRECTOR');
+  if (!director) fail(400, '브랜드 이름을 입력해 주세요.', 'NO_DIRECTOR');
   if (containsBanned(director)) fail(400, '다른 이름을 입력해 주세요.', 'BANNED');
   const seed = crypto.randomInt(1, 1000000);
   const built = await buildStory({ genreId: s.genre, keywordIdx: keywords, director, seed });
@@ -225,9 +225,9 @@ route('POST', '/api/story', async (req, res) => {
 
 route('POST', '/api/poster', async (req, res) => {
   const s = requireSession(req);
-  if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 이야기를 만들어 주세요.');
+  if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 광고 카피를 만들어 주세요.');
   if (['queued', 'running'].includes(s.poster_status)) return json(res, 200, { session: sessionView(s) });
-  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
+  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 키비주얼 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
     updateSession(s.id, { result_token: token(16), result_expires_at: Date.now() + config.resultTtlDays * 86400000 });
   }
@@ -238,7 +238,7 @@ route('POST', '/api/poster', async (req, res) => {
 
 route('POST', '/api/poster/final', async (req, res) => {
   const s = requireSession(req);
-  if (s.poster_status !== 'done') fail(400, '포스터가 아직 준비되지 않았어요.');
+  if (s.poster_status !== 'done') fail(400, '키비주얼이 아직 준비되지 않았어요.');
   const { dataUrl } = await readBody(req, 8 * 1024 * 1024);
   const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
   if (!m) fail(400, '이미지 형식이 올바르지 않아요.');
@@ -250,7 +250,7 @@ route('POST', '/api/poster/final', async (req, res) => {
 
 route('POST', '/api/video', async (req, res) => {
   const s = requireSession(req);
-  if (s.poster_status !== 'done' || !s.poster_file) fail(400, '포스터를 먼저 만들어 주세요.');
+  if (s.poster_status !== 'done' || !s.poster_file) fail(400, '키비주얼을 먼저 만들어 주세요.');
   if (['queued', 'submitting', 'running'].includes(s.video_status)) return json(res, 200, { session: sessionView(s) });
   if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
@@ -266,7 +266,7 @@ route('GET', '/api/result/:token', async (req, res, { token: t }) => {
   const s = getSessionByToken(t);
   if (!s || s.poster_status !== 'done') fail(404, '결과를 찾을 수 없어요.', 'NOT_FOUND');
   if (s.result_expires_at && s.result_expires_at < Date.now()) fail(410, '결과 링크 보관 기간이 지났어요.', 'EXPIRED');
-  const own = cookies(req).scl_sid === s.id;
+  const own = cookies(req).scm_sid === s.id;
   json(res, 200, { result: resultView(s), own });
 });
 
@@ -276,13 +276,13 @@ route('POST', '/api/lookup', async (req, res) => {
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요.', 'BAD_PHONE');
   const name = String(director || '').replace(/\s+/g, ' ').trim();
-  if (!name) fail(400, '체험할 때 입력한 감독 이름을 입력해 주세요.');
+  if (!name) fail(400, '체험할 때 입력한 브랜드 이름을 입력해 주세요.');
   const rows = query(
     "SELECT * FROM sessions WHERE phone_hash = ? AND poster_status = 'done' AND result_token IS NOT NULL ORDER BY created_at DESC LIMIT 10",
     hashPhone(p),
   ).filter((s) => (s.director || '').toLowerCase() === name.toLowerCase() && (!s.result_expires_at || s.result_expires_at > Date.now()));
   logEvent(null, rows.length ? 'lookup_ok' : 'lookup_miss');
-  if (!rows.length) fail(404, '일치하는 결과가 없어요. 번호와 감독 이름을 다시 확인해 주세요.', 'NOT_FOUND');
+  if (!rows.length) fail(404, '일치하는 결과가 없어요. 번호와 브랜드 이름을 다시 확인해 주세요.', 'NOT_FOUND');
   json(res, 200, {
     results: rows.map((s) => ({
       url: `/r/${s.result_token}`, title: s.story?.title, genre: s.story?.genre?.ko,
@@ -291,7 +291,8 @@ route('POST', '/api/lookup', async (req, res) => {
   });
 });
 
-// ───────────── Big screens (lobby poster wall / trailer screen) ─────────────
+// ───────────── Big screens (ad wall / ad-break screen) ─────────────
+// Internal kinds stay 'poster' (key visual) and 'trailer' (ad video).
 const SCREEN_KINDS = { poster: ['screen_poster', 'screen_poster_at'], trailer: ['screen_video', 'screen_video_at'] };
 
 route('POST', '/api/screen/submit', async (req, res) => {
@@ -303,8 +304,8 @@ route('POST', '/api/screen/submit', async (req, res) => {
   if (!s) fail(401, '세션이 만료되었어요. 결과 링크로 다시 들어와 주세요.', 'NO_SESSION');
   if (t && s.result_expires_at && s.result_expires_at < Date.now()) fail(410, '결과 링크 보관 기간이 지났어요.', 'EXPIRED');
   rateLimit(`screen:${s.id}`, 20, 600000);
-  if (s.poster_status !== 'done') fail(400, '포스터가 아직 준비되지 않았어요.');
-  if (kind === 'trailer' && s.video_status !== 'done') fail(400, '트레일러가 완성되면 상영할 수 있어요.');
+  if (s.poster_status !== 'done') fail(400, '키비주얼이 아직 준비되지 않았어요.');
+  if (kind === 'trailer' && s.video_status !== 'done') fail(400, '광고 영상이 완성되면 송출할 수 있어요.');
   const [col, atCol] = cols;
   if (!s[col]) {
     updateSession(s.id, {
@@ -488,7 +489,7 @@ const server = http.createServer(async (req, res) => {
       const name = path.basename(p);
       if (name.startsWith('_') || !serveFile(req, res, path.join(MEDIA_DIR, name), {
         cache: 'public, max-age=604800, immutable',
-        download: url.searchParams.get('dl') ? `seedance-cinema-${name.slice(0, 6)}${path.extname(name)}` : undefined,
+        download: url.searchParams.get('dl') ? `seedance-commerce-${name.slice(0, 6)}${path.extname(name)}` : undefined,
       })) fail(404, 'not found');
       return;
     }
@@ -498,7 +499,7 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith('/r/')) {
       const s = getSessionByToken(p.slice(3));
       return serveIndex(res, s?.story ? {
-        title: `${s.story.title} — A FILM BY ${s.director}`,
+        title: `${s.story.title} — ${s.director}`,
         description: s.story.tagline,
         image: media(s.poster_final_file || s.poster_file),
       } : null);
@@ -516,7 +517,7 @@ const server = http.createServer(async (req, res) => {
 
 startJobs();
 server.listen(config.port, () => {
-  console.log(`\n🎬 Seedance Seoul Cinema Lab  →  http://localhost:${config.port}`);
+  console.log(`\n🛍️  Seedance Seoul Commerce Lab  →  http://localhost:${config.port}`);
   console.log(`   mode: ${config.mock ? 'MOCK (데모 — ARK_API_KEY 미설정)' : 'LIVE'}  ·  kakao: ${config.kakao.provider}`);
   console.log(`   admin: http://localhost:${config.port}/admin?token=${config.adminToken}`);
   console.log(`   screens: http://localhost:${config.port}/screen/poster  ·  /screen/trailer\n`);

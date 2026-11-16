@@ -1,8 +1,16 @@
-// Shared helpers for the on-site big screens (/screen/poster, /screen/trailer).
+// Shared helpers for the on-site big screens (/screen/poster = ad wall, /screen/trailer = ad showcase).
 export const $ = (sel, el = document) => el.querySelector(sel);
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export const pad = (n, w = 6) => String(n ?? 0).padStart(w, '0');
+export const won = (n) => `${Number(n).toLocaleString('ko-KR')}원`;
+// Same fictional price tag the booth client prints on the key visual (derived from the SEED NO.).
+export function offer(seed) {
+  const s = Number(seed) || 1;
+  const off = [15, 20, 25, 30, 35, 40, 50][s % 7];
+  const price = (9 + (s % 90)) * 1000 + 900;
+  return { off, price, was: Math.round(price / (1 - off / 100) / 1000) * 1000 };
+}
 
 const params = new URLSearchParams(location.search);
 const key = params.get('key');
@@ -12,7 +20,7 @@ const key = params.get('key');
 export function watchFeed(kind, onItems, everyMs = 6000) {
   const dot = document.createElement('div');
   dot.className = 'scr-offline';
-  dot.textContent = 'OFFLINE · 마지막 목록으로 상영 중';
+  dot.textContent = 'OFFLINE · 마지막 목록으로 송출 중';
   dot.hidden = true;
   document.body.append(dot);
   (async function loop() {

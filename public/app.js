@@ -1,9 +1,19 @@
-// Seedance Seoul Cinema Lab — booth client (vanilla JS, mobile first)
+// Seedance Seoul Commerce Lab — booth client (vanilla JS, mobile first)
+// Internal names follow the original flow: genre = ad mood, director = brand name,
+// poster = ad key visual, trailer/video = short-form ad, ticket = product card.
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const pad = (n, w = 6) => String(n ?? 0).padStart(w, '0');
+const won = (n) => `${Number(n).toLocaleString('ko-KR')}원`;
+// Playful, fictional price tag derived from the SEED NO. (same on poster, card and big screens).
+function offer(seed) {
+  const s = Number(seed) || 1;
+  const off = [15, 20, 25, 30, 35, 40, 50][s % 7];
+  const price = (9 + (s % 90)) * 1000 + 900;
+  return { off, price, was: Math.round(price / (1 - off / 100) / 1000) * 1000 };
+}
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // ───────────────────────── icons ─────────────────────────
@@ -12,6 +22,7 @@ const ICONS = {
   download: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
   share: '<path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"/><path d="M12 14V3"/><path d="m8 7 4-4 4 4"/>',
   play: '<path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor" stroke="none"/>',
+  tag: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>',
   ticket: '<path d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4z"/><path d="M14 6v2M14 11v2M14 16v2"/>',
   screen: '<rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/><path d="m10.2 8 4 2.2-4 2.2z" fill="currentColor" stroke="none"/>',
   sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" stroke="none"/>',
@@ -29,14 +40,14 @@ const S = {
   pollId: 0,
   posterData: null, // composed poster dataURL
   posterFor: null,  // raw url the composition was made from
-  takes: {},        // clapperboard TAKE count per scene
+  takes: {},        // clapperboard TAKE count per step
   booth: false,
 };
 
 try {
   const q = new URLSearchParams(location.search);
-  if (q.has('booth')) localStorage.setItem('scl_booth', q.get('booth') === '0' ? '0' : '1');
-  S.booth = localStorage.getItem('scl_booth') === '1';
+  if (q.has('booth')) localStorage.setItem('scm_booth', q.get('booth') === '0' ? '0' : '1');
+  S.booth = localStorage.getItem('scm_booth') === '1';
 } catch {}
 
 // ───────────────────────── network ─────────────────────────
@@ -103,18 +114,18 @@ function handleError(e, fallbackView) {
 // ───────────────────────── routing ─────────────────────────
 const STEP_OF = { landing: 1, lookup: 1, genre: 2, cast: 3, story: 4, poster: 5, trailer: 6, waiting: 6, done: 6 };
 
-// Film-production names for each step (shown on the clapperboard and scene labels).
+// Ad-production names for each step (shown on the clapperboard and step labels).
 const SCENES = {
-  genre: { n: 1, ko: '장르', en: 'GENRE' },
-  cast: { n: 2, ko: '캐스팅', en: 'CASTING' },
-  story: { n: 3, ko: '시나리오', en: 'SCRIPT' },
+  genre: { n: 1, ko: '브리프', en: 'BRIEF' },
+  cast: { n: 2, ko: '컨셉', en: 'CONCEPT' },
+  story: { n: 3, ko: '카피', en: 'COPY' },
   poster: { n: 4, ko: '촬영', en: 'SHOOTING', action: true },
   trailer: { n: 5, ko: '편집', en: 'EDITING' },
   waiting: { n: 5, ko: '편집', en: 'EDITING', action: true },
-  done: { n: 6, ko: '시사회', en: 'PREMIERE' },
+  done: { n: 6, ko: '온에어', en: 'ON AIR' },
 };
 const ORDER = ['landing', 'lookup', 'genre', 'cast', 'story', 'poster', 'trailer', 'waiting', 'done'];
-const sceneLabel = (view) => { const sc = SCENES[view]; return `SCENE ${pad(sc.n, 2)} / ${sc.en} · ${sc.ko}`; };
+const sceneLabel = (view) => { const sc = SCENES[view]; return `STEP ${pad(sc.n, 2)} / ${sc.en} · ${sc.ko}`; };
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}.${pad(d.getMonth() + 1, 2)}.${pad(d.getDate(), 2)}`; };
 let slateTimer = 0;
@@ -126,7 +137,7 @@ async function clapperboard(view) {
   $('#slScene').textContent = pad(sc.n, 2);
   $('#slTake').textContent = S.takes[view];
   $('#slTitle').textContent = `${sc.ko} · ${sc.en}`;
-  $('#slDir').textContent = (S.session?.director || S.director || 'YOU').toUpperCase();
+  $('#slDir').textContent = (S.session?.director || S.director || 'MY BRAND').toUpperCase();
   $('#slDate').textContent = today();
   const my = ++slateTimer;
   el.classList.remove('show', 'clap', 'action');
@@ -193,30 +204,30 @@ const VIEWS = {};
 
 VIEWS.landing = () => {
   const c = S.content.copy;
-  const title = esc(c.heroTitle).replace(/영화\./, '<em>영화.</em>');
+  const title = esc(c.heroTitle).replace(/광고\./, '<em>광고.</em>');
   const el = render(`
     <p class="eyebrow">${esc(S.content.event.name)} · ${esc(S.content.event.city)} ${esc(S.content.event.year)}</p>
     <h1 class="h1">${title}</h1>
     <p class="lead">${esc(c.heroSub)}</p>
     <div class="hero-strip">
-      <div><b>01 SEED</b><span>스토리</span></div>
-      <div><b>02 SEEDREAM</b><span>포스터</span></div>
-      <div><b>03 SEEDANCE</b><span>트레일러</span></div>
+      <div><b>01 SEED</b><span>광고 카피</span></div>
+      <div><b>02 SEEDREAM</b><span>키비주얼</span></div>
+      <div><b>03 SEEDANCE</b><span>광고 영상</span></div>
     </div>
     <form class="ticket" id="phoneForm" novalidate>
       <div class="ticket-head">
-        <div class="ticket-top"><span>ADMIT ONE</span><span>№ ${pad(Math.floor(Math.random() * 9999), 4)}</span></div>
-        <div class="ticket-name">SEEDANCE CINEMA LAB</div>
+        <div class="ticket-top"><span>SELLER PASS</span><span>№ ${pad(Math.floor(Math.random() * 9999), 4)}</span></div>
+        <div class="ticket-name">SEEDANCE COMMERCE LAB</div>
         <div class="ticket-meta">
-          <div><small>SCREEN</small><b>01</b></div>
+          <div><small>BOOTH</small><b>01</b></div>
           <div><small>DATE</small><b>${today()}</b></div>
-          <div><small>SEAT</small><b>YOU</b></div>
+          <div><small>SELLER</small><b>YOU</b></div>
         </div>
       </div>
       <div class="ticket-perf"></div>
       <div class="ticket-body">
       <label class="field">
-        <span>티켓 발급 · 결과를 받을 휴대폰 번호</span>
+        <span>셀러 패스 발급 · 결과를 받을 휴대폰 번호</span>
         <input class="input" id="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" maxlength="13" required>
         <div class="input-hint" id="phoneHint"></div>
       </label>
@@ -230,7 +241,7 @@ VIEWS.landing = () => {
         <input type="checkbox" id="cMarketing">
         <label for="cMarketing">[선택] ${esc(c.consentMarketing)}</label>
       </div>
-      <button class="btn btn-primary btn-block" id="startBtn" type="submit" style="margin-top:8px">티켓 받고 입장하기 ${ic('arrow')}</button>
+      <button class="btn btn-primary btn-block" id="startBtn" type="submit" style="margin-top:8px">셀러 패스 받고 입점하기 ${ic('arrow')}</button>
       </div>
       <div class="ticket-perf"></div>
       <div class="ticket-stub"><span class="barcode" aria-hidden="true"></span><span>NON-TRANSFERABLE<br>SEOUL 2026</span></div>
@@ -272,12 +283,12 @@ VIEWS.landing = () => {
 VIEWS.lookup = () => {
   const el = render(`
     <button class="back" data-back>← 돌아가기</button>
-    <p class="eyebrow">MY CINEMA</p>
+    <p class="eyebrow">MY CAMPAIGN</p>
     <h2 class="h2">내 결과 다시 보기</h2>
-    <p class="lead">체험할 때 입력한 휴대폰 번호와 감독 이름으로 포스터와 트레일러를 다시 찾아드려요.</p>
+    <p class="lead">체험할 때 입력한 휴대폰 번호와 브랜드 이름으로 키비주얼과 광고 영상을 다시 찾아드려요.</p>
     <form class="panel" id="lookupForm" novalidate>
       <label class="field"><span>휴대폰 번호</span><input class="input" id="lPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" maxlength="13"></label>
-      <label class="field"><span>감독 이름</span><input class="input" id="lName" type="text" maxlength="12" placeholder="포스터에 넣은 이름"></label>
+      <label class="field"><span>브랜드 이름</span><input class="input" id="lName" type="text" maxlength="12" placeholder="광고에 넣은 브랜드 이름"></label>
       <button class="btn btn-primary btn-block" type="submit">결과 찾기</button>
     </form>
     <div class="result-list" id="lookupList"></div>
@@ -291,7 +302,7 @@ VIEWS.lookup = () => {
         <a class="result-item" href="${esc(r.url)}">
           <img src="${esc(r.poster)}" alt="">
           <div><b>${esc(r.title)}</b><span class="small">${esc(r.genre)} · ${new Date(r.createdAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
-          <span class="small mono">${r.videoStatus === 'done' ? '▶ 영상' : r.videoStatus === 'idle' ? '포스터' : '생성 중'}</span>
+          <span class="small mono">${r.videoStatus === 'done' ? '▶ 영상' : r.videoStatus === 'idle' ? '키비주얼' : '생성 중'}</span>
         </a>`).join('');
     } catch (err) { toast(err.message); }
   };
@@ -301,8 +312,8 @@ VIEWS.genre = () => {
   let selected = S.session.genre;
   const el = render(`
     <p class="scene">${sceneLabel('genre')}</p>
-    <h2 class="h2">어떤 <em>장르</em>의 영화를<br>만들어 볼까요?</h2>
-    <p class="lead">고른 장르가 포스터의 색감과 트레일러의 카메라 워크를 결정해요.</p>
+    <h2 class="h2">어떤 <em>무드</em>의 광고를<br>만들어 볼까요?</h2>
+    <p class="lead">고른 무드가 키비주얼의 색감과 광고 영상의 카메라 워크를 결정해요.</p>
     <div class="genre-grid">
       ${S.content.genres.map((g) => `
         <button class="genre" type="button" data-genre="${g.id}" aria-pressed="${g.id === selected}" style="--c1:${g.palette[0]};--c2:${g.palette[1]}">
@@ -332,9 +343,9 @@ VIEWS.cast = () => {
   S.director ||= S.session.director || '';
   const genre = S.content.genres.find((g) => g.id === S.session.genre);
   const el = render(`
-    <button class="back" data-back>← 장르 다시 고르기</button>
+    <button class="back" data-back>← 광고 무드 다시 고르기</button>
     <div class="cast-head"><p class="scene">${sceneLabel('cast')}</p><span class="tag">${esc(genre?.ko || '')}</span></div>
-    <h2 class="h2">우연을 <em>캐스팅</em>하세요</h2>
+    <h2 class="h2">우연으로 <em>광고 컨셉</em>을 뽑으세요</h2>
     <p class="lead">버튼 하나로 키워드 6개를 뽑고, 마음에 들지 않는 카드만 <b style="color:var(--accent)">↻</b> 다시 뽑아보세요.</p>
     <button class="btn draw-all" id="drawAll" type="button">⤨ 키워드 6개 한 번에 뽑기</button>
     <div class="cast-grid">
@@ -342,14 +353,14 @@ VIEWS.cast = () => {
         <div class="kcard" data-cat="${c.id}">
           <div class="k-top"><span class="k-cat">${esc(c.ko)}<small>${esc(c.en)}</small></span>
             <button class="k-re" type="button" data-reroll="${c.id}" aria-label="${esc(c.ko)} 다시 뽑기">↻</button></div>
-          <div class="k-val placeholder">어떤 이야기가 기다릴까요?</div>
+          <div class="k-val placeholder">어떤 카드가 나올까요?</div>
         </div>`).join('')}
     </div>
     <label class="field">
-      <span>감독 이름 · 포스터에 "A FILM BY ___" 로 들어가요</span>
-      <input class="input" id="director" type="text" maxlength="12" placeholder="예) 홍길동" autocomplete="nickname" value="${esc(S.director)}">
+      <span>브랜드 이름 · 광고 상단에 브랜드 로고처럼 들어가요</span>
+      <input class="input" id="director" type="text" maxlength="12" placeholder="예) 길동상회" autocomplete="off" value="${esc(S.director)}">
     </label>
-    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 이야기 만들기 ${ic('arrow')}</button></div>
+    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 광고 카피 쓰기 ${ic('arrow')}</button></div>
   `);
   $('[data-back]', el).onclick = () => go('genre');
 
@@ -402,8 +413,8 @@ async function makeStory() {
     <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh">
       <div>
         <div class="countdown" style="--p:0%"><b>S</b></div>
-        <div class="loading-msg">Seed가 SEED NO.를 발급하고<br>당신의 이야기를 쓰는 중…</div>
-        <div class="loading-sub">GENRE + 6 KEYWORDS → STORY & PROMPT</div>
+        <div class="loading-msg">Seed가 SEED NO.를 발급하고<br>당신의 광고 카피를 쓰는 중…</div>
+        <div class="loading-sub">MOOD + 6 KEYWORDS → COPY & PROMPT</div>
       </div>
       <div class="film-strip"></div>
     </div>`);
@@ -426,9 +437,9 @@ VIEWS.story = () => {
     <div class="seed-chip"><i></i>SEED NO.${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
-    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">A FILM BY ${esc(s.director)}</span></div>
+    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">BRAND · ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} · -${offer(s.seed).off}%</span></div>
     <p class="story-body">${esc(st.logline)}</p>
-    <details class="prompt-box"><summary>시놉시스 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
+    <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동으로 만들어지는 요청 보기</summary>
       <div class="p-body"><pre>${esc(s.posterPrompt)}</pre>
         <div class="p-meta"><span>SEEDREAM · 2:3 · SEED ${s.seed}${st.source === 'seed-llm' ? ' · WRITTEN BY SEED' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
@@ -437,7 +448,7 @@ VIEWS.story = () => {
     <div class="story-meta" style="margin-top:14px">${tags}</div>
     <div class="cta-bar">
       <div class="notice"><span class="ico">✦</span><span>${esc(S.content.copy.posterNotice)}</span></div>
-      <button class="btn btn-primary btn-block" id="makePoster">포스터 만들기 ${ic('sparkle')}</button>
+      <button class="btn btn-primary btn-block" id="makePoster">키비주얼 만들기 ${ic('sparkle')}</button>
       <p style="text-align:center;margin:8px 0 0"><button class="linkish" id="rewrite">같은 키워드로 다시 쓰기</button></p>
     </div>
   `);
@@ -453,8 +464,8 @@ VIEWS.story = () => {
 };
 
 const POSTER_MSGS = [
-  'Seedream이 조명을 세팅하는 중…', '주인공이 의상을 갈아입는 중…', '세트장에 안개를 깔고 있어요…',
-  'SEED NO.로 장면을 고정하는 중…', '컬러 그레이딩을 입히는 중…', '마지막 컷을 고르는 중…',
+  'Seedream이 조명을 세팅하는 중…', '상품을 포디움에 올리는 중…', '모델이 포즈를 잡는 중…',
+  'SEED NO.로 장면을 고정하는 중…', '리터칭으로 광을 내는 중…', '베스트 컷을 고르는 중…',
 ];
 
 VIEWS.poster = () => {
@@ -464,7 +475,7 @@ VIEWS.poster = () => {
   if (p.status === 'failed') {
     const el = render(`
       <p class="scene">${sceneLabel('poster')}</p>
-      <h2 class="h2">포스터 촬영이 <em>중단</em>됐어요</h2>
+      <h2 class="h2">키비주얼 촬영이 <em>중단</em>됐어요</h2>
       <div class="error-box"><b>생성 실패</b>${esc(p.error || '잠시 후 다시 시도해 주세요.')}</div>
       <button class="btn btn-primary btn-block" id="retry">다시 시도하기</button>
       <p style="text-align:center;margin-top:10px"><button class="linkish" id="back">키워드 다시 뽑기</button></p>`);
@@ -524,26 +535,26 @@ async function renderPosterDone() {
   const s = S.session;
   const el = render(`
     <p class="scene">${sceneLabel('poster')}</p>
-    <h2 class="h2">이 영화의 첫 관객은 <em>당신</em>입니다.</h2>
+    <h2 class="h2">이 광고의 첫 번째 고객은 <em>당신</em>입니다.</h2>
     <div class="poster-wrap">
       <div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
       <div class="poster-caption"><span>NO.${pad(s.seed)}</span><span>${esc(s.story.genre.en)} · 2:3</span></div>
     </div>
-    <div class="btn-row"><button class="btn" id="save">${ic('download')}포스터 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
+    <div class="btn-row"><button class="btn" id="save">${ic('download')}키비주얼 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
     <div class="cta-bar">
-      <button class="btn btn-primary btn-block" id="toTrailer">이 포스터가 움직인다면? ${ic('arrow')}</button>
-      ${s.poster.remaining > 0 ? `<p style="text-align:center;margin:8px 0 0"><button class="linkish" id="regen">포스터 다시 만들기 (${s.poster.remaining}회 남음)</button></p>` : ''}
+      <button class="btn btn-primary btn-block" id="toTrailer">이 광고가 움직인다면? ${ic('arrow')}</button>
+      ${s.poster.remaining > 0 ? `<p style="text-align:center;margin:8px 0 0"><button class="linkish" id="regen">키비주얼 다시 만들기 (${s.poster.remaining}회 남음)</button></p>` : ''}
     </div>
   `);
   const src = await getComposedPoster(infoFromSession(s), s.poster.url, s.poster.finalUrl);
   if (S.view !== 'poster') return;
-  $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="${esc(s.story.title)} 포스터">`;
+  $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="${esc(s.story.title)} 광고 키비주얼">`;
   if (src.startsWith('data:') && !s.poster.finalUrl) S.finalUpload = api('/api/poster/final', { method: 'POST', body: { dataUrl: src }, retries: 3 }).catch(() => {});
   bindScreenCard(el, {});
-  const fname = `seedance-cinema-${pad(s.seed)}.jpg`;
-  $('#save', el).onclick = () => { download(src.startsWith('data:') ? src : `${src}?dl=1`, fname); track('poster_saved'); toast('포스터를 저장했어요'); };
-  $('#share', el).onclick = () => { shareFile(src, fname, `${s.story.title} — A FILM BY ${s.director}`, absUrl(s.resultUrl)); track('poster_shared'); };
+  const fname = `seedance-commerce-${pad(s.seed)}.jpg`;
+  $('#save', el).onclick = () => { download(src.startsWith('data:') ? src : `${src}?dl=1`, fname); track('poster_saved'); toast('키비주얼을 저장했어요'); };
+  $('#share', el).onclick = () => { shareFile(src, fname, `${s.story.title} — ${s.director}`, absUrl(s.resultUrl)); track('poster_shared'); };
   $('#toTrailer', el).onclick = () => go('trailer');
   $('#regen', el)?.addEventListener('click', async () => {
     try { await api('/api/poster', { method: 'POST' }); S.posterData = null; go('poster', { slate: true }); } catch (e) { handleError(e); }
@@ -555,15 +566,15 @@ VIEWS.trailer = () => {
   const k = S.boot.kakao;
   const failed = s.video.status === 'failed';
   const el = render(`
-    <button class="back" data-back>← 포스터로 돌아가기</button>
+    <button class="back" data-back>← 키비주얼로 돌아가기</button>
     <div class="trailer-head">
       <img src="${esc(S.posterData || s.poster.finalUrl || s.poster.url)}" alt="">
-      <div><p class="scene" style="margin:0">${sceneLabel('trailer')}</p><p class="big-q">이 포스터가<br><em style="color:var(--accent);font-style:normal">움직인다면?</em></p></div>
+      <div><p class="scene" style="margin:0">${sceneLabel('trailer')}</p><p class="big-q">이 광고가<br><em style="color:var(--accent);font-style:normal">움직인다면?</em></p></div>
     </div>
-    ${failed ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(s.video.error || '')}</div>` : ''}
+    ${failed ? `<div class="error-box"><b>광고 영상 생성 실패</b>${esc(s.video.error || '')}</div>` : ''}
     <p class="story-body">${esc(s.story.videoKo)}</p>
     <p class="small" style="margin:-10px 0 18px">${esc(S.content.copy.videoNotice)}</p>
-    <details class="prompt-box"><summary>Seedance 트레일러 프롬프트 보기</summary>
+    <details class="prompt-box"><summary>Seedance 광고 영상 프롬프트 보기</summary>
       <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE · IMAGE→VIDEO · SEED ${s.seed}</span><button class="copy-btn" data-copy>복사</button></div></div>
     </details>
     ${kakaoCard(k.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 알려드려요`, '평균 3~5분 · 자리를 떠나도 괜찮아요')}
@@ -580,12 +591,12 @@ VIEWS.trailer = () => {
   };
 };
 
-// ───────────── big screens: visitor submits poster / trailer ─────────────
+// ───────────── big screens: visitor submits key visual / ad video ─────────────
 const SCREEN_ROWS = {
-  poster: { tag: 'LOBBY', name: '로비 포스터 월', cta: '포스터 걸기', ok: '로비 스크린에 포스터가 걸렸어요!' },
-  trailer: { tag: 'SCREEN 01', name: '예고편 상영관', cta: '상영하기', ok: '예고편 상영관 대기열에 올렸어요!' },
+  poster: { tag: 'AD WALL', name: '신상 광고 월', cta: '광고 걸기', ok: '광고 월에 키비주얼이 걸렸어요!' },
+  trailer: { tag: 'CH.01', name: '광고 쇼케이스', cta: '송출하기', ok: '광고 쇼케이스 대기열에 올렸어요!' },
 };
-const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>상영 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
+const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>송출 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
 function screenCard(state = {}, { poster = false, trailer = false } = {}) {
   const rows = Object.entries({ poster, trailer }).filter(([, on]) => on).map(([kind]) => {
     const st = state?.[kind];
@@ -594,8 +605,8 @@ function screenCard(state = {}, { poster = false, trailer = false } = {}) {
     return `<div class="sc-row"><div><small>${r.tag}</small><b>${r.name}</b></div>${right}</div>`;
   }).join('');
   return `<div class="screen-card">
-    <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>현장 대형 스크린에 상영하기</b>
-      <span>제출하면 감독 이름·영화 제목·${trailer ? '포스터·트레일러' : '포스터'}가 부스 대형 스크린에 공개돼요.</span></div></div>
+    <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>현장 대형 스크린에 광고 내보내기</b>
+      <span>제출하면 브랜드 이름·상품명·${trailer ? '키비주얼·광고 영상' : '키비주얼'}이 부스 대형 스크린에 공개돼요.</span></div></div>
     <div class="sc-rows">${rows}</div></div>`;
 }
 function bindScreenCard(el, { token }) {
@@ -609,7 +620,7 @@ function bindScreenCard(el, { token }) {
       if (S.session && !token) S.session.screen = r.screen;
       b.outerHTML = screenState(st);
       navigator.vibrate?.(20);
-      toast(st === 'live' ? `${SCREEN_ROWS[kind].ok} 🎬` : '운영진 확인 후 대형 스크린에 상영돼요');
+      toast(st === 'live' ? `${SCREEN_ROWS[kind].ok} 📺` : '운영진 확인 후 대형 스크린에 송출돼요');
     } catch (e) { b.disabled = false; handleError(e); }
   }));
 }
@@ -620,7 +631,7 @@ function kakaoCard(enabled, title, sub) {
     : `<div class="kakao-card off"><span class="k-ico">LINK</span><div><b>결과 링크를 저장해 두세요</b><span>${sub}</span></div></div>`;
 }
 
-const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 그림자의 움직임을 계산하는 중', '8초짜리 명장면을 다듬는 중'];
+const RENDER_MSGS = ['키비주얼 속 상품에 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 반사의 움직임을 계산하는 중', '8초짜리 광고 컷을 다듬는 중'];
 
 VIEWS.waiting = () => {
   const s = S.session;
@@ -628,7 +639,7 @@ VIEWS.waiting = () => {
   const link = absUrl(s.resultUrl);
   const el = render(`
     <p class="scene">${sceneLabel('waiting')}</p>
-    <h2 class="h2">트레일러 <em>편집 중</em></h2>
+    <h2 class="h2">광고 영상 <em>편집 중</em></h2>
     <div class="poster-wrap"><div class="poster-stage wait-card">
       <img class="kenburns" src="${esc(poster)}" alt="">
       <div class="wait-overlay">
@@ -638,7 +649,7 @@ VIEWS.waiting = () => {
       </div>
     </div></div>
     ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, '자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!')}
-    <div class="btn-row"><button class="btn" id="copyLink">결과 링크 복사</button><button class="btn" id="again">${S.booth ? '다음 관람객' : '하나 더 만들기'}</button></div>
+    <div class="btn-row"><button class="btn" id="copyLink">결과 링크 복사</button><button class="btn" id="again">${S.booth ? '다음 셀러' : '하나 더 만들기'}</button></div>
     <p class="small" style="text-align:center;margin-top:14px">이 화면을 켜 두면 완성되는 즉시 재생돼요.</p>
   `);
   $('#copyLink', el).onclick = async () => { await copyText(link); toast('결과 링크를 복사했어요'); };
@@ -664,7 +675,7 @@ VIEWS.waiting = () => {
       if (myPoll !== S.pollId) return;
       try { await api('/api/session'); } catch { continue; }
       const st = S.session.video.status;
-      if (st === 'done') { navigator.vibrate?.([30, 60, 30]); toast('트레일러가 완성됐어요! 🎬'); return go('done', { push: false }); }
+      if (st === 'done') { navigator.vibrate?.([30, 60, 30]); toast('광고 영상이 완성됐어요! 📺'); return go('done', { push: false }); }
       if (st === 'failed' || st === 'idle') return go('trailer', { push: false });
     }
   })();
@@ -688,33 +699,33 @@ async function renderResult(r) {
   const k = S.boot.kakao;
   const sent = ['sent', 'mock_sent'].includes(r.kakaoStatus);
   const el = render(`
-    <p class="scene">${r.own ? sceneLabel('done') : 'NOW SHOWING'}</p>
+    <p class="scene">${r.own ? sceneLabel('done') : 'NOW ON AIR'}</p>
     <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
     <p class="story-tagline">“${esc(r.tagline)}”</p>
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="video">${ic('play')}트레일러</button>
-      <button role="tab" aria-selected="false" data-tab="poster">포스터</button>
-      <button role="tab" aria-selected="false" data-tab="ticket">${ic('ticket')}티켓</button>
+      <button role="tab" aria-selected="true" data-tab="video">${ic('play')}광고 영상</button>
+      <button role="tab" aria-selected="false" data-tab="poster">키비주얼</button>
+      <button role="tab" aria-selected="false" data-tab="ticket">${ic('tag')}상품 카드</button>
     </div>
     <div class="poster-wrap"><div class="video-stage" id="vstage">
       ${r.videoUrl
         ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(r.posterFinal || r.posterRaw)}"></video>`
         : `<img class="kenburns" src="${esc(r.posterFinal || r.posterRaw)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`}
     </div>
-    <div class="poster-caption"><span>NO.${pad(r.info.seed)}</span><span>A FILM BY ${esc(r.info.director)}</span></div></div>
+    <div class="poster-caption"><span>NO.${pad(r.info.seed)}</span><span>BRAND · ${esc(r.info.director)}</span></div></div>
     <div class="actions" id="actions"></div>
     ${screenCard(r.screen, { poster: true, trailer: !!r.videoUrl })}
     ${r.own ? (k.enabled
       ? `<div class="kakao-card${sent ? '' : ' off'}"><span class="k-ico">TALK</span><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} · 링크는 일정 기간 후 만료돼요`}</span></div></div>`
       : '') : ''}
     <div class="end-card">
-      <div class="big">${r.own ? '이 영화의 첫 관객은 당신입니다.' : '나도 나만의 영화를 만들어 볼까요?'}</div>
-      <p class="small">${r.own ? '포스터와 트레일러를 간직하고, 다음 장면을 상상해 보세요.' : 'Seedance Seoul Cinema Lab 부스에서 직접 체험해 보세요.'}</p>
-      <button class="btn btn-ghost btn-block" id="again" style="margin-top:12px">${r.own ? (S.booth ? '다음 관람객 시작하기' : '처음부터 다시 체험하기') : '나도 만들어보기'}</button>
+      <div class="big">${r.own ? '이 광고의 첫 번째 고객은 당신입니다.' : '나도 나만의 광고를 만들어 볼까요?'}</div>
+      <p class="small">${r.own ? '키비주얼과 광고 영상을 간직하고, 다음 캠페인을 상상해 보세요.' : 'Seedance Seoul Commerce Lab 부스에서 직접 체험해 보세요.'}</p>
+      <button class="btn btn-ghost btn-block" id="again" style="margin-top:12px">${r.own ? (S.booth ? '다음 셀러 시작하기' : '처음부터 다시 체험하기') : '나도 만들어보기'}</button>
     </div>
   `);
   const posterSrc = await getComposedPoster(r.info, r.posterRaw, r.posterFinal);
-  const fileBase = `seedance-cinema-${pad(r.info.seed)}`;
+  const fileBase = `seedance-commerce-${pad(r.info.seed)}`;
   const actions = $('#actions', el);
   const tabBtns = $$('[data-tab]', el);
   const showTab = (tab) => {
@@ -722,11 +733,11 @@ async function renderResult(r) {
     const stage = $('#vstage', el);
     if (tab === 'ticket') {
       stage.innerHTML = '<div class="boot"><div class="spinner"></div></div>';
-      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="tsave">${ic('download')}티켓 저장</button><button class="btn" data-a="tshare">${ic('share')}티켓 공유</button></div>`;
-      getTicket(r.info, posterSrc).then((t) => { if (stage.isConnected && $('[data-tab="ticket"]', el).getAttribute('aria-selected') === 'true') stage.innerHTML = `<img class="reveal ticket-img" src="${t}" alt="영화 티켓">`; });
+      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="tsave">${ic('download')}상품 카드 저장</button><button class="btn" data-a="tshare">${ic('share')}상품 카드 공유</button></div><p class="small" style="text-align:center;margin:0">AI가 만든 가상의 상품이에요. 가격과 할인율도 재미로 붙인 숫자예요.</p>`;
+      getTicket(r.info, posterSrc).then((t) => { if (stage.isConnected && $('[data-tab="ticket"]', el).getAttribute('aria-selected') === 'true') stage.innerHTML = `<img class="reveal ticket-img" src="${t}" alt="상품 카드">`; });
     } else if (tab === 'poster') {
-      stage.innerHTML = `<img class="reveal" src="${esc(posterSrc)}" alt="포스터">`;
-      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="psave">${ic('download')}포스터 저장</button><button class="btn" data-a="pshare">${ic('share')}포스터 공유</button></div>`;
+      stage.innerHTML = `<img class="reveal" src="${esc(posterSrc)}" alt="광고 키비주얼">`;
+      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="psave">${ic('download')}키비주얼 저장</button><button class="btn" data-a="pshare">${ic('share')}키비주얼 공유</button></div>`;
     } else {
       stage.innerHTML = r.videoUrl
         ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(posterSrc)}"></video>`
@@ -740,7 +751,7 @@ async function renderResult(r) {
   bindScreenCard(el, { token: r.token });
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director} · SEED NO.${pad(r.info.seed)}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance Seoul Cinema Lab`;
+  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n${r.info.director} · ${won(offer(r.info.seed).price)} (-${offer(r.info.seed).off}%) · SEED NO.${pad(r.info.seed)}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance Seoul Commerce Lab`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -750,7 +761,7 @@ async function renderResult(r) {
     if (a === 'vshare') { shareFile(r.videoUrl, `${fileBase}.mp4`, r.title, link); track('video_shared'); }
     if (a === 'summary') { await copyText(summary()); toast('결과 요약을 복사했어요. 카톡에 붙여넣어 보세요!'); track('summary_copied'); }
     if (a === 'kshare') { kakaoShare(r, posterSrc, link); track('kakao_share'); }
-    if (a === 'tsave') { download(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`); track('ticket_saved'); toast('티켓을 저장했어요'); }
+    if (a === 'tsave') { download(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`); track('ticket_saved'); toast('상품 카드를 저장했어요'); }
     if (a === 'tshare') { shareFile(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`, r.title, link); track('ticket_shared'); }
   };
   $('#again', el).onclick = () => (r.own ? restart() : (location.href = '/'));
@@ -776,7 +787,7 @@ async function showResultPage(tok) {
   let data;
   try { data = await api(`/api/result/${encodeURIComponent(tok)}`); }
   catch (e) {
-    render(`<p class="scene">404</p><h2 class="h2">${esc(e.message)}</h2><p class="lead">내 결과 다시 보기에서 휴대폰 번호와 감독 이름으로 찾아볼 수 있어요.</p><a class="btn btn-primary btn-block" href="/">체험 페이지로 가기</a>`);
+    render(`<p class="scene">404</p><h2 class="h2">${esc(e.message)}</h2><p class="lead">내 결과 다시 보기에서 휴대폰 번호와 브랜드 이름으로 찾아볼 수 있어요.</p><a class="btn btn-primary btn-block" href="/">체험 페이지로 가기</a>`);
     return;
   }
   track('result_viewed', { own: data.own });
@@ -784,27 +795,27 @@ async function showResultPage(tok) {
   const info = { title: r.title, tagline: r.tagline, director: r.director, seed: r.seed, genre: r.genre, keywords: r.keywords };
   if (r.videoStatus !== 'done') {
     const el = render(`
-      <p class="scene">NOW SHOWING · SOON</p>
+      <p class="scene">ON AIR · SOON</p>
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
       <div class="poster-wrap"><div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>NO.${pad(r.seed)}</span><span>A FILM BY ${esc(r.director)}</span></div></div>
+      <div class="poster-caption"><span>NO.${pad(r.seed)}</span><span>BRAND · ${esc(r.director)}</span></div></div>
       ${['queued', 'submitting', 'running'].includes(r.videoStatus)
-        ? `<div class="notice"><span class="ico">⏱</span><span>트레일러를 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
-        : r.videoStatus === 'failed' ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
-      <div class="btn-row"><button class="btn" id="psave">${ic('download')}포스터 저장</button><button class="btn" id="pshare">${ic('share')}공유하기</button></div>
+        ? `<div class="notice"><span class="ico">⏱</span><span>광고 영상을 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
+        : r.videoStatus === 'failed' ? `<div class="error-box"><b>광고 영상 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
+      <div class="btn-row"><button class="btn" id="psave">${ic('download')}키비주얼 저장</button><button class="btn" id="pshare">${ic('share')}공유하기</button></div>
       <p style="text-align:center;margin-top:18px"><a class="linkish" href="/">나도 만들어보기</a></p>`);
     const src = await getComposedPoster(info, r.posterUrl, r.posterFinalUrl);
     $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="">`;
-    $('#psave', el).onclick = () => download(src.startsWith('data:') ? src : `${src}?dl=1`, `seedance-cinema-${pad(r.seed)}.jpg`);
-    $('#pshare', el).onclick = () => shareFile(src, `seedance-cinema-${pad(r.seed)}.jpg`, r.title, location.href);
+    $('#psave', el).onclick = () => download(src.startsWith('data:') ? src : `${src}?dl=1`, `seedance-commerce-${pad(r.seed)}.jpg`);
+    $('#pshare', el).onclick = () => shareFile(src, `seedance-commerce-${pad(r.seed)}.jpg`, r.title, location.href);
     if (['queued', 'submitting', 'running'].includes(r.videoStatus)) setTimeout(() => showResultPage(tok), 8000);
     return;
   }
   renderResult({ title: r.title, tagline: r.tagline, info, posterRaw: r.posterUrl, posterFinal: r.posterFinalUrl, videoUrl: r.videoUrl, resultUrl: location.pathname, own: false, token: tok, screen: r.screen });
 }
 
-// ───────────────────────── poster compositing ─────────────────────────
+// ───────────────────────── key-visual compositing ─────────────────────────
 function loadImg(src) {
   return new Promise((res, rej) => {
     const i = new Image();
@@ -852,49 +863,98 @@ async function composePoster(src, info) {
   const iw = img.naturalWidth * r, ih = img.naturalHeight * r;
   x.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih);
 
-  let g = x.createLinearGradient(0, 0, 0, H * 0.2);
-  g.addColorStop(0, 'rgba(0,0,0,.72)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  x.fillStyle = g; x.fillRect(0, 0, W, H * 0.2);
-  g = x.createLinearGradient(0, H * 0.48, 0, H);
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.42, 'rgba(0,0,0,.7)'); g.addColorStop(1, 'rgba(0,0,0,.95)');
-  x.fillStyle = g; x.fillRect(0, H * 0.48, W, H * 0.52);
+  let g = x.createLinearGradient(0, 0, 0, H * 0.24);
+  g.addColorStop(0, 'rgba(0,0,0,.8)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H * 0.24);
+  g = x.createLinearGradient(0, H * 0.42, 0, H);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.4, 'rgba(0,0,0,.72)'); g.addColorStop(1, 'rgba(0,0,0,.96)');
+  x.fillStyle = g; x.fillRect(0, H * 0.42, W, H * 0.58);
 
-  const accent = '#d4ff3a';
+  const accent = '#d4ff3a', ink = '#0b0d02';
+  const o = offer(info.seed);
   x.textAlign = 'center';
   x.textBaseline = 'alphabetic';
-  spaced(x, 'SEEDANCE CINEMA LAB PRESENTS', W / 2, 86, '34px "Bebas Neue", "Noto Sans KR", sans-serif', 8, 'rgba(255,255,255,.88)');
-  spaced(x, `AN ORIGINAL ${info.genre.en} FILM`, W / 2, 128, '24px "Bebas Neue", "Noto Sans KR", sans-serif', 6, accent);
 
-  // Title (auto-fit, up to 2 lines)
+  // Brand wordmark (the visitor's brand name) + campaign line
+  const brand = String(info.director || 'MY BRAND').toUpperCase();
+  let bs = 72;
+  const setB = () => (x.font = `${bs}px "Black Han Sans", "Noto Sans KR", sans-serif`);
+  setB();
+  while (x.measureText(brand).width > W * 0.62 && bs > 40) { bs -= 4; setB(); }
+  x.fillStyle = '#fff';
+  x.fillText(brand, W / 2, 116);
+  spaced(x, `NEW DROP  ·  ${info.genre.en} CAMPAIGN`, W / 2, 160, '26px "Bebas Neue", "Noto Sans KR", sans-serif', 6, accent);
+
+  // Discount sticker
+  x.save();
+  x.translate(W - 150, 330);
+  x.rotate(-0.16);
+  x.beginPath(); x.arc(0, 0, 104, 0, Math.PI * 2);
+  x.fillStyle = accent; x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 30; x.fill();
+  x.shadowBlur = 0;
+  spaced(x, 'SALE', 0, -34, '34px "Bebas Neue", sans-serif', 6, ink);
+  let ss = 92;
+  const setS = () => (x.font = `${ss}px "Bebas Neue", sans-serif`);
+  setS();
+  while (x.measureText(`-${o.off}%`).width > 164 && ss > 48) { ss -= 4; setS(); }
+  x.fillStyle = ink;
+  x.fillText(`-${o.off}%`, 0, 50 - (92 - ss) * 0.3);
+  x.restore();
+
+  // Product name (auto-fit, up to 2 lines)
   const title = info.title;
-  let size = 176;
+  let size = 168;
   const setT = () => (x.font = `${size}px "Black Han Sans", "Noto Sans KR", sans-serif`);
   setT();
-  while (x.measureText(title).width > W * 0.86 && size > 96) { size -= 4; setT(); }
+  while (x.measureText(title).width > W * 0.86 && size > 92) { size -= 4; setT(); }
   let tLines = [title];
   if (x.measureText(title).width > W * 0.86) tLines = wrapLines(x, title, W * 0.86).slice(0, 2);
-  const titleBottom = H - 300;
+  const titleBottom = H - 440;
   x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 30;
   x.fillStyle = '#fff';
   tLines.forEach((l, i) => x.fillText(l, W / 2, titleBottom - (tLines.length - 1 - i) * size * 1.02));
   x.shadowBlur = 0;
 
-  // Tagline above title
-  x.font = '500 36px "Noto Sans KR", sans-serif';
+  // Headline copy above the product name
+  x.font = '500 38px "Noto Sans KR", sans-serif';
   const tag = wrapLines(x, info.tagline || '', W * 0.8).slice(0, 2);
   const tagBottom = titleBottom - tLines.length * size * 1.02 - 26;
-  x.fillStyle = 'rgba(255,255,255,.9)';
-  tag.forEach((l, i) => x.fillText(l, W / 2, tagBottom - (tag.length - 1 - i) * 50));
+  x.fillStyle = 'rgba(255,255,255,.92)';
+  tag.forEach((l, i) => x.fillText(l, W / 2, tagBottom - (tag.length - 1 - i) * 52));
+
+  // Price row: -35%  19,900원  31,000원(struck)
+  const fBig = '88px "Bebas Neue", "Noto Sans KR", sans-serif', fWas = '42px "Bebas Neue", "Noto Sans KR", sans-serif';
+  const parts = [[`${o.off}%`, fBig, accent], [won(o.price), fBig, '#fff'], [won(o.was), fWas, 'rgba(255,255,255,.5)']];
+  const widths = parts.map(([t, f]) => { x.font = f; return x.measureText(t).width; });
+  const gap = 26;
+  let px = (W - widths.reduce((a, b) => a + b, 0) - gap * 2) / 2;
+  const py = H - 326;
+  x.textAlign = 'left';
+  parts.forEach(([t, f, c], i) => {
+    x.font = f; x.fillStyle = c;
+    x.fillText(t, px, py);
+    if (i === 2) x.fillRect(px - 4, py - 16, widths[i] + 8, 3);
+    px += widths[i] + gap;
+  });
+  x.textAlign = 'center';
+
+  // CTA button
+  const cw = 460, chh = 86, cy = H - 290;
+  rrect(x, (W - cw) / 2, cy, cw, chh, chh / 2);
+  x.fillStyle = accent; x.fill();
+  x.font = '700 36px "Noto Sans KR", sans-serif'; x.fillStyle = ink;
+  x.textBaseline = 'middle';
+  x.fillText('지금 구매하기  →', W / 2, cy + chh / 2 + 2);
+  x.textBaseline = 'alphabetic';
 
   // Credits
-  spaced(x, `A FILM BY ${String(info.director || 'YOU').toUpperCase()}`, W / 2, H - 216, '50px "Bebas Neue", "Noto Sans KR", sans-serif', 10, '#fff');
   const kws = Object.values(info.keywords || {}).map((k) => k.ko);
   x.globalAlpha = 0.6;
-  spaced(x, `STORY BY SEED   ·   KEY ART BY SEEDREAM   ·   MOTION BY SEEDANCE   ·   SEED ${info.seed}`, W / 2, H - 162, '24px "Bebas Neue", sans-serif', 3, '#fff');
+  spaced(x, `COPY BY SEED   ·   KEY VISUAL BY SEEDREAM   ·   MOTION BY SEEDANCE   ·   SEED ${info.seed}`, W / 2, H - 158, '24px "Bebas Neue", sans-serif', 3, '#fff');
   x.font = '400 21px "Noto Sans KR", sans-serif';
   const kwLines = wrapLines(x, kws.join('  ·  '), W * 0.86, '  ·  ').slice(0, 2);
   x.fillStyle = '#fff';
-  kwLines.forEach((l, i) => x.fillText(l, W / 2, H - 126 + i * 30));
+  kwLines.forEach((l, i) => x.fillText(l, W / 2, H - 122 + i * 30));
   x.globalAlpha = 1;
 
   x.fillStyle = 'rgba(255,255,255,.25)';
@@ -904,12 +964,12 @@ async function composePoster(src, info) {
   x.textAlign = 'right';
   spaced(x, 'SEOUL 2026', W - 84, H - 34, '30px "Bebas Neue", sans-serif', 4, '#fff');
   x.textAlign = 'center';
-  spaced(x, 'COMING SOON', W / 2, H - 34, '30px "Bebas Neue", sans-serif', 6, 'rgba(255,255,255,.7)');
+  spaced(x, 'SHOP NOW', W / 2, H - 34, '30px "Bebas Neue", sans-serif', 6, 'rgba(255,255,255,.7)');
 
   return c.toDataURL('image/jpeg', 0.9);
 }
 
-// ───────────────────────── ticket stub ─────────────────────────
+// ───────────────────────── product card ─────────────────────────
 const ticketCache = new Map();
 function getTicket(info, posterSrc) {
   const key = `${info.seed}|${info.title}`;
@@ -940,26 +1000,26 @@ async function composeTicket(posterSrc, info) {
   x.fillStyle = bodyG; x.fill();
   x.lineWidth = 2; x.strokeStyle = 'rgba(212,255,58,.35)'; x.stroke();
 
-  // poster window (top part of the key art)
-  const px = tx + 28, py = ty + 28, pw = tw - 56, ph = 700;
+  // key-visual window
+  const px = tx + 28, py = ty + 28, pw = tw - 56, ph = 580;
   x.save();
   rrect(x, px, py, pw, ph, 24); x.clip();
   const sc = pw / img.naturalWidth;
-  x.drawImage(img, px, py - img.naturalHeight * sc * 0.1, pw, img.naturalHeight * sc); // skip the poster's top billing line
+  x.drawImage(img, px, py - img.naturalHeight * sc * 0.105, pw, img.naturalHeight * sc); // show the product area: below the brand line, above the copy
   const fade = x.createLinearGradient(0, py + ph * 0.55, 0, py + ph);
   fade.addColorStop(0, 'rgba(20,20,22,0)'); fade.addColorStop(1, 'rgba(20,20,22,.95)');
   x.fillStyle = fade; x.fillRect(px, py, pw, ph);
   x.restore();
 
-  // ADMIT ONE badge
+  // NEW ARRIVAL badge
   x.font = '30px "Bebas Neue", sans-serif';
-  const bw = x.measureText('ADMIT ONE').width + 9 * 3 + 40;
+  const bw = x.measureText('NEW ARRIVAL').width + 11 * 3 + 40;
   rrect(x, px + 22, py + 22, bw, 46, 10); x.fillStyle = accent; x.fill();
   x.textAlign = 'left'; x.textBaseline = 'middle';
-  spaced(x, 'ADMIT ONE', px + 40, py + 47, '30px "Bebas Neue", sans-serif', 3, '#0b0d02');
+  spaced(x, 'NEW ARRIVAL', px + 40, py + 47, '30px "Bebas Neue", sans-serif', 3, '#0b0d02');
   x.textBaseline = 'alphabetic';
 
-  // title + director
+  // product name + brand
   let size = 96;
   const setT = () => (x.font = `${size}px "Black Han Sans", "Noto Sans KR", sans-serif`);
   setT();
@@ -967,25 +1027,30 @@ async function composeTicket(posterSrc, info) {
   x.fillStyle = '#fff';
   x.fillText(info.title, px, py + ph + 40 + size * 0.85);
   const yDir = py + ph + 40 + size * 0.85 + 62;
-  spaced(x, `A FILM BY ${String(info.director || 'YOU').toUpperCase()}`, px, yDir, '40px "Bebas Neue", "Noto Sans KR", sans-serif', 6, accent);
+  spaced(x, String(info.director || 'MY BRAND').toUpperCase(), px, yDir, '40px "Bebas Neue", "Noto Sans KR", sans-serif', 6, accent);
 
   // info grid
-  const d = new Date();
+  x.font = '500 30px "Noto Sans KR", sans-serif';
+  x.fillStyle = 'rgba(255,255,255,.82)';
+  let copy = info.tagline || '';
+  while (copy.length > 4 && x.measureText(copy).width > pw) copy = `${copy.slice(0, -2).trimEnd()}…`;
+  x.fillText(copy, px, yDir + 58);
+  const o = offer(info.seed);
   const cells = [
-    ['DATE', today()],
-    ['TIME', `${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`],
-    ['GENRE', info.genre?.en || 'FILM'],
-    ['SEAT', pad(info.seed)],
+    ['PRICE', won(o.price)],
+    ['SALE', `-${o.off}%`],
+    ['MOOD', info.genre?.en || 'AD'],
+    ['ITEM NO.', pad(info.seed)],
   ];
-  const gy = yDir + 50, cw = pw / cells.length;
+  const gy = yDir + 110, cw = pw / cells.length;
   x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(px, gy, pw, 2);
   cells.forEach(([k, v], i) => {
     const cx = px + cw * i;
     if (i) { x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(cx, gy + 18, 2, 88); }
     spaced(x, k, cx + (i ? 18 : 0), gy + 44, '500 17px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
-    x.font = '44px "Bebas Neue", sans-serif';
+    x.font = '44px "Bebas Neue", "Noto Sans KR", sans-serif';
     let vs = 44;
-    while (x.measureText(v).width > cw - 24 && vs > 26) { vs -= 2; x.font = `${vs}px "Bebas Neue", sans-serif`; }
+    while (x.measureText(v).width > cw - 24 && vs > 26) { vs -= 2; x.font = `${vs}px "Bebas Neue", "Noto Sans KR", sans-serif`; }
     x.fillStyle = '#fff';
     x.fillText(v, cx + (i ? 18 : 0), gy + 96);
   });
@@ -1008,8 +1073,8 @@ async function composeTicket(posterSrc, info) {
   x.fillStyle = '#ecece6';
   while (bx < px + 330) { const w = 2 + Math.floor(rnd() * 5); if (rnd() > 0.35) x.fillRect(bx, by, w, bh); bx += w + 2 + Math.floor(rnd() * 4); }
   x.textAlign = 'right';
-  spaced(x, 'ADMIT ONE', px + pw, by + 40, '50px "Bebas Neue", sans-serif', 6, accent);
-  spaced(x, 'SEEDANCE CINEMA LAB', px + pw, by + 80, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.75)');
+  spaced(x, 'ADD TO CART', px + pw, by + 40, '50px "Bebas Neue", sans-serif', 6, accent);
+  spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.75)');
   spaced(x, `SEOUL 2026 · NO.${pad(info.seed)}`, px + pw, by + 112, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
@@ -1052,8 +1117,8 @@ async function kakaoShare(r, posterSrc, link) {
     const image = absUrl(r.posterFinal || r.posterRaw);
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
-      content: { title: `${r.title} — A FILM BY ${r.info.director}`, description: r.tagline, imageUrl: image, link: { mobileWebUrl: link, webUrl: link } },
-      buttons: [{ title: '영화 보러가기', link: { mobileWebUrl: link, webUrl: link } }],
+      content: { title: `${r.title} — ${r.info.director}`, description: r.tagline, imageUrl: image, link: { mobileWebUrl: link, webUrl: link } },
+      buttons: [{ title: '광고 보러가기', link: { mobileWebUrl: link, webUrl: link } }],
     });
   } catch {
     await copyText(link);

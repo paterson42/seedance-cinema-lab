@@ -57,7 +57,7 @@ async function runPoster(s) {
     logEvent(s.id, 'poster_done', { ms: Date.now() - started });
   } catch (e) {
     console.warn(`[poster] ${s.id} failed:`, e.message);
-    updateSession(s.id, { poster_status: 'failed', poster_error: e.userMessage || '포스터를 만들지 못했어요. 다시 시도해 주세요.' });
+    updateSession(s.id, { poster_status: 'failed', poster_error: e.userMessage || '키비주얼을 만들지 못했어요. 다시 시도해 주세요.' });
     logEvent(s.id, 'poster_failed', { error: String(e.message).slice(0, 300) });
   } finally {
     runningPosters.delete(s.id);
