@@ -81,6 +81,12 @@ export const config = {
     posterMaxPerSession: num('POSTER_MAX_PER_SESSION', 3),
     videoMaxPerSession: num('VIDEO_MAX_PER_SESSION', 2),
   },
+  // Per phone number per day (Seoul time), across all of that number's sessions. Failures do not count.
+  limits: {
+    phoneDailyVideos: num('PHONE_DAILY_VIDEOS', 3),
+    phoneDailyPosters: num('PHONE_DAILY_POSTERS', 10),
+    phoneDailyStories: num('PHONE_DAILY_STORIES', 30),
+  },
   kakao: {
     provider: env('KAKAO_PROVIDER', 'off'),
     webhookUrl: env('KAKAO_WEBHOOK_URL'),

@@ -7,6 +7,7 @@ import { createSession, getSession, getSessionByToken, updateSession, query, que
 import { publicContent, getContent, saveContent, containsBanned } from './content.js';
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
 import { buildStory } from './story.js';
+import { dailyLeft, assertDaily } from './limits.js';
 import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
 import { etaSec } from './eta.js';
@@ -103,7 +104,7 @@ function sessionView(s) {
       queuePos: posterQ,
       requestedAt: s.poster_requested_at,
       etaSec: etaSec('poster', posterQ),
-      remaining: Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0)),
+      remaining: Math.min(dailyLeft(s, 'poster'), Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0))),
     },
     video: {
       status: s.video_status,
@@ -112,7 +113,9 @@ function sessionView(s) {
       queuePos: videoQ,
       requestedAt: s.video_requested_at,
       etaSec: etaSec('video', videoQ),
-      remaining: Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0)),
+      dailyLeft: dailyLeft(s, 'video'),
+      dailyMax: config.limits.phoneDailyVideos,
+      remaining: Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
     },
     resultUrl: s.result_token ? `/r/${s.result_token}` : null,
     kakaoStatus: s.kakao_status,
@@ -231,6 +234,7 @@ route('POST', '/api/story', async (req, res) => {
   if (!s.genre) fail(400, '장르를 먼저 선택해 주세요.');
   assertNotBusy(s);
   rateLimit(`story:${s.id}`, 30, 600000);
+  assertDaily(s, 'story', fail);
   const { keywords, director: rawDirector } = await readBody(req);
   const director = String(rawDirector || '').replace(/[<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
   if (!director) fail(400, '감독 이름을 입력해 주세요.', 'NO_DIRECTOR');
@@ -252,6 +256,7 @@ route('POST', '/api/poster', async (req, res) => {
   if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 이야기를 만들어 주세요.');
   if (POSTER_BUSY.includes(s.poster_status)) return json(res, 200, { session: sessionView(s) }); // already making it
   assertNotBusy(s); // a trailer is being made from the current poster
+  assertDaily(s, 'poster', fail);
   if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
     updateSession(s.id, { result_token: token(16), result_expires_at: Date.now() + config.resultTtlDays * 86400000 });
@@ -279,6 +284,7 @@ route('POST', '/api/video', async (req, res) => {
   if (VIDEO_BUSY.includes(s.video_status)) return json(res, 200, { session: sessionView(s) }); // already making it
   assertNotBusy(s); // a poster is being (re)made
   if (s.poster_status !== 'done' || !s.poster_file) fail(400, '포스터를 먼저 만들어 주세요.');
+  assertDaily(s, 'video', fail);
   if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
   logEvent(s.id, 'video_requested');

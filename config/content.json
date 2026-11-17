@@ -18,8 +18,8 @@
     {
       "id": "action", "ko": "액션", "en": "ACTION", "desc": "멈추면 끝나는 질주",
       "palette": ["#ff5a1f", "#1a0a05"],
-      "style": "high-octane action blockbuster key art, explosive orange and teal color grading, sparks and flying debris, dynamic low-angle hero shot, motion blur, IMAX scale",
-      "motion": "explosive push-in camera, debris and sparks flying past the lens, the hero turns sharply toward camera, fast dynamic movement",
+      "style": "grounded live-action action film, shot on 35mm anamorphic, practical stunts and real fire, warm firelight and sodium-vapor streetlight against cool dusk, sweat, dust and grit on skin and clothes, low-angle hero framing, slight motion blur",
+      "motion": "handheld camera pushes in as the hero moves, real dust and sparks drift past the lens, the hero turns toward camera with a quick but physically believable motion",
       "titles": ["{n} 작전", "라스트 {n}", "{n}: 카운트다운", "{n} 프로토콜"],
       "taglines": ["멈추는 순간, 모든 것이 끝난다.", "단 한 번의 기회, 물러설 곳은 없다.", "오늘 밤, 규칙은 사라진다."],
       "tail": "시간은 줄어들고 위협은 가까워진다. 마지막 순간, 주인공은 가장 위험한 길을 택한다. 그리고 도시는 그날의 굉음을 오래도록 기억하게 된다."
@@ -27,8 +27,8 @@
     {
       "id": "romance", "ko": "로맨스", "en": "ROMANCE", "desc": "예고 없이 도착하는 마음",
       "palette": ["#ff7aa8", "#2a0f1c"],
-      "style": "dreamy romantic film poster, soft golden-hour backlight, pastel bokeh, intimate warm tones, gentle lens flare, delicate atmosphere",
-      "motion": "slow dolly-in, petals and light particles drifting through the air, a soft breeze moving hair and clothes, warm golden light flickering",
+      "style": "live-action romance film still, late-afternoon natural backlight, soft halation, muted warm film tones, shallow depth of field on a 50mm lens, a candid unposed moment between two people",
+      "motion": "slow dolly-in, a light breeze moving hair and clothes, sunlight flickering through leaves, a small natural smile, calm unhurried movement",
       "titles": ["너와 나의 {n}", "{n}, 그 계절", "우리들의 {n}", "{n}의 계절"],
       "taglines": ["모든 우연은 너에게로 향하고 있었다.", "사랑은 늘 예고 없이 도착한다.", "다시 만난다면, 이번엔 놓치지 않을게."],
       "tail": "엇갈리던 두 사람의 시간은 조금씩 같은 방향을 향한다. 그러나 결정적인 순간마다 운명은 한 걸음씩 늦게 도착한다. 마지막 장면, 두 사람은 처음 만났던 그 자리에 다시 선다."
@@ -36,8 +36,8 @@
     {
       "id": "thriller", "ko": "스릴러", "en": "THRILLER", "desc": "아무도 믿을 수 없는 밤",
       "palette": ["#7ad1ff", "#050b12"],
-      "style": "tense psychological thriller poster, cold desaturated blue palette, hard shadows, falling rain, a single harsh light source, high-contrast noir framing",
-      "motion": "slow ominous push-in, lights flickering, rain streaking down, shadows creeping across the frame, the subject glances over their shoulder",
+      "style": "live-action psychological thriller, cold desaturated grade, a single practical light source, wet streets and real rain, deep shadows, tense restrained performance, gritty 35mm texture",
+      "motion": "slow push-in, a practical light flickers, rain streaks past the lens, the subject glances over their shoulder toward an off-screen sound",
       "titles": ["{n}의 밤", "침묵하는 {n}", "{n} 이후", "검은 {n}"],
       "taglines": ["진실은 가장 가까운 곳에 숨어 있다.", "아무도 믿지 마라. 너 자신조차.", "그날 밤, 모든 것이 바뀌었다."],
       "tail": "단서가 하나씩 맞춰질수록 믿었던 모든 것이 뒤집힌다. 시계 초침 소리만 남은 마지막 밤, 주인공은 스스로 감춰온 진실과 마주한다."
@@ -45,8 +45,8 @@
     {
       "id": "sf", "ko": "SF", "en": "SCI-FI", "desc": "미래에서 온 신호",
       "palette": ["#8b7bff", "#07061a"],
-      "style": "epic science-fiction poster, vast cosmic scale, neon cyan and violet glow, futuristic megastructures, volumetric light beams, ultra detailed",
-      "motion": "sweeping crane shot revealing a vast futuristic scale, holograms flickering, distant ships gliding, volumetric light beams shifting",
+      "style": "grounded live-action science fiction, practical sets and real locations with subtle futuristic details, cool cyan and amber practical lighting, atmospheric haze, large-format cinematography, believable scale",
+      "motion": "slow crane move revealing the location, haze drifting through shafts of light, practical screens flickering, steady realistic camera movement",
       "titles": ["{n} 신호", "프로젝트: {n}", "{n} 너머", "제로 {n}"],
       "taglines": ["우주는 대답하지 않는다. 우리가 먼저 묻기 전까지는.", "미래는 이미 도착해 있었다.", "인류의 마지막 신호가 깜빡인다."],
       "tail": "계산되지 않은 변수 하나가 모든 시스템을 흔들기 시작한다. 별빛보다 먼 곳에서 들려온 신호 앞에서, 주인공은 인류가 한 번도 내려본 적 없는 결정을 내린다."
@@ -54,8 +54,8 @@
     {
       "id": "fantasy", "ko": "판타지", "en": "FANTASY", "desc": "믿는 순간 열리는 세계",
       "palette": ["#c6f432", "#08140c"],
-      "style": "enchanting fantasy film poster, glowing magical particles, misty ethereal atmosphere, painterly cinematic lighting, moonlit fairy-tale world",
-      "motion": "magical particles swirling upward, mist drifting slowly, glowing light pulsing, the camera slowly orbits around the hero",
+      "style": "live-action fantasy film shot on location, an old forest or ancient architecture, moonlight and lantern light, natural mist, costumes with real fabric texture, restrained in-camera magic, muted earthy palette",
+      "motion": "the camera slowly orbits the hero, mist drifting, lantern light flickering, a few faint motes of light rising, gentle natural movement",
       "titles": ["{n}의 이름", "고요한 {n}", "{n}의 숲", "달빛 {n}"],
       "taglines": ["마법은 믿는 사람에게만 모습을 드러낸다.", "믿는 순간, 세계가 열린다.", "오래된 주문이 다시 깨어난다."],
       "tail": "오래된 전설과 오늘이 겹쳐지는 순간, 평범했던 세계는 조금씩 빛을 바꾼다. 마지막 주문 앞에서 주인공은 모든 것을 되돌리는 대신, 누군가의 내일을 지키는 선택을 한다."
@@ -63,8 +63,8 @@
     {
       "id": "comedy", "ko": "코미디", "en": "COMEDY", "desc": "계획은 완벽했다, 거의",
       "palette": ["#ffd23f", "#1a1405"],
-      "style": "bright colorful comedy movie poster, saturated pop colors, playful exaggerated expressions, sunny high-key lighting, quirky symmetrical composition",
-      "motion": "playful whip pan, a comedic double-take, confetti bursting into the frame, bouncy energetic camera movement",
+      "style": "live-action comedy film still, bright natural daylight, warm everyday colors, a real neighborhood location, believable understated comedic expressions, candid ensemble framing, light film grain",
+      "motion": "steady handheld camera, a natural comedic beat and a small double-take, characters react with real timing, light everyday movement",
       "titles": ["대환장 {n}", "{n} 대소동", "극한 {n}", "오늘도 {n}"],
       "taglines": ["계획은 완벽했다. 단 하나만 빼고.", "웃기려던 건 아닌데, 일이 커졌다.", "이 정도면 거의 기적이다."],
       "tail": "작은 거짓말 하나가 눈덩이처럼 불어나 동네 전체를 휩쓸기 시작한다. 수습하려 할수록 상황은 더 엉망이 되고, 결국 모두가 예상치 못한 방식으로 해피엔딩에 도착한다."
@@ -72,8 +72,8 @@
     {
       "id": "drama", "ko": "드라마", "en": "DRAMA", "desc": "가장 평범한 하루의 기적",
       "palette": ["#ff9f6b", "#1c0f08"],
-      "style": "award-winning human drama poster, natural soft window light, warm analog film tones, intimate composition, subtle emotion, 35mm film grain",
-      "motion": "gentle handheld camera, warm light shifting through a window, a subtle emotional change in expression, dust motes floating in the light",
+      "style": "live-action human drama, natural soft window light, warm analog film tones, intimate close framing, subtle real emotion, 35mm film grain",
+      "motion": "gentle handheld camera, warm light shifting through a window, a subtle change in expression, dust floating in the light",
       "titles": ["{n}의 온도", "작은 {n}", "{n}, 다시", "안녕, {n}"],
       "taglines": ["가장 평범한 하루가, 가장 특별한 이야기가 된다.", "우리는 모두 누군가의 기적이었다.", "늦었다고 생각한 순간, 이야기는 시작된다."],
       "tail": "서툴고 느린 걸음이지만, 주인공은 매일 조금씩 앞으로 나아간다. 그리고 마침내, 잊고 지냈던 사람들의 얼굴이 하나둘 그 길 위에 다시 나타난다."
@@ -81,8 +81,8 @@
     {
       "id": "mystery", "ko": "미스터리", "en": "MYSTERY", "desc": "모든 단서는 처음부터 거기 있었다",
       "palette": ["#4fe0b6", "#04120e"],
-      "style": "atmospheric mystery film poster, foggy moody teal tones, mysterious silhouettes, vintage clues, dramatic chiaroscuro lighting",
-      "motion": "slow creeping dolly forward, fog rolling in, candle flames flickering, a hidden symbol begins to glow",
+      "style": "live-action mystery film, foggy streets and real interiors, muted teal and amber grade, practical lamp light, chiaroscuro shadows, old props with real wear",
+      "motion": "slow creeping dolly forward, fog rolling past, candle flames flickering, the subject notices something off-screen",
       "titles": ["{n}의 수수께끼", "사라진 {n}", "{n} 미스터리", "열세 번째 {n}"],
       "taglines": ["모든 단서는 처음부터 거기 있었다.", "풀리지 않는 질문 하나, 그리고 단 하나의 답.", "문을 여는 순간, 이야기는 되돌릴 수 없다."],
       "tail": "기묘한 우연들이 하나의 지도처럼 이어지기 시작한다. 마지막 퍼즐 조각이 맞춰지는 순간, 주인공은 자신이 처음부터 이 이야기의 일부였다는 사실을 알게 된다."

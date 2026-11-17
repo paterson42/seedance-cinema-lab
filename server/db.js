@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS events (
   ts         INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_name ON events(name);
+CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id, name, ts);
 
 CREATE TABLE IF NOT EXISTS kakao_outbox (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,

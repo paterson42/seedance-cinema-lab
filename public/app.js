@@ -637,6 +637,7 @@ VIEWS.trailer = () => {
   const s = S.session;
   const k = S.boot.kakao;
   const failed = s.video.status === 'failed';
+  const noMore = s.video.remaining <= 0; // per-session or per-phone daily limit used up
   const el = render(`
     <button class="back" data-back>← 포스터로 돌아가기</button>
     <div class="trailer-head">
@@ -651,7 +652,10 @@ VIEWS.trailer = () => {
     </details>
     ${kakaoCard(k.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 알려드려요`, `약 ${fmtDur(s.video.etaSec)} · 자리를 떠나도 괜찮아요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="cta-bar">
-      <button class="btn btn-primary btn-block" id="makeVideo">${failed ? '다시 시도하기' : '영상 생성하기'} ${ic('play')}</button>
+      ${noMore ? `<div class="notice"><span class="ico">✦</span><span>${s.video.dailyLeft <= 0
+        ? `트레일러는 번호당 하루 ${s.video.dailyMax}편까지 만들 수 있어요. 오늘은 모두 만들었어요! 만든 작품은 ‘내 결과 다시 보기’에서 볼 수 있어요.`
+        : '이 작품으로 만들 수 있는 트레일러를 모두 만들었어요. 처음부터 다시 만들어 새 작품에 도전해 보세요.'}</span></div>` : ''}
+      <button class="btn btn-primary btn-block" id="makeVideo"${noMore ? ' disabled' : ''}>${failed ? '다시 시도하기' : '영상 생성하기'} ${ic('play')}</button>
     </div>
   `);
   $('[data-back]', el).onclick = () => go('poster');

@@ -46,38 +46,47 @@ function templateStory({ genre, kw, director, seed }) {
   return { title, tagline, logline, synopsis, director };
 }
 
+// Appended to every poster / trailer prompt (Seed-written or template) so results read as a
+// still and footage from a real live-action film, not a glossy AI render.
+const POSTER_REALISM = 'Photographed as a still from a real live-action feature film: shot on 35mm film with a cinema camera and real lenses, natural skin texture with pores and fine lines, real fabric and material texture, practical motivated lighting, gentle film grain and halation, natural color, believable human proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration; no airbrushed or plastic-looking skin, no over-sharpened HDR look.';
+const VIDEO_REALISM = 'Live-action film footage: real camera movement with natural motion blur, realistic physics and weight, natural human motion and micro-expressions, faces and hands stay consistent with the poster without morphing, 24fps film look with gentle grain.';
+const SECS = () => config.ark.videoDuration;
+
 function posterPrompt({ genre, kw }) {
   return [
-    `Cinematic ${genre.en.toLowerCase()} movie poster key art, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), subject centred with headroom.`,
+    `Photographic one-sheet for a live-action ${genre.en.toLowerCase()} film, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), subject centred with headroom.`,
     `Main character: ${kw.who.en}, who ${kw.what.en} ${kw.how.en}, ${kw.why.en}.`,
     `Setting: ${kw.where.en}, ${kw.when.en}.`,
     `Style: ${genre.style}.`,
-    'Iconic single-image storytelling, striking silhouette, rich depth, theatrical one-sheet lighting, 35mm film grain, masterpiece quality.',
+    'A single strong moment that tells the story, real location with depth, theatrical one-sheet composition.',
+    POSTER_REALISM,
     'Keep the lower third darker and uncluttered for title placement. No text, no letters, no words, no logos, no watermark.',
   ].join(' ');
 }
 
 function videoPrompt({ genre, kw }) {
   return [
-    'The movie poster comes alive as an 8-second cinematic teaser trailer shot.',
+    `The movie poster comes alive as a ${SECS()}-second teaser trailer shot.`,
     `${kw.who.en} ${kw.what.en} ${kw.how.en}, ${kw.where.en}, ${kw.when.en}.`,
     `Camera and motion: ${genre.motion}.`,
-    'Keep the same character, wardrobe, palette and composition as the poster. Smooth, coherent, film-like motion with atmospheric depth. No text or titles on screen.',
+    'Keep the same characters, wardrobe, palette and composition as the poster.',
+    VIDEO_REALISM,
+    'No text or titles on screen.',
   ].join(' ');
 }
 
 function videoPromptKo({ genre, kw }) {
-  return `포스터 속 ${kw.who.ko}${hasBatchim(kw.who.ko) ? '이' : '가'} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 특유의 카메라 워크로 8초 내외의 티저 장면을 만듭니다.`;
+  return `포스터 속 ${kw.who.ko}${hasBatchim(kw.who.ko) ? '이' : '가'} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 특유의 카메라 워크로 ${SECS()}초 티저 장면을 만듭니다.`;
 }
 
-const LLM_SYSTEM = `You are a playful Korean film marketer writing for an AI movie poster booth.
+const LLM_SYSTEM = () => `You are a playful Korean film marketer writing for an AI movie poster booth.
 Return ONLY a JSON object with keys:
 "title" (Korean movie title, 2-10 characters, catchy, no quotes),
 "tagline" (Korean, one sentence, max 30 characters),
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
-"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Describe subject, setting, lighting, color grading, composition. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
-"video_prompt" (English prompt, 1-3 sentences, describing how this exact poster image comes alive as an 8-second trailer shot: camera movement, subject motion, atmosphere. No on-screen text).
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
+"video_prompt" (English prompt, 1-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot: one clear camera move, what the actors physically do, small natural details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly.`;
 
 export async function buildStory({ genreId, keywordIdx, director, seed }) {
@@ -94,7 +103,7 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
       const user = `Genre: ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
 Keywords — 누가: ${kw.who.ko} / 언제: ${kw.when.ko} / 어디서: ${kw.where.ko} / 무엇을: ${kw.what.ko} / 어떻게: ${kw.how.ko} / 왜: ${kw.why.ko}.
 Director: ${director}. Random seed: ${seed}.`;
-      const out = await chatJSON(LLM_SYSTEM, user);
+      const out = await chatJSON(LLM_SYSTEM(), user);
       const ok = (s, max) => typeof s === 'string' && s.trim() && s.length <= max;
       if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2000) && ok(out.video_prompt, 1200)) {
         story = {
@@ -105,8 +114,8 @@ Director: ${director}. Random seed: ${seed}.`;
           director,
           source: 'seed-llm',
         };
-        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}.`;
-        vPrompt = out.video_prompt.trim();
+        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_REALISM}`;
+        vPrompt = `${out.video_prompt.trim()} Camera and motion: ${genre.motion}. ${VIDEO_REALISM}`;
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);
