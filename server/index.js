@@ -7,7 +7,7 @@ import { createSession, getSession, getSessionByToken, updateSession, query, que
 import { publicContent, getContent, saveContent, containsBanned } from './content.js';
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
 import { buildStory } from './story.js';
-import { enqueuePoster, enqueueVideo, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
+import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
 import { etaSec } from './eta.js';
 
@@ -19,9 +19,9 @@ const MIME = {
 };
 
 class HttpError extends Error {
-  constructor(status, message, code) { super(message); this.status = status; this.code = code; }
+  constructor(status, message, code, extra) { super(message); this.status = status; this.code = code; this.extra = extra; }
 }
-const fail = (status, message, code) => { throw new HttpError(status, message, code); };
+const fail = (status, message, code, extra) => { throw new HttpError(status, message, code, extra); };
 
 function json(res, status, body, headers = {}) {
   res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store', ...headers });
@@ -198,8 +198,27 @@ route('POST', '/api/session/phone', async (req, res) => {
   json(res, 200, { session: sessionView(updated) });
 });
 
+// One generation at a time per visitor. While a poster or trailer is being made, any request that
+// would start or change one answers 409 BUSY with the current session, and the phone goes back to
+// the waiting screen. Repeating the same request (double tap, network retry) is answered with the
+// session as-is (see /api/poster and /api/video), which also lands on the waiting screen.
+const POSTER_BUSY = ['queued', 'running'];
+const VIDEO_BUSY = ['queued', 'submitting', 'running'];
+function busyWith(s) {
+  if (POSTER_BUSY.includes(s.poster_status)) return 'poster';
+  if (VIDEO_BUSY.includes(s.video_status)) return 'video';
+  return null;
+}
+function assertNotBusy(s) {
+  const b = busyWith(s);
+  if (!b) return;
+  fail(409, b === 'poster' ? '포스터를 만들고 있어요. 완성될 때까지 조금만 기다려 주세요.' : '트레일러를 만들고 있어요. 완성될 때까지 조금만 기다려 주세요.',
+    'BUSY', { busy: b, session: sessionView(s) });
+}
+
 route('POST', '/api/session/genre', async (req, res) => {
   const s = requireSession(req);
+  assertNotBusy(s);
   const { genre } = await readBody(req);
   if (!getContent().genres.some((g) => g.id === genre)) fail(400, '장르를 다시 선택해 주세요.');
   const updated = updateSession(s.id, { genre });
@@ -210,6 +229,7 @@ route('POST', '/api/session/genre', async (req, res) => {
 route('POST', '/api/story', async (req, res) => {
   const s = requireSession(req);
   if (!s.genre) fail(400, '장르를 먼저 선택해 주세요.');
+  assertNotBusy(s);
   rateLimit(`story:${s.id}`, 30, 600000);
   const { keywords, director: rawDirector } = await readBody(req);
   const director = String(rawDirector || '').replace(/[<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
@@ -218,6 +238,7 @@ route('POST', '/api/story', async (req, res) => {
   const seed = crypto.randomInt(1, 1000000);
   const built = await buildStory({ genreId: s.genre, keywordIdx: keywords, director, seed });
   if (built.error) fail(400, built.error);
+  assertNotBusy(getSession(s.id)); // a generation may have started during the LLM call
   const updated = updateSession(s.id, {
     keywords: built.keywords, director, seed, story: built.story,
     poster_prompt: built.posterPrompt, video_prompt: built.videoPrompt,
@@ -229,7 +250,8 @@ route('POST', '/api/story', async (req, res) => {
 route('POST', '/api/poster', async (req, res) => {
   const s = requireSession(req);
   if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 이야기를 만들어 주세요.');
-  if (['queued', 'running'].includes(s.poster_status)) return json(res, 200, { session: sessionView(s) });
+  if (POSTER_BUSY.includes(s.poster_status)) return json(res, 200, { session: sessionView(s) }); // already making it
+  assertNotBusy(s); // a trailer is being made from the current poster
   if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
     updateSession(s.id, { result_token: token(16), result_expires_at: Date.now() + config.resultTtlDays * 86400000 });
@@ -247,14 +269,16 @@ route('POST', '/api/poster/final', async (req, res) => {
   if (!m) fail(400, '이미지 형식이 올바르지 않아요.');
   const buf = Buffer.from(m[1], 'base64');
   if (buf[0] !== 0xff || buf[1] !== 0xd8) fail(400, '이미지 형식이 올바르지 않아요.');
-  const updated = saveFinalPoster(s.id, buf);
+  saveFinalPoster(s.id, buf);
+  const updated = postPosterToScreen(s.id); // titled poster is ready: hang it on the booth screen
   json(res, 200, { session: sessionView(updated) });
 });
 
 route('POST', '/api/video', async (req, res) => {
   const s = requireSession(req);
+  if (VIDEO_BUSY.includes(s.video_status)) return json(res, 200, { session: sessionView(s) }); // already making it
+  assertNotBusy(s); // a poster is being (re)made
   if (s.poster_status !== 'done' || !s.poster_file) fail(400, '포스터를 먼저 만들어 주세요.');
-  if (['queued', 'submitting', 'running'].includes(s.video_status)) return json(res, 200, { session: sessionView(s) });
   if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
   logEvent(s.id, 'video_requested');
@@ -512,7 +536,7 @@ const server = http.createServer(async (req, res) => {
   } catch (e) {
     const status = e instanceof HttpError ? e.status : 500;
     if (status === 500) console.error(e);
-    if (!res.headersSent) json(res, status, { error: status === 500 ? '서버에 일시적인 문제가 생겼어요.' : e.message, code: e.code });
+    if (!res.headersSent) json(res, status, { ...(status !== 500 && e.extra), error: status === 500 ? '서버에 일시적인 문제가 생겼어요.' : e.message, code: e.code });
     else res.end();
   }
 });

@@ -366,7 +366,6 @@ img, video { display: block; max-width: 100%; }
 .sc-row + .sc-row { margin-top: 12px; border-top: 1px dashed var(--line); }
 .sc-row small { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; color: var(--muted); }
 .sc-row b { font-size: 14.5px; }
-.sc-btn { min-height: 42px; padding: 0 16px; border-radius: 11px; font-size: 14px; background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .sc-state { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--muted); display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 99px; }
 .sc-state.live { color: var(--accent); border-color: rgba(212,255,58,.45); }
 .sc-state.live i { width: 7px; height: 7px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; animation: blink 1.4s ease-in-out infinite; }

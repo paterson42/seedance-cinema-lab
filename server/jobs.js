@@ -7,6 +7,7 @@ import { config, MEDIA_DIR } from './config.js';
 import { query, queryOne, getSession, updateSession, logEvent, db } from './db.js';
 import { generateImage, submitVideo, getVideoTask } from './providers/ark.js';
 import { sendTrailerReady } from './providers/kakao.js';
+import { token } from './privacy.js';
 
 const runningPosters = new Set();
 let videoPolling = false;
@@ -25,8 +26,35 @@ export function saveFinalPoster(sessionId, buffer) {
 }
 
 // ───────────── Poster (Seedream) ─────────────
-// A new poster/video replaces what was submitted to the big screens, so the visitor
-// submits again. Items an operator hid stay hidden.
+// Every finished poster goes on the booth poster screen by itself (staff can hide it in /admin).
+// The phone uploads the titled version a few seconds after "done"; that upload posts it. If it
+// never arrives (visitor closed the page), the raw poster is posted after this delay.
+const AUTO_POST_FALLBACK_MS = 20000;
+// Finished trailers go on the booth trailer screen by themselves too.
+export function postTrailerToScreen(sessionId) {
+  const s = getSession(sessionId);
+  if (!s || s.video_status !== 'done' || !s.video_file || s.screen_video) return s;
+  logEvent(sessionId, 'screen_trailer_submitted', { auto: true });
+  return updateSession(sessionId, {
+    screen_id: s.screen_id || token(8),
+    screen_video: config.screen.autoApprove ? 'live' : 'pending',
+    screen_video_at: Date.now(),
+  });
+}
+
+export function postPosterToScreen(sessionId) {
+  const s = getSession(sessionId);
+  if (!s || s.poster_status !== 'done' || s.screen_poster) return s;
+  logEvent(sessionId, 'screen_poster_submitted', { auto: true });
+  return updateSession(sessionId, {
+    screen_id: s.screen_id || token(8),
+    screen_poster: config.screen.autoApprove ? 'live' : 'pending',
+    screen_poster_at: Date.now(),
+  });
+}
+
+// A new poster/video replaces what was on the big screens; the new one is posted again
+// automatically when it is done. Items an operator hid stay hidden.
 const unlessHidden = (v) => (v === 'hidden' ? 'hidden' : null);
 
 export function enqueuePoster(sessionId) {
@@ -55,6 +83,7 @@ async function runPoster(s) {
     // Only successful generations count towards the per-session limit.
     updateSession(s.id, { poster_status: 'done', poster_file: file, poster_count: (getSession(s.id).poster_count || 0) + 1 });
     logEvent(s.id, 'poster_done', { ms: Date.now() - started });
+    setTimeout(() => postPosterToScreen(s.id), AUTO_POST_FALLBACK_MS);
   } catch (e) {
     console.warn(`[poster] ${s.id} failed:`, e.message);
     updateSession(s.id, { poster_status: 'failed', poster_error: e.userMessage || '포스터를 만들지 못했어요. 다시 시도해 주세요.' });
@@ -110,6 +139,7 @@ async function pollVideos() {
             video_status: 'done', video_file: file, video_done_at: Date.now(), video_count: (s.video_count || 0) + 1,
           });
           logEvent(s.id, 'video_done', { ms: Date.now() - s.video_requested_at });
+          postTrailerToScreen(s.id);
           const k = await sendTrailerReady(done);
           updateSession(s.id, { kakao_status: k });
         } else if (r.status === 'failed') {

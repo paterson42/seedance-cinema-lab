@@ -62,7 +62,10 @@ async function api(path, { method = 'GET', body, retries } = {}) {
     }
     net(true);
     if (res.status >= 500 && i < retries) { await sleep(700 * 2 ** i); continue; }
-    if (!res.ok) throw Object.assign(new Error(data.error || '문제가 생겼어요. 다시 시도해 주세요.'), { status: res.status, code: data.code });
+    if (!res.ok) {
+      if (data.session !== undefined) S.session = data.session;
+      throw Object.assign(new Error(data.error || '문제가 생겼어요. 다시 시도해 주세요.'), { status: res.status, code: data.code });
+    }
     if (data.session !== undefined) S.session = data.session;
     return data;
   }
@@ -96,6 +99,7 @@ async function copyText(text) {
 
 function handleError(e, fallbackView) {
   if (e.code === 'NO_SESSION' || e.code === 'NO_PHONE') { toast(e.message); return go('landing'); }
+  if (e.code === 'BUSY') { toast(e.message); return resume({ slate: false }); } // already generating: back to its waiting screen
   toast(e.message || '문제가 생겼어요.');
   if (fallbackView) go(fallbackView);
 }
@@ -145,7 +149,18 @@ async function clapperboard(view) {
   if (my === slateTimer) { el.hidden = true; el.classList.remove('clap', 'action'); }
 }
 
+// While this visitor's poster or trailer is being made, every step of the flow shows that waiting
+// screen instead (browser back, stale pages, repeated taps). The server enforces the same rule.
+const FLOW_VIEWS = new Set(['genre', 'cast', 'story', 'poster', 'trailer', 'waiting', 'done']);
+function busyView(s = S.session) {
+  if (['queued', 'running'].includes(s?.poster?.status)) return 'poster';
+  if (['queued', 'submitting', 'running'].includes(s?.video?.status)) return 'waiting';
+  return null;
+}
+
 function go(view, { push = true, slate } = {}) {
+  const bv = FLOW_VIEWS.has(view) && busyView();
+  if (bv && bv !== view) { view = bv; slate = false; }
   S.pollId++; // cancels any running poll loop
   const prev = S.view;
   // Clap on forward moves (and when explicitly asked), never on back/restore.
@@ -604,8 +619,11 @@ async function renderPosterDone() {
   const src = await getComposedPoster(infoFromSession(s), s.poster.url, s.poster.finalUrl);
   if (S.view !== 'poster') return;
   $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="${esc(s.story.title)} 포스터">`;
-  if (src.startsWith('data:') && !s.poster.finalUrl) S.finalUpload = api('/api/poster/final', { method: 'POST', body: { dataUrl: src }, retries: 3 }).catch(() => {});
-  bindScreenCard(el, {});
+  // Uploading the titled poster also hangs it on the booth poster screen (server side).
+  if (src.startsWith('data:') && !s.poster.finalUrl) {
+    api('/api/poster/final', { method: 'POST', body: { dataUrl: src }, retries: 3 })
+      .then(() => S.view === 'poster' && refreshScreenCard(el, S.session.screen)).catch(() => {});
+  }
   const fname = `seedance-cinema-${pad(s.seed)}.jpg`;
   $('#save', el).onclick = () => { download(src.startsWith('data:') ? src : `${src}?dl=1`, fname); track('poster_saved'); toast('포스터를 저장했어요'); };
   $('#share', el).onclick = () => { shareFile(src, fname, `${s.story.title} — A FILM BY ${s.director}`, absUrl(s.resultUrl)); track('poster_shared'); };
@@ -646,38 +664,26 @@ VIEWS.trailer = () => {
   };
 };
 
-// ───────────── big screens: visitor submits poster / trailer ─────────────
+// ───────────── big screens: posters and trailers go up automatically ─────────────
 const SCREEN_ROWS = {
-  poster: { tag: 'POSTER', name: '부스 포스터 스크린', cta: '포스터 걸기', ok: '부스 포스터 스크린에 걸렸어요!' },
-  trailer: { tag: 'TRAILER', name: '부스 예고편 스크린', cta: '상영하기', ok: '부스 예고편 스크린 상영 대기열에 올렸어요!' },
+  poster: { tag: 'POSTER', name: '부스 포스터 스크린' },
+  trailer: { tag: 'TRAILER', name: '부스 예고편 스크린' },
 };
-const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>상영 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
+const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>상영 중</span>'
+  : st ? '<span class="sc-state">운영진 확인 중</span>'
+    : '<span class="sc-state">곧 자동으로 걸려요</span>');
 function screenCard(state = {}, { poster = false, trailer = false } = {}) {
   const rows = Object.entries({ poster, trailer }).filter(([, on]) => on).map(([kind]) => {
-    const st = state?.[kind];
     const r = SCREEN_ROWS[kind];
-    const right = st ? screenState(st) : `<button class="btn sc-btn" data-screen="${kind}">${r.cta}</button>`;
-    return `<div class="sc-row"><div><small>${r.tag}</small><b>${r.name}</b></div>${right}</div>`;
+    return `<div class="sc-row"><div><small>${r.tag}</small><b>${r.name}</b></div><span data-sc="${kind}">${screenState(state?.[kind])}</span></div>`;
   }).join('');
   return `<div class="screen-card">
-    <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>현장 대형 스크린에 상영하기</b>
-      <span>제출하면 감독 이름·영화 제목·${trailer ? '포스터·트레일러' : '포스터'}가 부스 대형 스크린에 공개돼요.</span></div></div>
+    <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>부스 대형 스크린에 자동 상영</b>
+      <span>완성된 포스터와 트레일러는 감독 이름·영화 제목과 함께 부스 스크린에 자동으로 걸려요.</span></div></div>
     <div class="sc-rows">${rows}</div></div>`;
 }
-function bindScreenCard(el, { token }) {
-  $$('[data-screen]', el).forEach((b) => (b.onclick = async () => {
-    const kind = b.dataset.screen;
-    b.disabled = true;
-    try {
-      if (kind === 'poster' && S.finalUpload) await S.finalUpload;
-      const r = await api('/api/screen/submit', { method: 'POST', body: { kind, token } });
-      const st = r.screen?.[kind];
-      if (S.session && !token) S.session.screen = r.screen;
-      b.outerHTML = screenState(st);
-      navigator.vibrate?.(20);
-      toast(st === 'live' ? `${SCREEN_ROWS[kind].ok} 🎬` : '운영진 확인 후 대형 스크린에 상영돼요');
-    } catch (e) { b.disabled = false; handleError(e); }
-  }));
+function refreshScreenCard(el, state = {}) {
+  $$('[data-sc]', el).forEach((n) => { n.innerHTML = screenState(state?.[n.dataset.sc]); });
 }
 
 function kakaoCard(enabled, title, sub, saveSub = '트레일러가 완성되면 같은 링크에서 바로 볼 수 있어요') {
@@ -829,7 +835,6 @@ async function renderResult(r) {
         <button class="btn btn-block" data-a="summary">결과 요약 복사</button>`;
     }
   };
-  bindScreenCard(el, { token: r.token });
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
