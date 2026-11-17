@@ -634,7 +634,7 @@ async function saveToKakao(info) {
   track('kakao_share', { via: S.boot.kakao.jsKey ? 'sdk' : navigator.share ? 'sheet' : 'copy' });
   if (S.boot.kakao.jsKey) return kakaoShare(info);
   if (navigator.share) {
-    try { await navigator.share({ title: info.title, text: `🎬 ${info.title} — A FILM BY ${info.director}\n내 영화 다시 보기 ↓`, url: info.link }); return; }
+    try { await navigator.share({ title: info.title, text: `🎬 ${info.title} — A FILM BY ${info.director}\n내 영화 다시 보기: ${info.link}` }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   await copyText(info.link);
