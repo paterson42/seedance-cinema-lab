@@ -477,7 +477,7 @@ VIEWS.poster = () => {
     <div class="notice"><span class="ico">✦</span><span><b>SEED NO.${pad(s.seed)}</b> → Seedream. ${esc(S.content.copy.posterNotice)}</span></div>
     <div class="poster-wrap"><div class="loading-stage">
       <div>
-        <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">30</b></div>
+        <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">${s.poster.etaSec || 60}</b></div>
         <div class="loading-msg" id="lmsg">${POSTER_MSGS[0]}</div>
         <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 2:3 KEY ART</div>
       </div>
@@ -492,9 +492,12 @@ VIEWS.poster = () => {
       const el2 = $('#cd');
       if (!el2) return;
       const sec = (Date.now() - t0) / 1000;
-      const est = 30;
+      const est = S.session.poster.etaSec || 60;
+      const left = Math.ceil(est - sec);
       el2.style.setProperty('--p', `${Math.min(97, (sec / est) * 100)}%`);
-      $('#cdNum').textContent = Math.max(1, Math.ceil(est - sec));
+      el2.classList.toggle('over', left <= 0);
+      $('#cdNum').textContent = left > 0 ? left : '…';
+      if (left <= 0 && !el2.dataset.over) { el2.dataset.over = 1; $('#lmsg').textContent = '거의 다 됐어요! 마지막 컷을 다듬는 중…'; lastMsg = Infinity; }
       if (Date.now() - lastMsg > 3200) { msgI = (msgI + 1) % POSTER_MSGS.length; $('#lmsg').textContent = POSTER_MSGS[msgI]; lastMsg = Date.now(); }
       const q = S.session.poster.queuePos;
       if (q > 1) $('#lsub').textContent = `앞에 ${q - 1}명 대기 중 · 곧 시작해요`;
@@ -566,7 +569,7 @@ VIEWS.trailer = () => {
     <details class="prompt-box"><summary>Seedance 트레일러 프롬프트 보기</summary>
       <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE · IMAGE→VIDEO · SEED ${s.seed}</span><button class="copy-btn" data-copy>복사</button></div></div>
     </details>
-    ${kakaoCard(k.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 알려드려요`, '평균 3~5분 · 자리를 떠나도 괜찮아요')}
+    ${kakaoCard(k.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 알려드려요`, `약 ${fmtDur(s.video.etaSec)} · 자리를 떠나도 괜찮아요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="cta-bar">
       <button class="btn btn-primary btn-block" id="makeVideo">${failed ? '다시 시도하기' : '영상 생성하기'} ${ic('play')}</button>
     </div>
@@ -670,14 +673,16 @@ VIEWS.waiting = () => {
   bindKakaoSave(el, () => sessionShareInfo(S.session));
   $('#again', el).onclick = restart;
   const myPoll = S.pollId;
-  const eta = s.video.etaSec || 240;
+  const eta0 = s.video.etaSec || 90;
   let i = 0;
   (async function loop() {
     while (myPoll === S.pollId && $('#wBar')) {
       const sec = (Date.now() - (S.session.video.requestedAt || Date.now())) / 1000;
-      const pct = Math.min(96, 100 * (1 - Math.exp(-sec / (eta * 0.55))));
+      const eta = S.session.video.etaSec || eta0;
+      // Linear to 90% at the estimate, then creeps towards 99% so it never looks stuck.
+      const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
       $('#wBar').style.width = `${pct}%`;
-      $('#wTime').textContent = `${mmss(sec)} / 약 ${Math.round(eta / 60)}분`;
+      $('#wTime').textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
       const q = S.session.video.queuePos;
       $('#wStatus').textContent = q > 1 ? `QUEUED · 앞에 ${q - 1}명 대기 중` : 'RENDERING';
       if (Math.floor(sec) % 6 === 0) $('#wMsg').textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
@@ -1042,6 +1047,13 @@ async function composeTicket(posterSrc, info) {
 }
 
 // ───────────────────────── save / share ─────────────────────────
+// 95 → "1분 35초", 40 → "40초" (rounded to 5s so it doesn't flicker)
+function fmtDur(sec) {
+  const t = Math.max(5, Math.ceil((sec || 0) / 5) * 5);
+  const m = Math.floor(t / 60), s = t % 60;
+  return m ? `${m}분${s ? ` ${s}초` : ''}` : `${s}초`;
+}
+
 function absUrl(p) { return p ? new URL(p, S.boot?.publicBaseUrl || location.origin).href : location.href; }
 
 function download(href, filename) {

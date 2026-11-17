@@ -9,6 +9,7 @@ import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.
 import { buildStory } from './story.js';
 import { enqueuePoster, enqueueVideo, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
+import { etaSec } from './eta.js';
 
 // ───────────── tiny HTTP toolkit ─────────────
 const MIME = {
@@ -81,7 +82,8 @@ const screenView = (s) => ({ poster: screenState(s.screen_poster), trailer: scre
 
 function sessionView(s) {
   if (!s) return null;
-  const etaSec = config.queue.videoEtaSec;
+  const posterQ = queuePosition('poster', s);
+  const videoQ = queuePosition('video', s);
   return {
     id: s.id,
     phoneMasked: s.phone_masked,
@@ -98,17 +100,18 @@ function sessionView(s) {
       url: media(s.poster_file),
       finalUrl: media(s.poster_final_file),
       error: s.poster_error,
-      queuePos: queuePosition('poster', s),
+      queuePos: posterQ,
       requestedAt: s.poster_requested_at,
+      etaSec: etaSec('poster', posterQ),
       remaining: Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0)),
     },
     video: {
       status: s.video_status,
       url: media(s.video_file),
       error: s.video_error,
-      queuePos: queuePosition('video', s),
+      queuePos: videoQ,
       requestedAt: s.video_requested_at,
-      etaSec,
+      etaSec: etaSec('video', videoQ),
       remaining: Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0)),
     },
     resultUrl: s.result_token ? `/r/${s.result_token}` : null,
@@ -132,7 +135,7 @@ function resultView(s) {
     videoUrl: media(s.video_file),
     videoError: s.video_error,
     videoRequestedAt: s.video_requested_at,
-    etaSec: config.queue.videoEtaSec,
+    etaSec: etaSec('video', queuePosition('video', s)),
     createdAt: s.created_at,
     expiresAt: s.result_expires_at,
     screen: screenView(s),
@@ -157,7 +160,7 @@ route('GET', '/api/bootstrap', async (req, res) => {
     content: publicContent(),
     mode: config.mock ? 'mock' : 'live',
     kakao: { enabled: kakaoEnabled(), provider: config.kakao.provider, jsKey: config.kakao.jsKey || null },
-    videoEtaSec: config.queue.videoEtaSec,
+    videoEtaSec: etaSec('video'),
     publicBaseUrl: config.publicBaseUrlSet ? config.publicBaseUrl : null,
     session: sessionView(s),
   });

@@ -380,3 +380,4 @@ img, video { display: block; max-width: 100%; }
 .btn.btn-kakao svg { stroke: currentColor; }
 .kakao-save .ks-tip { margin: 10px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
 .kakao-save .ks-tip b { display: inline; font-size: inherit; color: var(--text); }
+.countdown.over b { animation: blink 1.2s ease-in-out infinite; }

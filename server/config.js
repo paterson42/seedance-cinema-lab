@@ -68,7 +68,9 @@ export const config = {
     posterConcurrency: num('POSTER_CONCURRENCY', 6),
     videoMaxInflight: num('VIDEO_MAX_INFLIGHT', 10),
     videoPollSec: num('VIDEO_POLL_SEC', 8),
-    videoEtaSec: num('VIDEO_ETA_SEC', 240),
+    // Starting estimates for the countdowns; replaced by the median of real runs once a few finish.
+    posterEtaSec: num('POSTER_ETA_SEC', 60),
+    videoEtaSec: num('VIDEO_ETA_SEC', 90),
     posterMaxPerSession: num('POSTER_MAX_PER_SESSION', 3),
     videoMaxPerSession: num('VIDEO_MAX_PER_SESSION', 2),
   },
