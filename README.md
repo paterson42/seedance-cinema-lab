@@ -54,7 +54,8 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 트레일러 (image-to-video)
 
 PRD 4.6 메모처럼 알림톡은 **채널 개설 + 템플릿 심사 + 발신 프로필**이 먼저 필요합니다. 그래서 발송 자체는 어댑터로 분리했습니다.
 
-- `KAKAO_PROVIDER=mock` (기본): 실제 발송 없이 `/admin` 의 "카카오톡 발송 기록"에 메시지 전문과 링크가 남습니다.
+- `KAKAO_PROVIDER=off` (기본): 알림톡을 보내지 않습니다. 대신 트레일러 대기·결과 화면의 **"카카오톡 ‘나와의 채팅’에 저장"** 버튼으로 관람객이 직접 결과 링크를 자기 카카오톡에 저장합니다 (휴대폰 공유 시트, `KAKAO_JS_KEY` 가 있으면 카카오 SDK). 휴대폰 번호는 결과 재조회용으로만 쓰입니다.
+- `KAKAO_PROVIDER=mock`: 실제 발송 없이 `/admin` 의 "카카오톡 발송 기록"에 메시지 전문과 링크가 남습니다.
 - `KAKAO_PROVIDER=webhook`: 트레일러가 완성되면 `KAKAO_WEBHOOK_URL`로 아래 JSON을 POST 합니다. 대행사(NHN Cloud, Solapi 등) API 형식에 맞춰 얇은 중계만 붙이면 됩니다.
 
 ```json
