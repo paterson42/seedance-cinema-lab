@@ -383,3 +383,20 @@ img, video { display: block; max-width: 100%; }
 .kakao-save .ks-tip { margin: 10px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
 .kakao-save .ks-tip b { display: inline; font-size: inherit; color: var(--text); }
 .countdown.over b { animation: blink 1.2s ease-in-out infinite; }
+
+/* ── Start over (every in-progress step) + confirmation sheet ───────────────────────── */
+.restart-row { display: flex; justify-content: flex-end; margin: -10px 0 2px; }
+.restart-link { background: none; border: 0; padding: 6px 0; color: var(--muted); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.25); }
+.restart-link:hover, .restart-link:focus-visible { color: var(--text); }
+.sheet-wrap { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; padding: 16px 16px calc(16px + var(--safe-b));
+  background: rgba(5, 5, 6, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity .2s ease; }
+.sheet-wrap.show { opacity: 1; }
+.sheet { width: min(420px, 100%); background: var(--panel); border: 1px solid var(--line-strong); border-radius: 18px; padding: 22px 18px 16px;
+  transform: translateY(24px); transition: transform .25s cubic-bezier(.2,.8,.2,1); box-shadow: 0 30px 80px -20px rgba(0,0,0,.9); }
+.sheet-wrap.show .sheet { transform: none; }
+.sheet h3 { margin: 0 0 8px; font-size: 19px; font-weight: 900; letter-spacing: -0.02em; }
+.sheet p { margin: 0 0 18px; font-size: 14px; line-height: 1.65; color: var(--muted); word-break: keep-all; }
+.sheet p b { color: var(--text); }
+.sheet-btns { display: grid; gap: 8px; }
+.sheet-danger { color: var(--danger); border-color: rgba(255, 107, 90, .4); }
+@media (min-width: 760px) { .sheet-wrap { align-items: center; } }

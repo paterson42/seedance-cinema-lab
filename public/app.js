@@ -186,7 +186,69 @@ document.addEventListener('click', (e) => {
   if (a) { e.preventDefault(); if (location.pathname !== '/') location.href = '/'; else resume(); }
 });
 
-const render = (html) => { app.innerHTML = `<section class="view">${html}</section>`; return app.firstElementChild; };
+// Every in-progress step gets a small "start over" link; it only acts after a confirmation.
+const RESTART_VIEWS = new Set(['genre', 'cast', 'story', 'poster', 'trailer', 'waiting']);
+const render = (html, { restart = true } = {}) => {
+  const row = restart && RESTART_VIEWS.has(S.view)
+    ? '<div class="restart-row"><button type="button" class="restart-link" data-restart>↺ 처음부터 다시 만들기</button></div>'
+    : '';
+  app.innerHTML = `<section class="view">${row}${html}</section>`;
+  return app.firstElementChild;
+};
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-restart]')) confirmRestart();
+});
+
+let confirming = false;
+async function confirmRestart() {
+  if (confirming) return;
+  confirming = true;
+  const s = S.session || {};
+  const hasPoster = s.poster?.status === 'done';
+  const videoBusy = ['queued', 'submitting', 'running'].includes(s.video?.status);
+  const hasVideo = videoBusy || s.video?.status === 'done';
+  const lines = [
+    S.booth ? '첫 화면으로 돌아가 새로 시작해요.' : '장르 선택부터 새로 시작해요.',
+    `지금 고른 장르·키워드${s.story ? '와 시나리오' : ''}는 이 화면에서 사라져요.`,
+  ];
+  if (hasPoster) {
+    lines.push(`이미 만든 포스터${hasVideo ? '와 예고편' : ''}은 <b>‘내 결과 다시 보기’</b>에서 휴대폰 번호와 감독 이름으로 다시 찾을 수 있어요.${videoBusy ? ' 만들고 있는 예고편도 계속 완성돼요.' : ''}`);
+  }
+  const ok = await confirmSheet({ title: '처음부터 다시 만들까요?', body: lines.join('<br>'), ok: '처음부터 다시', cancel: '계속 만들기' });
+  confirming = false;
+  if (ok) restart();
+}
+
+// Bottom-sheet confirmation. The safe choice is the big primary button; backdrop / Esc cancel.
+function confirmSheet({ title, body, ok, cancel }) {
+  return new Promise((resolve) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'sheet-wrap';
+    wrap.innerHTML = `<div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="shT" aria-describedby="shB">
+      <h3 id="shT">${esc(title)}</h3><p id="shB">${body}</p>
+      <div class="sheet-btns"><button type="button" class="btn btn-primary btn-block" data-no>${esc(cancel)}</button>
+      <button type="button" class="btn btn-ghost btn-block sheet-danger" data-yes>${esc(ok)}</button></div></div>`;
+    document.body.append(wrap);
+    const back = document.activeElement;
+    let done = false;
+    const close = (v) => {
+      if (done) return;
+      done = true;
+      document.removeEventListener('keydown', onKey);
+      wrap.classList.remove('show');
+      setTimeout(() => wrap.remove(), 250);
+      back?.focus?.();
+      resolve(v);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(false); };
+    document.addEventListener('keydown', onKey);
+    wrap.addEventListener('click', (e) => { if (e.target === wrap) close(false); });
+    wrap.querySelector('[data-no]').onclick = () => close(false);
+    wrap.querySelector('[data-yes]').onclick = () => close(true);
+    requestAnimationFrame(() => { wrap.classList.add('show'); wrap.querySelector('[data-no]').focus(); });
+  });
+}
 
 // ───────────────────────── views ─────────────────────────
 const VIEWS = {};
@@ -406,7 +468,7 @@ async function makeStory() {
         <div class="loading-sub">GENRE + 6 KEYWORDS → STORY & PROMPT</div>
       </div>
       <div class="film-strip"></div>
-    </div>`);
+    </div>`, { restart: false });
   try {
     await api('/api/story', { method: 'POST', body: { keywords: S.cast, director } });
     go('story');
