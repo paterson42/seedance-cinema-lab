@@ -10,65 +10,90 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/screen/screen.css">
   <style>
-    /* One portrait 9:16 panel: the poster fills it edge to edge. */
+    /* One portrait 9:16 panel dressed as a cinema lobby: lit NOW SHOWING marquee,
+       a lightbox holding the 9:16 poster, a brass name plate and a premiere ticker. */
     body { background: #000; }
-    .canvas { background: #070405; }
-    .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 1.1s ease; }
-    .scene.on { opacity: 1; }
+    .canvas { display: grid; grid-template-rows: auto 1fr auto;
+      background:
+        radial-gradient(ellipse 85% 50% at 50% 46%, rgba(120, 28, 30, .55), transparent 72%),
+        repeating-linear-gradient(90deg, #120708 0 calc(var(--u) * 4), #0d0506 calc(var(--u) * 4) calc(var(--u) * 4.15)),
+        #0b0506; }
+    .canvas::after { /* floor */ content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 18%; pointer-events: none;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.8) 60%); }
 
-    /* ── poster on show ── */
-    .layer { position: absolute; inset: 0; overflow: hidden; transition: opacity 1.2s ease; }
-    .layer.out { opacity: 0; }
-    .layer img { width: 100%; height: 100%; object-fit: cover; animation: kb var(--hold, 10s) ease-in-out both; }
-    @keyframes kb { from { transform: scale(1.0); } to { transform: scale(1.06) translateY(-1%); } }
-    .layer .sheen { position: absolute; inset: 0; pointer-events: none;
-      background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, transparent 26%, transparent 64%, rgba(255,255,255,.05) 76%, transparent 84%); }
-    .new-tag { position: absolute; z-index: 3; top: calc(var(--u) * 2.2); right: calc(var(--u) * 2.2); font-family: var(--display); font-size: calc(var(--u) * 2.6); letter-spacing: .08em; line-height: 1;
-      background: var(--accent); color: #0b0d02; padding: calc(var(--u) * .7) calc(var(--u) * 1.3) calc(var(--u) * .4); transform: rotate(5deg); box-shadow: 0 0 calc(var(--u) * 3) rgba(212,255,58,.55); }
-    .hold { position: absolute; z-index: 4; left: 0; top: 0; height: calc(var(--u) * .35); width: 0; background: var(--accent); opacity: .7; }
+    /* ── marquee ── */
+    header { position: relative; z-index: 2; padding-top: calc(var(--u) * 2.6); }
+    .marquee { position: relative; width: fit-content; margin: 0 auto; padding: calc(var(--u) * 1.9) calc(var(--u) * 3.4) calc(var(--u) * 2.1); border-radius: calc(var(--u) * 1.1);
+      background: linear-gradient(#1a0d06, #0c0604); text-align: center;
+      box-shadow: 0 0 0 calc(var(--u) * .35) #3a2410, 0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(255,170,60,.2); }
+    .marquee h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 6.6); line-height: .95; letter-spacing: .06em; color: #fff6df;
+      text-shadow: 0 0 calc(var(--u) * 1) rgba(255,200,120,.9), 0 0 calc(var(--u) * 4) rgba(255,150,40,.55); }
+    .marquee p { margin: calc(var(--u) * .5) 0 0; font-family: var(--mono); font-size: calc(var(--u) * 1.15); letter-spacing: .3em; color: #e9c58e; white-space: nowrap; }
+    .marquee p b { font-weight: 500; color: #fff6df; }
+    .bulbs { position: absolute; inset: calc(var(--u) * .55); pointer-events: none; border-radius: calc(var(--u) * .7);
+      background:
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2) calc(var(--u) * 2) repeat-x,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 100% / calc(var(--u) * 2) calc(var(--u) * 2) repeat-x,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2) calc(var(--u) * 2) repeat-y,
+        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 100% 0 / calc(var(--u) * 2) calc(var(--u) * 2) repeat-y;
+      animation: chase 1.1s steps(2) infinite; }
+    .bulbs.b2 { animation-delay: -.55s; filter: brightness(.45); background-position: calc(var(--u) * 1) 0, calc(var(--u) * 1) 100%, 0 calc(var(--u) * 1), 100% calc(var(--u) * 1); }
+    @keyframes chase { 50% { filter: brightness(.45); } }
+
+    /* ── lightbox with the poster ── */
+    main { position: relative; z-index: 1; display: grid; place-content: center; justify-items: center; }
+    .slot { position: relative; }
+    .slot::before { /* ceiling spotlight */ content: ''; position: absolute; left: 50%; top: calc(var(--u) * -14); width: 160%; height: calc(var(--u) * 80);
+      transform: translateX(-50%); pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 50% 60% at 50% 0%, rgba(255,236,200,.14), transparent 70%); }
+    .lightbox { position: relative; z-index: 1; height: calc(var(--u) * 62); aspect-ratio: 9 / 16; box-sizing: content-box; padding: calc(var(--u) * 1.1); border-radius: calc(var(--u) * .5);
+      background: linear-gradient(145deg, #57595e, #1b1c1f 30%, #3b3d42 55%, #121316 80%, #45474c);
+      box-shadow: 0 calc(var(--u) * 3) calc(var(--u) * 6) rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.12); }
+    .glass { position: relative; height: 100%; overflow: hidden; background: #000; border-radius: 2px;
+      box-shadow: 0 0 calc(var(--u) * 5) var(--glow, rgba(255,240,210,.2)), inset 0 0 0 1px rgba(0,0,0,.6); transition: box-shadow 1.2s; }
+    .glass::after { /* glass sheen */ content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+      background: linear-gradient(115deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 62%, rgba(255,255,255,.06) 75%, rgba(255,255,255,0) 82%); }
+    .layer { position: absolute; inset: 0; transition: opacity 1.1s ease, transform 1.4s cubic-bezier(.2,.8,.2,1); }
+    .layer.out { opacity: 0; transform: scale(1.04); }
+    .layer img { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.06) saturate(1.05); }
+    .soon { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: calc(var(--u) * 1.6);
+      background: radial-gradient(circle at 50% 40%, #241414, #0a0606 70%); }
+    .soon b { font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 6); letter-spacing: .08em; color: #e9dcc6; line-height: .9; }
+    .soon span { font-size: calc(var(--u) * 1.7); font-weight: 700; color: #cfc4b2; line-height: 1.5; word-break: keep-all; }
+    .soon .scan { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 1); margin-top: calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.6); font-weight: 900; color: var(--ink); }
+    .soon .arr { font-family: var(--display); font-size: calc(var(--u) * 3.6); line-height: 1; color: var(--accent); animation: nudge 1.2s ease-in-out infinite; }
+    /* arrow points at the QR stand: → by default, ← with ?qr=left */
+    .qr-left .soon .scan { flex-direction: row-reverse; }
+    .qr-left .soon .arr { animation-name: nudge-l; }
+    @keyframes nudge { 50% { transform: translateX(calc(var(--u) * 1)); } }
+    @keyframes nudge-l { 50% { transform: translateX(calc(var(--u) * -1)); } }
+    .new-tag { position: absolute; z-index: 3; top: calc(var(--u) * -1.4); right: calc(var(--u) * -1.4); font-family: var(--display); font-size: calc(var(--u) * 2.2); letter-spacing: .08em; line-height: 1;
+      background: var(--accent); color: #0b0d02; padding: calc(var(--u) * .6) calc(var(--u) * 1.1) calc(var(--u) * .3); transform: rotate(6deg); box-shadow: 0 0 calc(var(--u) * 3) rgba(212,255,58,.5); }
+    .hold { position: absolute; z-index: 3; left: 0; bottom: 0; height: calc(var(--u) * .3); width: 0; background: var(--accent); opacity: .65; }
     .hold.run { animation: hold var(--hold, 10s) linear forwards; }
     @keyframes hold { to { width: 100%; } }
+    .plate { position: relative; z-index: 1; margin: calc(var(--u) * 1.6) auto 0; width: calc(var(--u) * 36); padding: calc(var(--u) * .8) calc(var(--u) * 1.2); border-radius: 3px; text-align: center;
+      background: linear-gradient(#b9965a, #8a6a34 55%, #a8864c); color: #1d1405; box-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 1.6) rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.4); }
+    .plate b { display: block; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 2.2); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .plate span { display: block; font-family: var(--mono); font-size: calc(var(--u) * 1.05); letter-spacing: .12em; margin-top: calc(var(--u) * .25); opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ── call to action (idle, and between posters) ── */
-    .cta { display: grid; grid-template-rows: auto 1fr auto; text-align: center; padding: calc(var(--u) * 6) calc(var(--u) * 4) calc(var(--u) * 5);
-      background: radial-gradient(ellipse 90% 50% at 50% 42%, rgba(150,30,34,.5), transparent 72%), repeating-linear-gradient(90deg, #130708 0 calc(var(--u) * 4), #0d0506 calc(var(--u) * 4) calc(var(--u) * 4.15)), #0a0506; }
-    .marquee { position: relative; justify-self: center; padding: calc(var(--u) * 2.2) calc(var(--u) * 3.6) calc(var(--u) * 2.4); border-radius: calc(var(--u) * 1.2);
-      background: linear-gradient(#1a0d06, #0c0604); box-shadow: 0 0 0 calc(var(--u) * .35) #3a2410, 0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(255,170,60,.2); }
-    .marquee h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 7.6); line-height: .95; letter-spacing: .06em; color: #fff6df;
-      text-shadow: 0 0 calc(var(--u) * 1) rgba(255,200,120,.9), 0 0 calc(var(--u) * 4) rgba(255,150,40,.55); }
-    .marquee p { margin: calc(var(--u) * .5) 0 0; font-family: var(--mono); font-size: calc(var(--u) * 1.3); letter-spacing: .36em; color: #e9c58e; }
-    .bulbs { position: absolute; inset: calc(var(--u) * .6); pointer-events: none; border-radius: calc(var(--u) * .8);
-      background:
-        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2.2) calc(var(--u) * 2.2) repeat-x,
-        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 100% / calc(var(--u) * 2.2) calc(var(--u) * 2.2) repeat-x,
-        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 0 0 / calc(var(--u) * 2.2) calc(var(--u) * 2.2) repeat-y,
-        radial-gradient(circle, #ffe7a8 0 28%, rgba(255,190,90,.5) 40%, transparent 62%) 100% 0 / calc(var(--u) * 2.2) calc(var(--u) * 2.2) repeat-y;
-      animation: chase 1.1s steps(2) infinite; }
-    .bulbs.b2 { animation-delay: -.55s; filter: brightness(.45); background-position: calc(var(--u) * 1.1) 0, calc(var(--u) * 1.1) 100%, 0 calc(var(--u) * 1.1), 100% calc(var(--u) * 1.1); }
-    @keyframes chase { 50% { filter: brightness(.45); } }
-    .cta .mid { align-self: center; display: grid; gap: calc(var(--u) * 3.2); }
-    .frame { justify-self: center; width: calc(var(--u) * 22); aspect-ratio: 9 / 16; display: grid; place-content: center; gap: calc(var(--u) * 1);
-      border: calc(var(--u) * .3) dashed rgba(255,236,200,.35); border-radius: calc(var(--u) * .6); background: rgba(0,0,0,.35); }
-    .frame b { font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 5.2); line-height: .9; letter-spacing: .06em; color: #e9dcc6; }
-    .frame span { font-family: var(--mono); font-size: calc(var(--u) * 1.1); letter-spacing: .2em; color: var(--muted); }
-    .cta h2 { margin: 0; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 4.4); line-height: 1.2; word-break: keep-all; color: var(--ink); }
-    .cta h2 em { font-style: normal; color: var(--accent); }
-    .steps { display: flex; justify-content: center; gap: calc(var(--u) * 1); font-size: calc(var(--u) * 1.6); font-weight: 700; color: #e6dccb; }
-    .steps span { padding: calc(var(--u) * .7) calc(var(--u) * 1.3); border-radius: 99px; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.3); white-space: nowrap; }
-    .steps i { font-style: normal; font-family: var(--mono); color: var(--accent); margin-right: calc(var(--u) * .5); }
-    .scan { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 1.6); font-size: calc(var(--u) * 2.4); font-weight: 900; color: var(--ink); }
-    .scan .arr { font-family: var(--display); font-size: calc(var(--u) * 5); line-height: 1; color: var(--accent); animation: nudge 1.2s ease-in-out infinite; }
-    /* arrow points at the QR stand: → by default, ← with ?qr=left */
-    .qr-left .scan { flex-direction: row-reverse; }
-    .qr-left .scan .arr { animation-name: nudge-l; }
-    @keyframes nudge { 50% { transform: translateX(calc(var(--u) * 1.2)); } }
-    @keyframes nudge-l { 50% { transform: translateX(calc(var(--u) * -1.2)); } }
-    .count { margin-top: calc(var(--u) * 1.6); font-family: var(--mono); font-size: calc(var(--u) * 1.3); letter-spacing: .24em; color: var(--muted); }
-    .count b { color: var(--ink); font-family: var(--display); font-weight: 400; font-size: calc(var(--u) * 2.6); letter-spacing: .04em; margin: 0 calc(var(--u) * .4); }
+    /* ── ticker ── */
+    .ticker { position: relative; z-index: 2; display: flex; align-items: stretch; height: calc(var(--u) * 5); background: #050303; border-top: 1px solid rgba(255,220,160,.22); }
+    .ticker .lab { flex: 0 0 auto; display: flex; align-items: center; gap: calc(var(--u) * .8); padding: 0 calc(var(--u) * 1.8); background: var(--accent); color: #0b0d02;
+      font-family: var(--display); font-size: calc(var(--u) * 2.4); letter-spacing: .08em; }
+    .ticker .lab i { width: calc(var(--u) * .8); height: calc(var(--u) * .8); border-radius: 50%; background: #e0261b; animation: blink 1.4s infinite; }
+    .ticker .run { position: relative; flex: 1; overflow: hidden; }
+    .ticker .track { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; white-space: nowrap; gap: calc(var(--u) * 3); padding-left: calc(var(--u) * 2);
+      font-size: calc(var(--u) * 1.8); font-weight: 700; color: #efe3cc; animation: ticker var(--dur, 40s) linear infinite; }
+    .ticker .track em { font-style: normal; color: var(--accent); font-family: var(--mono); font-weight: 500; font-size: calc(var(--u) * 1.3); letter-spacing: .1em; margin-right: calc(var(--u) * .8); }
+    .ticker .track .cta { color: var(--accent); }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    @keyframes blink { 50% { opacity: .2; } }
 
     /* ── premiere takeover (new submission) ── */
-    .premiere { z-index: 10; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; text-align: center; padding: calc(var(--u) * 5.5) calc(var(--u) * 4) calc(var(--u) * 4.5);
-      background: radial-gradient(ellipse 80% 45% at 50% 48%, rgba(var(--g), .35), transparent 72%), #040203; transition: opacity .8s ease; }
+    .premiere { position: absolute; inset: 0; z-index: 10; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; text-align: center; padding: calc(var(--u) * 5.5) calc(var(--u) * 4) calc(var(--u) * 4.5);
+      background: radial-gradient(ellipse 80% 45% at 50% 48%, rgba(var(--g), .35), transparent 72%), rgba(4,2,3,.97); opacity: 0; pointer-events: none; transition: opacity .8s ease; }
+    .premiere.on { opacity: 1; }
     .premiere .eyebrow { font-family: var(--mono); font-size: calc(var(--u) * 1.4); letter-spacing: .4em; color: var(--accent); }
     .premiere .wp { font-family: var(--display); font-size: calc(var(--u) * 8.6); line-height: .9; letter-spacing: .03em; margin-top: calc(var(--u) * .8);
       background: linear-gradient(180deg, #fff, #d9c9a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -96,23 +121,22 @@
 <body>
   <div class="grain" aria-hidden="true"></div>
   <div class="canvas" id="canvas">
-    <section class="scene" id="sPoster"></section>
-    <div class="hold" id="hold"></div>
-
-    <section class="scene cta on" id="sCta">
-      <div class="marquee"><div class="bulbs"></div><div class="bulbs b2"></div><h1>NOW SHOWING</h1><p>SEEDANCE CINEMA LAB · SEOUL</p></div>
-      <div class="mid">
-        <div class="frame"><b>YOUR<br>POSTER<br>HERE</b><span>9:16 · SEEDREAM</span></div>
-        <h2>다음 포스터의 감독은<br><em>바로 당신</em>입니다</h2>
-        <div class="steps"><span><i>01</i>장르</span><span><i>02</i>키워드</span><span><i>03</i>포스터</span><span><i>04</i>예고편</span></div>
+    <header>
+      <div class="marquee"><div class="bulbs"></div><div class="bulbs b2"></div>
+        <h1>NOW SHOWING</h1><p>오늘의 상영작 <b id="count">0</b> · <b id="clock">--:--</b> · SEOUL</p></div>
+    </header>
+    <main>
+      <div class="slot" id="slot">
+        <div class="lightbox"><div class="glass" id="glass"></div></div>
+        <div class="plate" id="plate"><b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span></div>
       </div>
-      <div>
-        <div class="scan"><span>QR을 스캔하고 시작하세요</span><span class="arr" aria-hidden="true">→</span></div>
-        <div class="count">PREMIERES TODAY<b id="count">0</b></div>
-      </div>
-    </section>
+    </main>
+    <footer class="ticker">
+      <div class="lab"><i></i>PREMIERE</div>
+      <div class="run"><div class="track" id="track"></div></div>
+    </footer>
 
-    <section class="scene premiere" id="sPremiere" aria-live="polite">
+    <section class="premiere" id="premiere" aria-live="polite">
       <div class="head"><div class="eyebrow">JUST SUBMITTED · 방금 도착한 신작</div><div class="wp">WORLD PREMIERE</div></div>
       <div class="pic"><img id="pImg" alt=""><span class="shine"></span></div>
       <div class="by"><h2 id="pTitle"></h2><p>A FILM BY<b id="pDir"></b></p></div>
@@ -121,18 +145,17 @@
   </div>
 
   <script type="module">
-    import { $, esc, sleep, watchFeed, screenChrome, preload } from '/screen/screen.js';
+    import { $, esc, pad, sleep, watchFeed, screenChrome, clock, preload } from '/screen/screen.js';
 
     const chrome = screenChrome();
+    clock($('#clock'));
     // The QR stand sits to the right of the poster screen; ?qr=left flips the arrow.
-    const qrSide = new URLSearchParams(location.search).get('qr') === 'left' ? 'left' : 'right';
-    document.body.classList.add(`qr-${qrSide}`);
-    if (qrSide === 'left') $('.scan .arr').textContent = '←';
+    const qrLeft = new URLSearchParams(location.search).get('qr') === 'left';
+    document.body.classList.toggle('qr-left', qrLeft);
+    const ARROW = qrLeft ? '←' : '→';
 
-    const HOLD_MS = 10000;      // each poster stays up this long
+    const HOLD_MS = 10000;      // each poster stays in the lightbox this long
     const PREMIERE_MS = 9000;   // takeover for a brand-new poster
-    const CTA_MS = 7000;        // call-to-action card between posters
-    const CTA_EVERY = 5;        // …after this many posters
     $('#canvas').style.setProperty('--hold', `${HOLD_MS / 1000}s`);
 
     let items = [];             // newest first
@@ -140,37 +163,63 @@
     const fresh = [];           // new submissions waiting for their premiere
     const newIds = new Set();   // tagged NEW for a while
     let cursor = 0;
-    let shownSinceCta = 0;
+    let shown;                  // id in the lightbox (null = COMING SOON)
 
     const hexRgb = (h) => { const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})/i.exec(h || ''); return m ? m.slice(1).map((x) => parseInt(x, 16)).join(',') : '255,240,210'; };
-    const show = (id) => document.querySelectorAll('.scene').forEach((s) => s.classList.toggle('on', s.id === id));
     const alive = (it) => items.some((x) => x.id === it.id);
 
     function hold(on) {
-      const h = $('#hold');
+      let h = $('#glass .hold');
+      if (!h) { h = document.createElement('div'); h.className = 'hold'; $('#glass').append(h); }
       h.classList.remove('run');
       if (on) { void h.offsetWidth; h.classList.add('run'); }
     }
 
-    function putPoster(it) {
-      const stage = $('#sPoster');
-      const old = [...stage.querySelectorAll('.layer')];
+    function setSlot(it) {
+      const id = it?.id ?? null;
+      if (shown === id) return;
+      shown = id;
+      const glass = $('#glass');
+      const old = [...glass.querySelectorAll('.layer')];
       const layer = document.createElement('div');
       layer.className = 'layer out';
-      layer.innerHTML = `<img src="${esc(it.poster)}" alt="${esc(it.title)}"><div class="sheen"></div>${newIds.has(it.id) ? '<div class="new-tag">NEW</div>' : ''}`;
-      stage.append(layer);
+      layer.innerHTML = it
+        ? `<img src="${esc(it.poster)}" alt="${esc(it.title)}">`
+        : `<div class="soon"><b>COMING<br>SOON</b><span>다음 상영작은<br>당신의 영화입니다</span><div class="scan"><span>QR을 스캔하세요</span><span class="arr" aria-hidden="true">${ARROW}</span></div></div>`;
+      glass.append(layer);
       void layer.offsetWidth; // commit the hidden state so the fade-in runs
       layer.classList.remove('out');
-      old.forEach((o) => { o.classList.add('out'); setTimeout(() => o.remove(), 1400); });
-      show('sPoster');
+      old.forEach((o) => { o.classList.add('out'); setTimeout(() => o.remove(), 1500); });
+      glass.style.setProperty('--glow', it ? `rgba(${hexRgb(it.genre?.color)}, .4)` : 'rgba(255,240,210,.12)');
+      $('#plate').innerHTML = it
+        ? `<b>〈${esc(it.title)}〉</b><span>A FILM BY ${esc(it.director)} · ${esc(it.genre?.en || '')} · NO.${pad(it.seed)}</span>`
+        : '<b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span>';
+      $('#slot .new-tag')?.remove();
+      if (it && newIds.has(it.id)) $('#slot').insertAdjacentHTML('afterbegin', '<div class="new-tag">NEW</div>');
+    }
+
+    function ticker() {
+      const cta = `<span class="cta">${qrLeft ? '← ' : ''}부스 QR을 스캔하고 나만의 영화를 만들어 보세요${qrLeft ? '' : ' →'}</span>`;
+      const list = items.slice(0, 20);
+      const html = list.length
+        ? list.map((it) => `<span><em>NO.${pad(it.seed)}</em>${esc(it.director)} 감독 〈${esc(it.title)}〉${it.tagline ? ` — ${esc(it.tagline)}` : ''}</span>`).join('<span>★</span>')
+        : '<span>곧 첫 번째 영화가 개봉합니다</span><span>★</span><span>장르를 고르고, 키워드를 뽑고, 당신이 감독이 되어 보세요</span><span>★</span><span>Seed · Seedream · Seedance</span>';
+      // two copies so the loop is seamless (animates to -50%)
+      const one = `${html}<span>★</span>${cta}<span>★</span>`;
+      $('#track').innerHTML = one + one;
+      $('#track').style.setProperty('--dur', `${Math.max(30, (list.length + 2) * 8)}s`);
+      $('#count').textContent = `${items.length}편`;
     }
 
     function nextItem() {
       while (fresh.length) { const f = fresh.shift(); if (alive(f)) return { it: f, premiere: true }; }
       if (!items.length) return null;
-      const it = items[cursor % items.length];
-      cursor++;
-      return { it, premiere: false };
+      // skip the poster already up unless it is the only one
+      for (let i = 0; i < items.length; i++) {
+        const it = items[cursor++ % items.length];
+        if (items.length === 1 || it.id !== shown) return { it, premiere: false };
+      }
+      return { it: items[0], premiere: false };
     }
 
     // Wait up to ms, but cut short when a premiere arrives or the shown poster is hidden by staff.
@@ -186,33 +235,29 @@
     async function premiere(it) {
       hold(false);
       await preload(it.poster);
-      const p = $('#sPremiere');
+      const p = $('#premiere');
       p.style.setProperty('--g', hexRgb(it.genre?.color));
       $('#pTitle').textContent = `〈${it.title}〉`;
       $('#pDir').textContent = `${it.director} 감독`;
       $('#pImg').src = it.poster;
       $('#flash').classList.remove('go'); void $('#flash').offsetWidth; $('#flash').classList.add('go');
-      show('sPremiere');
+      p.classList.add('on');
       await sleep(PREMIERE_MS);
-      cursor = 0; // carry on from the newest
+      setSlot(it); // hang it in the lightbox behind the takeover
+      p.classList.remove('on');
+      cursor = 0;  // carry on from the newest
     }
 
     (async function program() {
       for (;;) {
         const n = nextItem();
-        if (!n) { hold(false); show('sCta'); await sleep(1000); continue; }
+        if (!n) { hold(false); setSlot(null); await sleep(1000); continue; }
         if (n.premiere) await premiere(n.it);
         if (!alive(n.it)) continue;
         await preload(n.it.poster);
-        putPoster(n.it);
+        setSlot(n.it);
         hold(true);
         await waitFor(HOLD_MS, n.it);
-        if (++shownSinceCta >= CTA_EVERY && !fresh.some(alive)) {
-          shownSinceCta = 0;
-          hold(false);
-          show('sCta');
-          await waitFor(CTA_MS);
-        }
         if (chrome.stale() && !fresh.length) location.reload();
       }
     })();
@@ -221,10 +266,12 @@
       if (known) {
         for (const it of [...list].reverse()) if (!known.has(it.id)) { fresh.push(it); newIds.add(it.id); setTimeout(() => newIds.delete(it.id), 10 * 60000); }
       }
+      const changed = list.length !== items.length || list.some((x, i) => items[i]?.id !== x.id);
       known = new Set([...(known || []), ...list.map((x) => x.id)]);
       items = list;
-      $('#count').textContent = items.length;
+      if (changed) ticker();
     });
+    ticker();
   </script>
 </body>
 </html>
