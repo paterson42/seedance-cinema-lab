@@ -216,7 +216,7 @@ VIEWS.landing = () => {
       <div class="ticket-perf"></div>
       <div class="ticket-body">
       <label class="field">
-        <span>티켓 발급 · 결과를 받을 휴대폰 번호</span>
+        <span>${S.boot.kakao.enabled ? "티켓 발급 · 결과를 받을 휴대폰 번호" : "티켓 발급 · 내 결과를 다시 찾을 휴대폰 번호"}</span>
         <input class="input" id="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" maxlength="13" required>
         <div class="input-hint" id="phoneHint"></div>
       </label>
@@ -572,6 +572,7 @@ VIEWS.trailer = () => {
     </div>
   `);
   $('[data-back]', el).onclick = () => go('poster');
+  bindKakaoSave(el, () => sessionShareInfo(S.session));
   $('[data-copy]', el).onclick = async () => { await copyText(s.videoPrompt); toast('프롬프트를 복사했어요'); track('prompt_copied', { kind: 'video' }); };
   $('#makeVideo', el).onclick = async () => {
     $('#makeVideo').disabled = true;
@@ -614,11 +615,35 @@ function bindScreenCard(el, { token }) {
   }));
 }
 
-function kakaoCard(enabled, title, sub) {
+function kakaoCard(enabled, title, sub, saveSub = '트레일러가 완성되면 같은 링크에서 바로 볼 수 있어요') {
   return enabled
     ? `<div class="kakao-card"><span class="k-ico">TALK</span><div><b>${title}</b><span>${sub}</span></div></div>`
-    : `<div class="kakao-card off"><span class="k-ico">LINK</span><div><b>결과 링크를 저장해 두세요</b><span>${sub}</span></div></div>`;
+    : `<div class="kakao-save">
+        <div class="ks-head"><span class="k-ico">TALK</span><div><b>내 영화 링크를 카카오톡에 저장하세요</b><span>${saveSub}</span></div></div>
+        <button class="btn btn-block btn-kakao" data-ksave>${ic('share')}카카오톡 ‘나와의 채팅’에 저장</button>
+        <p class="ks-tip">공유 목록에서 <b>카카오톡</b> → <b>나와의 채팅</b>을 선택하세요</p>
+      </div>`;
 }
+
+// Visitor saves their own result link to KakaoTalk (no AlimTalk needed).
+// Kakao JS SDK when a key is configured, otherwise the phone's share sheet, otherwise copy.
+function bindKakaoSave(el, info) {
+  $$('[data-ksave]', el).forEach((b) => (b.onclick = () => saveToKakao(info())));
+}
+async function saveToKakao(info) {
+  track('kakao_share', { via: S.boot.kakao.jsKey ? 'sdk' : navigator.share ? 'sheet' : 'copy' });
+  if (S.boot.kakao.jsKey) return kakaoShare(info);
+  if (navigator.share) {
+    try { await navigator.share({ title: info.title, text: `🎬 ${info.title} — A FILM BY ${info.director}\n내 영화 다시 보기 ↓`, url: info.link }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  await copyText(info.link);
+  toast('링크를 복사했어요. 카카오톡 ‘나와의 채팅’에 붙여넣어 두세요');
+}
+const sessionShareInfo = (s) => ({
+  title: s.story?.title || '나의 영화', director: s.director || 'YOU', tagline: s.story?.tagline || '',
+  image: absUrl(s.poster.finalUrl || s.poster.url), link: absUrl(s.resultUrl),
+});
 
 const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 그림자의 움직임을 계산하는 중', '8초짜리 명장면을 다듬는 중'];
 
@@ -642,6 +667,7 @@ VIEWS.waiting = () => {
     <p class="small" style="text-align:center;margin-top:14px">이 화면을 켜 두면 완성되는 즉시 재생돼요.</p>
   `);
   $('#copyLink', el).onclick = async () => { await copyText(link); toast('결과 링크를 복사했어요'); };
+  bindKakaoSave(el, () => sessionShareInfo(S.session));
   $('#again', el).onclick = restart;
   const myPoll = S.pollId;
   const eta = s.video.etaSec || 240;
@@ -706,7 +732,7 @@ async function renderResult(r) {
     ${screenCard(r.screen, { poster: true, trailer: !!r.videoUrl })}
     ${r.own ? (k.enabled
       ? `<div class="kakao-card${sent ? '' : ' off'}"><span class="k-ico">TALK</span><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} · 링크는 일정 기간 후 만료돼요`}</span></div></div>`
-      : '') : ''}
+      : kakaoCard(false, '', '', '언제든 다시 보고, 포스터와 영상을 저장할 수 있어요')) : ''}
     <div class="end-card">
       <div class="big">${r.own ? '이 영화의 첫 관객은 당신입니다.' : '나도 나만의 영화를 만들어 볼까요?'}</div>
       <p class="small">${r.own ? '포스터와 트레일러를 간직하고, 다음 장면을 상상해 보세요.' : 'Seedance Seoul Cinema Lab 부스에서 직접 체험해 보세요.'}</p>
@@ -733,11 +759,11 @@ async function renderResult(r) {
         : `<img class="kenburns" src="${esc(posterSrc)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`;
       actions.innerHTML = `
         ${r.videoUrl ? `<div class="btn-row"><button class="btn" data-a="vsave">${ic('download')}영상 저장</button><button class="btn" data-a="vshare">${ic('share')}영상 공유</button></div>` : ''}
-        ${k.jsKey ? `<button class="btn btn-block" data-a="kshare" style="background:#fee500;color:#191600;border:0">카카오톡으로 공유하기</button>` : ''}
         <button class="btn btn-block" data-a="summary">결과 요약 복사</button>`;
     }
   };
   bindScreenCard(el, { token: r.token });
+  bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
   const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director} · SEED NO.${pad(r.info.seed)}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance Seoul Cinema Lab`;
@@ -749,7 +775,6 @@ async function renderResult(r) {
     if (a === 'vsave') { download(`${r.videoUrl}?dl=1`, `${fileBase}.mp4`); track('video_downloaded'); toast('영상을 저장하고 있어요'); }
     if (a === 'vshare') { shareFile(r.videoUrl, `${fileBase}.mp4`, r.title, link); track('video_shared'); }
     if (a === 'summary') { await copyText(summary()); toast('결과 요약을 복사했어요. 카톡에 붙여넣어 보세요!'); track('summary_copied'); }
-    if (a === 'kshare') { kakaoShare(r, posterSrc, link); track('kakao_share'); }
     if (a === 'tsave') { download(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`); track('ticket_saved'); toast('티켓을 저장했어요'); }
     if (a === 'tshare') { shareFile(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`, r.title, link); track('ticket_shared'); }
   };
@@ -1040,7 +1065,7 @@ async function shareFile(src, filename, title, link) {
 }
 
 let kakaoLoading;
-async function kakaoShare(r, posterSrc, link) {
+async function kakaoShare({ title, director, tagline, image, link }) {
   const key = S.boot.kakao.jsKey;
   try {
     kakaoLoading ||= new Promise((res, rej) => {
@@ -1049,10 +1074,9 @@ async function kakaoShare(r, posterSrc, link) {
     });
     await kakaoLoading;
     if (!window.Kakao.isInitialized()) window.Kakao.init(key);
-    const image = absUrl(r.posterFinal || r.posterRaw);
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
-      content: { title: `${r.title} — A FILM BY ${r.info.director}`, description: r.tagline, imageUrl: image, link: { mobileWebUrl: link, webUrl: link } },
+      content: { title: `${title} — A FILM BY ${director}`, description: tagline, imageUrl: image, link: { mobileWebUrl: link, webUrl: link } },
       buttons: [{ title: '영화 보러가기', link: { mobileWebUrl: link, webUrl: link } }],
     });
   } catch {

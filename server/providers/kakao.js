@@ -1,4 +1,6 @@
 // KakaoTalk result notification.
+//  - off     : (default) nothing is sent; visitors save their own result link to
+//              KakaoTalk from the site (share sheet → '나와의 채팅').
 //  - mock    : no real send; recorded in kakao_outbox (visible on /admin)
 //  - webhook : POSTs a JSON payload to KAKAO_WEBHOOK_URL, for an AlimTalk vendor
 //              (NHN Cloud, Solapi, etc.) or an internal relay that owns the
@@ -20,11 +22,12 @@ function record(session, payload, status, error) {
 }
 
 export function kakaoEnabled() {
-  return config.kakao.provider === 'webhook' ? !!config.kakao.webhookUrl : true;
+  const p = config.kakao.provider;
+  return p === 'webhook' ? !!config.kakao.webhookUrl : p === 'mock';
 }
 
 export async function sendTrailerReady(session) {
-  if (!session.phone_enc) return 'skipped';
+  if (!session.phone_enc || !kakaoEnabled()) return 'skipped';
   const link = `${config.publicBaseUrl}/r/${session.result_token}`;
   const title = session.story?.title || '나의 영화';
   const director = session.director || 'YOU';

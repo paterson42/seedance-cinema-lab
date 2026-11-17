@@ -73,7 +73,7 @@ export const config = {
     videoMaxPerSession: num('VIDEO_MAX_PER_SESSION', 2),
   },
   kakao: {
-    provider: env('KAKAO_PROVIDER', 'mock'),
+    provider: env('KAKAO_PROVIDER', 'off'),
     webhookUrl: env('KAKAO_WEBHOOK_URL'),
     webhookToken: env('KAKAO_WEBHOOK_TOKEN'),
     templateCode: env('KAKAO_TEMPLATE_CODE', 'SCL_TRAILER_READY'),
