@@ -17,6 +17,7 @@
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--sans); }
 body.no-cursor, body.no-cursor * { cursor: none !important; }
 img, video { display: block; }
+[hidden] { display: none !important; } /* the trailer page's preload <video hidden> must never show */
 .canvas { position: fixed; left: 50%; top: 50%; width: calc(var(--u) * 56.25); height: calc(var(--u) * 100); transform: translate(-50%, -50%); overflow: hidden; background: var(--bg); }
 
 .grain { position: fixed; inset: -50%; pointer-events: none; z-index: 90; opacity: .07;
