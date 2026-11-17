@@ -2,7 +2,7 @@
 
 Seedance Seoul Cinema Lab 체험 부스를 위한 모바일 우선 체험 사이트입니다.
 
-**QR 진입 → 전화번호 입력 → 장르 선택 → 육하원칙 키워드 뽑기 → Seed 스토리·프롬프트 → Seedream 포스터(2:3) → Seedance 트레일러(비동기) → 카카오톡 결과 알림 / 재접속 조회 / 공유**
+**QR 진입 → 전화번호 입력 → 장르 선택 → 육하원칙 키워드 뽑기 → Seed 스토리·프롬프트 → Seedream 포스터(9:16) → Seedance 트레일러(비동기) → 카카오톡 결과 알림 / 재접속 조회 / 공유**
 
 - 외부 패키지 없음 (Node.js 22.13+ 내장 `node:sqlite`, `fetch`만 사용) → `npm install` 불필요
 - `ARK_API_KEY`가 없으면 **데모(MOCK) 모드**로 전체 흐름이 그대로 돌아갑니다 (ffmpeg가 있으면 데모 포스터/영상도 실제 파일로 생성)
@@ -22,8 +22,8 @@ npm start                 # http://localhost:3000
 | `/?booth=1` | 부스 태블릿 모드 — 완료 화면에서 "다음 관람객", 2분 무조작 시 자동 초기화 (`?booth=0`으로 해제) |
 | `/r/<token>` | 결과 페이지 (카카오톡 링크 / 공유 링크, 기본 14일 유효) |
 | `/admin` | 운영자 대시보드 — 부팅 로그에 출력되는 토큰 또는 `.env`의 `ADMIN_TOKEN` |
-| `/screen/poster` | 현장 대형 스크린 ① 로비 포스터 월 (극장 라이트박스 + 새 작품 WORLD PREMIERE 소개) |
-| `/screen/trailer` | 현장 대형 스크린 ② 예고편 상영관 (커튼 · 예고편 안내 카드 · 트레일러 · COMING SOON 엔드 카드) |
+| `/screen/poster` | 부스 왼쪽 세로 스크린 ① 포스터 (9:16 전체 화면으로 한 장씩 + 새 작품 WORLD PREMIERE 소개 + QR 안내) |
+| `/screen/trailer` | 부스 오른쪽 세로 스크린 ② 예고편 (커튼 · 예고편 안내 카드 · 9:16 트레일러 · 엔드 카드) |
 
 ## 2. 실제 API 연결 (LIVE 모드)
 
@@ -44,8 +44,8 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 트레일러 (image-to-video)
 | 연동 | 호출 | 구현 위치 |
 |---|---|---|
 | Seed LLM | `POST /chat/completions` (JSON 출력) | `server/providers/ark.js` `chatJSON` |
-| Seedream | `POST /images/generations` (`size` 2:3, `response_format=b64_json`, `seed`) | `generateImage` |
-| Seedance | `POST /contents/generations/tasks` (포스터 원본 이미지 + 프롬프트) → `GET /contents/generations/tasks/{id}` 폴링 | `submitVideo` / `getVideoTask` |
+| Seedream | `POST /images/generations` (`size` 9:16 · 1080x1920, `response_format=b64_json`, `seed`) | `generateImage` |
+| Seedance | `POST /contents/generations/tasks` (9:16 포스터 원본 이미지 + 프롬프트 → 영상도 9:16) → `GET /contents/generations/tasks/{id}` 폴링 | `submitVideo` / `getVideoTask` |
 | 카카오톡 | 알림톡 대행사/사내 발송 서버로 webhook POST | `server/providers/kakao.js` |
 
 생성된 이미지/영상은 provider URL이 만료되기 전에 서버 `data/media/`로 내려받아 같은 출처로 서빙합니다 (재접속·카톡 링크·다운로드가 계속 동작하도록).
@@ -74,7 +74,7 @@ PRD 4.6 메모처럼 알림톡은 **채널 개설 + 템플릿 심사 + 발신 �
 ## 3-1. 현장 대형 스크린
 
 - 관람객이 포스터 화면 / 결과 화면의 **"현장 대형 스크린에 상영하기"** 카드에서 포스터 · 트레일러를 각각 제출 (카카오톡 결과 링크에서도 가능)
-- 대형 스크린 PC에서 `/screen/poster`, `/screen/trailer` 를 열고 화면 클릭(또는 F 키) → 전체 화면. 6초마다 새 제출을 가져오고, 새 작품이 먼저 소개/상영됩니다
+- 대형 스크린 PC에서 `/screen/poster`, `/screen/trailer` 를 열고 화면 클릭(또는 F 키) → 전체 화면. 두 화면 모두 세로 9:16 기준(가로 모니터에서는 가운데 세로로 표시), QR 안내 화살표는 `?qr=left|right` 로 바꿀 수 있어요. 6초마다 새 제출을 가져오고, 새 작품이 먼저 소개/상영됩니다
 - 노출 관리: `/admin` 의 "대형 스크린"에서 작품별 숨기기/다시 상영 (숨기면 상영 중이던 것도 즉시 내려감)
 - `SCREEN_AUTO_APPROVE=0` 이면 운영자가 승인해야 상영, `SCREEN_KEY=xxx` 를 지정하면 스크린 주소에 `?key=xxx` 필요
 - 포스터를 다시 만들거나 영상을 다시 생성하면 이전 제출은 내려가고 다시 제출해야 합니다

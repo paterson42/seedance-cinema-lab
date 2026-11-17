@@ -212,13 +212,15 @@ img, video { display: block; max-width: 100%; }
 .copy-btn { border: 1px solid var(--line-strong); background: transparent; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; }
 
 /* ── Poster ───────────────────────── */
-.poster-stage { position: relative; aspect-ratio: 2 / 3; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.03); }
+/* Poster and trailer are 9:16 (the booth screens); cap the frame by height so it fits one phone screen. */
+.poster-stage, .loading-stage, .video-stage { width: min(100%, calc(62dvh * 9 / 16)); margin-inline: auto; }
+.poster-stage { position: relative; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.03); }
 .poster-stage img, .poster-stage video, .poster-stage canvas { width: 100%; height: 100%; object-fit: cover; }
 .poster-stage .reveal { animation: reveal 1.2s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes reveal { from { opacity: 0; transform: scale(1.06); filter: blur(10px) brightness(2); } to { opacity: 1; transform: none; filter: none; } }
-.poster-caption { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: .08em; margin: 12px 2px 20px; }
+.poster-caption { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: .08em; margin: 12px auto 20px; width: min(100%, calc(62dvh * 9 / 16)); padding: 0 2px; }
 
-.loading-stage { display: grid; place-items: center; text-align: center; padding: 30px 10px; aspect-ratio: 2/3; border-radius: 12px; border: 1px dashed var(--line-strong); background: radial-gradient(80% 60% at 50% 40%, rgba(212,255,58,.08), transparent 70%), var(--panel); overflow: hidden; position: relative; }
+.loading-stage { display: grid; place-items: center; text-align: center; padding: 30px 10px; aspect-ratio: 9 / 16; border-radius: 12px; border: 1px dashed var(--line-strong); background: radial-gradient(80% 60% at 50% 40%, rgba(212,255,58,.08), transparent 70%), var(--panel); overflow: hidden; position: relative; }
 .countdown { position: relative; width: 150px; height: 150px; margin: 0 auto 22px; border-radius: 50%; border: 2px solid var(--line-strong); display: grid; place-items: center; }
 .countdown::before { content: ''; position: absolute; inset: -2px; border-radius: 50%; background: conic-gradient(var(--accent) 0 var(--p, 0%), transparent var(--p, 0%)); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px)); }
 .countdown::after { content: ''; position: absolute; left: 50%; top: 8px; bottom: 50%; width: 2px; background: rgba(255,255,255,.5); transform-origin: bottom center; animation: sweep 1s linear infinite; }
@@ -238,7 +240,7 @@ img, video { display: block; max-width: 100%; }
 
 /* ── Trailer ───────────────────────── */
 .trailer-head { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; margin-bottom: 22px; }
-.trailer-head img { width: 96px; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.trailer-head img { width: 96px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
 .big-q { font-size: clamp(28px, 8vw, 40px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.15; margin: 4px 0 0; }
 .kenburns { animation: kb 14s ease-in-out infinite alternate; transform-origin: 50% 40%; }
 @keyframes kb { from { transform: scale(1.02); } to { transform: scale(1.14) translateY(-2%); } }
@@ -257,7 +259,7 @@ img, video { display: block; max-width: 100%; }
 .kakao-card.off .k-ico { background: var(--line-strong); color: var(--text); }
 
 /* ── Done / result ───────────────────────── */
-.video-stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); aspect-ratio: 2/3; }
+.video-stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); aspect-ratio: 9 / 16; }
 .video-stage video, .video-stage img { width: 100%; height: 100%; object-fit: cover; }
 .video-title { position: absolute; left: 0; right: 0; bottom: 0; padding: 60px 18px 18px; background: linear-gradient(to top, rgba(0,0,0,.85), transparent); pointer-events: none; }
 .video-title .t { font-family: var(--display); font-size: 34px; line-height: 1.1; }
@@ -272,7 +274,7 @@ img, video { display: block; max-width: 100%; }
 
 .result-list { display: grid; gap: 10px; margin-top: 16px; }
 .result-item { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; padding: 10px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); text-decoration: none; }
-.result-item img { width: 64px; aspect-ratio: 2/3; object-fit: cover; border-radius: 6px; }
+.result-item img { width: 64px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 6px; }
 .result-item b { display: block; }
 
 /* ── Toast ───────────────────────── */

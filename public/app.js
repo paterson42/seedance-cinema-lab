@@ -399,7 +399,7 @@ VIEWS.cast = () => {
 async function makeStory() {
   const director = $('#director')?.value.trim() || S.director || S.session.director;
   render(`
-    <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh">
+    <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh;width:100%">
       <div>
         <div class="countdown" style="--p:0%"><b>S</b></div>
         <div class="loading-msg">Seed가 SEED NO.를 발급하고<br>당신의 이야기를 쓰는 중…</div>
@@ -431,7 +431,7 @@ VIEWS.story = () => {
     <details class="prompt-box"><summary>시놉시스 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동으로 만들어지는 요청 보기</summary>
       <div class="p-body"><pre>${esc(s.posterPrompt)}</pre>
-        <div class="p-meta"><span>SEEDREAM · 2:3 · SEED ${s.seed}${st.source === 'seed-llm' ? ' · WRITTEN BY SEED' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
+        <div class="p-meta"><span>SEEDREAM · 9:16 · SEED ${s.seed}${st.source === 'seed-llm' ? ' · WRITTEN BY SEED' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
       </div>
     </details>
     <div class="story-meta" style="margin-top:14px">${tags}</div>
@@ -479,7 +479,7 @@ VIEWS.poster = () => {
       <div>
         <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">${s.poster.etaSec || 60}</b></div>
         <div class="loading-msg" id="lmsg">${POSTER_MSGS[0]}</div>
-        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 2:3 KEY ART</div>
+        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 9:16 KEY ART</div>
       </div>
       <div class="film-strip"></div>
     </div></div>
@@ -530,7 +530,7 @@ async function renderPosterDone() {
     <h2 class="h2">이 영화의 첫 관객은 <em>당신</em>입니다.</h2>
     <div class="poster-wrap">
       <div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>NO.${pad(s.seed)}</span><span>${esc(s.story.genre.en)} · 2:3</span></div>
+      <div class="poster-caption"><span>NO.${pad(s.seed)}</span><span>${esc(s.story.genre.en)} · 9:16</span></div>
     </div>
     <div class="btn-row"><button class="btn" id="save">${ic('download')}포스터 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
@@ -586,8 +586,8 @@ VIEWS.trailer = () => {
 
 // ───────────── big screens: visitor submits poster / trailer ─────────────
 const SCREEN_ROWS = {
-  poster: { tag: 'LOBBY', name: '로비 포스터 월', cta: '포스터 걸기', ok: '로비 스크린에 포스터가 걸렸어요!' },
-  trailer: { tag: 'SCREEN 01', name: '예고편 상영관', cta: '상영하기', ok: '예고편 상영관 대기열에 올렸어요!' },
+  poster: { tag: 'POSTER', name: '부스 포스터 스크린', cta: '포스터 걸기', ok: '부스 포스터 스크린에 걸렸어요!' },
+  trailer: { tag: 'TRAILER', name: '부스 예고편 스크린', cta: '상영하기', ok: '부스 예고편 스크린 상영 대기열에 올렸어요!' },
 };
 const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>상영 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
 function screenCard(state = {}, { poster = false, trailer = false } = {}) {
@@ -874,10 +874,12 @@ function wrapLines(ctx, text, maxW, sep = ' ') {
 async function composePoster(src, info) {
   await fontsReady();
   const img = await loadImg(src);
-  const W = 1200, H = 1800;
+  // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
+  const W = 1125, H = 2000, OUT_W = 1080;
   const c = document.createElement('canvas');
-  c.width = W; c.height = H;
+  c.width = OUT_W; c.height = Math.round((OUT_W * H) / W);
   const x = c.getContext('2d');
+  x.scale(OUT_W / W, OUT_W / W);
   const r = Math.max(W / img.naturalWidth, H / img.naturalHeight);
   const iw = img.naturalWidth * r, ih = img.naturalHeight * r;
   x.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih);

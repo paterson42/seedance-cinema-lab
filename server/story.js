@@ -48,7 +48,7 @@ function templateStory({ genre, kw, director, seed }) {
 
 function posterPrompt({ genre, kw }) {
   return [
-    `Cinematic ${genre.en.toLowerCase()} movie poster key art, vertical 2:3 composition.`,
+    `Cinematic ${genre.en.toLowerCase()} movie poster key art, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), subject centred with headroom.`,
     `Main character: ${kw.who.en}, who ${kw.what.en} ${kw.how.en}, ${kw.why.en}.`,
     `Setting: ${kw.where.en}, ${kw.when.en}.`,
     `Style: ${genre.style}.`,
@@ -76,7 +76,7 @@ Return ONLY a JSON object with keys:
 "tagline" (Korean, one sentence, max 30 characters),
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
-"poster_prompt" (English image prompt for a vertical 2:3 movie poster. Describe subject, setting, lighting, color grading, composition. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Describe subject, setting, lighting, color grading, composition. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
 "video_prompt" (English prompt, 1-3 sentences, describing how this exact poster image comes alive as an 8-second trailer shot: camera movement, subject motion, atmosphere. No on-screen text).
 Content must be family-friendly.`;
 

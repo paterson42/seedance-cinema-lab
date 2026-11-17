@@ -113,6 +113,7 @@ export async function submitVideo({ prompt, imageFile, seed }) {
   const buf = fs.readFileSync(path.join(MEDIA_DIR, imageFile));
   const ext = sniffExt(buf);
   const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  // No --ratio: for first-frame video Seedance follows the image, which is already 9:16.
   const flags = [
     `--resolution ${config.ark.videoResolution}`,
     `--duration ${config.ark.videoDuration}`,
@@ -177,7 +178,7 @@ async function mockImage({ seed, genreId }) {
   const [accent, dark] = g.palette;
   const out = path.join(MEDIA_DIR, `_mock_${seed}_${Date.now()}.jpg`);
   if (await hasFfmpeg()) {
-    const W = 800, H = 1200;
+    const W = 720, H = 1280;
     const s = seed % 1000;
     const cx = 0.25 + ((seed % 97) / 97) * 0.5;
     const cy = 0.18 + ((seed % 53) / 53) * 0.2;
@@ -199,10 +200,10 @@ async function mockImage({ seed, genreId }) {
     return { buffer, ext: 'jpg' };
   }
   // No ffmpeg: a simple SVG poster background.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
 <defs><radialGradient id="g" cx="50%" cy="25%" r="80%"><stop offset="0" stop-color="${accent}"/><stop offset=".55" stop-color="${dark}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
-<rect width="800" height="1200" fill="url(#g)"/><circle cx="${300 + (seed % 200)}" cy="300" r="90" fill="#fff" opacity=".85"/>
-<path d="M0 820 Q200 700 400 800 T800 760 V1200 H0Z" fill="#000" opacity=".8"/><path d="M0 930 Q250 850 500 930 T800 900 V1200 H0Z" fill="#000"/></svg>`;
+<rect width="720" height="1280" fill="url(#g)"/><circle cx="${260 + (seed % 200)}" cy="320" r="90" fill="#fff" opacity=".85"/>
+<path d="M0 875 Q180 750 360 855 T720 810 V1280 H0Z" fill="#000" opacity=".8"/><path d="M0 990 Q225 905 450 990 T720 960 V1280 H0Z" fill="#000"/></svg>`;
   return { buffer: Buffer.from(svg), ext: 'svg' };
 }
 
@@ -219,7 +220,7 @@ async function mockSubmitVideo({ imageFile }) {
     const fps = 24, secs = 6, frames = fps * secs;
     run('ffmpeg', [
       '-y', '-v', 'error', '-loop', '1', '-i', src,
-      '-vf', `scale=1440:2160,zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on*0.4':d=${frames}:s=720x1080:fps=${fps},fade=t=in:st=0:d=0.6,fade=t=out:st=${secs - 0.6}:d=0.6`,
+      '-vf', `scale=1440:2560,zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on*0.4':d=${frames}:s=720x1280:fps=${fps},fade=t=in:st=0:d=0.6,fade=t=out:st=${secs - 0.6}:d=0.6`,
       '-t', String(secs), '-c:v', 'libx264', '-crf', '24', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out,
     ], 120000).then(() => (task.file = out), (e) => (task.error = e.message.slice(0, 200)));
   }
