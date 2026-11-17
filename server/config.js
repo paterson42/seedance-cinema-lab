@@ -65,6 +65,9 @@ export const config = {
     videoResolution: env('SEEDANCE_RESOLUTION', '720p'),
     videoDuration: num('SEEDANCE_DURATION', 10),
     videoSendSeed: bool('SEEDANCE_SEND_SEED', true),
+    // Seedance 2.x adds an AI soundtrack by default; it can trip the copyright filter and the
+    // booth screens play muted anyway, so it is off unless asked for.
+    videoAudio: bool('SEEDANCE_AUDIO', false),
   },
   queue: {
     posterConcurrency: num('POSTER_CONCURRENCY', 6),

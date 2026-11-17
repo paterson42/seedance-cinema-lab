@@ -124,6 +124,7 @@ export async function submitVideo({ prompt, imageFile, seed }) {
     timeoutMs: 60000,
     body: {
       model: config.ark.videoModel,
+      generate_audio: config.ark.videoAudio,
       content: [
         { type: 'text', text: `${prompt} ${flags.join(' ')}` },
         { type: 'image_url', image_url: { url: `data:${mime};base64,${buf.toString('base64')}` } },

@@ -113,6 +113,7 @@ async function pollVideos() {
           const k = await sendTrailerReady(done);
           updateSession(s.id, { kakao_status: k });
         } else if (r.status === 'failed') {
+          console.warn(`[video] task ${s.id} failed:`, r.error);
           updateSession(s.id, { video_status: 'failed', video_error: r.userMessage || '영상 생성에 실패했어요. 다시 시도해 주세요.' });
           logEvent(s.id, 'video_failed', { stage: 'task', error: String(r.error).slice(0, 300) });
         }
