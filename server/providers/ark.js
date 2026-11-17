@@ -69,7 +69,7 @@ async function download(url, timeoutMs = 120000) {
 // ───────────────────────── Seed LLM ─────────────────────────
 export async function chatJSON(system, user) {
   const r = await ark('/chat/completions', {
-    timeoutMs: 15000,
+    timeoutMs: config.ark.llmTimeoutSec * 1000,
     attempts: 1,
     body: {
       model: config.ark.llmModel,

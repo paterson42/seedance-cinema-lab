@@ -56,6 +56,8 @@ export const config = {
     baseUrl: env('ARK_BASE_URL', 'https://ark.ap-southeast.bytepluses.com/api/v3').replace(/\/$/, ''),
     llmModel: env('SEED_LLM_MODEL', 'seed-1-6-250615'),
     llmEnabled: bool('SEED_LLM_ENABLED', true),
+    // After this the story falls back to the built-in template.
+    llmTimeoutSec: num('SEED_LLM_TIMEOUT_SEC', 30),
     imageModel: env('SEEDREAM_MODEL', 'seedream-4-0-250828'),
     imageSize: env('SEEDREAM_SIZE', '1280x1920'),
     imageSendSeed: bool('SEEDREAM_SEND_SEED', true),

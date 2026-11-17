@@ -8,6 +8,8 @@ const WINDOW_MS = 3 * 3600 * 1000;
 const SAMPLE = 8;
 const MIN_SAMPLES = 2;
 const CACHE_MS = 15000;
+// Only learn from runs since this process started, so demo-mode runs never skew live estimates.
+const BOOT_AT = Date.now();
 let cache = { at: 0, poster: 0, video: 0 };
 
 function median(xs) {
@@ -17,7 +19,7 @@ function median(xs) {
 }
 
 function learn() {
-  const since = Date.now() - WINDOW_MS;
+  const since = Math.max(BOOT_AT, Date.now() - WINDOW_MS);
   // Poster: pure generation time (queue wait is added separately from the queue position).
   const p = query("SELECT meta FROM events WHERE name = 'poster_done' AND ts > ? ORDER BY ts DESC LIMIT ?", since, SAMPLE)
     .map((r) => JSON.parse(r.meta || '{}').ms / 1000)
