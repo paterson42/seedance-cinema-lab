@@ -74,8 +74,10 @@ export const config = {
   // The key visual's text layer is laid over the finished clip with ffmpeg (needs ffmpeg).
   video: {
     overlay: bool('VIDEO_OVERLAY', true),
-    fadeAt: num('VIDEO_OVERLAY_FADE_AT', 1),    // seconds of clean footage before the text comes in
-    fadeSec: num('VIDEO_OVERLAY_FADE_SEC', 0.6), // 0 = text is there from the first frame
+    // The text is there from the first frame, like the key visual the clip starts from.
+    // Set FADE_SEC above 0 to open on clean footage and bring the text in at FADE_AT seconds.
+    fadeAt: num('VIDEO_OVERLAY_FADE_AT', 1),
+    fadeSec: num('VIDEO_OVERLAY_FADE_SEC', 0),
   },
   queue: {
     posterConcurrency: num('POSTER_CONCURRENCY', 6),
