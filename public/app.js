@@ -589,7 +589,7 @@ VIEWS.story = () => {
     <div class="seed-chip">광고 ID ${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
-    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} (-${offer(s.seed).off}%)</span></div>
+    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} (-${offer(s.seed).off}%)</span></div>
     <p class="story-body">${esc(st.logline)}</p>
     <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
@@ -1078,7 +1078,7 @@ async function composePoster(src, info) {
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.4, 'rgba(0,0,0,.72)'); g.addColorStop(1, 'rgba(0,0,0,.96)');
   x.fillStyle = g; x.fillRect(0, H * 0.42, W, H * 0.58);
 
-  const accent = '#d4ff3a', ink = '#0b0d02';
+  const accent = '#b9a2ff', ink = '#120b24';
   const o = offer(info.seed);
   x.textAlign = 'center';
   x.textBaseline = 'alphabetic';
@@ -1206,7 +1206,7 @@ async function composeTicket(posterSrc, info) {
   await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}`);
   const img = await loadImg(posterSrc);
   const W = 900, H = 1500, M = 40;
-  const accent = '#d4ff3a', bg = '#0a0a0b';
+  const accent = '#b9a2ff', bg = '#0a0a0b';
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
   const x = c.getContext('2d');
@@ -1216,9 +1216,9 @@ async function composeTicket(posterSrc, info) {
   const tx = M, ty = M, tw = W - M * 2, th = H - M * 2;
   rrect(x, tx, ty, tw, th, 36);
   const bodyG = x.createLinearGradient(0, ty, 0, ty + th);
-  bodyG.addColorStop(0, '#1b1c14'); bodyG.addColorStop(1, '#141416');
+  bodyG.addColorStop(0, '#1b1a2a'); bodyG.addColorStop(1, '#141416');
   x.fillStyle = bodyG; x.fill();
-  x.lineWidth = 2; x.strokeStyle = 'rgba(212,255,58,.35)'; x.stroke();
+  x.lineWidth = 2; x.strokeStyle = 'rgba(185,162,255,.35)'; x.stroke();
 
   // key-visual window
   const px = tx + 28, py = ty + 28, pw = tw - 56, ph = 580;
@@ -1236,7 +1236,7 @@ async function composeTicket(posterSrc, info) {
   const bw = x.measureText('신상품').width + 3 * 4 + 40;
   rrect(x, px + 22, py + 22, bw, 46, 10); x.fillStyle = accent; x.fill();
   x.textAlign = 'left'; x.textBaseline = 'middle';
-  spaced(x, '신상품', px + 40, py + 46, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, '#0b0d02');
+  spaced(x, '신상품', px + 40, py + 46, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, '#120b24');
   x.textBaseline = 'alphabetic';
 
   // product name + who planned it
@@ -1282,7 +1282,7 @@ async function composeTicket(posterSrc, info) {
   for (const nx of [tx, tx + tw]) {
     x.beginPath(); x.arc(nx, yP, 30, 0, Math.PI * 2); x.fillStyle = bg; x.fill();
     x.beginPath(); x.arc(nx, yP, 30, nx === tx ? -Math.PI / 2 : Math.PI / 2, nx === tx ? Math.PI / 2 : Math.PI * 1.5);
-    x.strokeStyle = 'rgba(212,255,58,.35)'; x.lineWidth = 2; x.stroke();
+    x.strokeStyle = 'rgba(185,162,255,.35)'; x.lineWidth = 2; x.stroke();
   }
 
   // stub: seeded barcode + text

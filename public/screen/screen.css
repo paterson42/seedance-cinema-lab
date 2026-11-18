@@ -3,7 +3,7 @@
    (1/100 of the canvas height) so it scales from a laptop to an LED wall. */
 :root {
   --u: min(1vh, calc(100vw * 16 / 9 / 100));
-  --accent: #d4ff3a;
+  --accent: #b9a2ff;
   --ink: #f4f1ea;
   --muted: #a39f94;
   --bg: #050405;

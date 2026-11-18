@@ -370,7 +370,7 @@ function screenItem(s, kind) {
     logline: s.story?.logline,
     director: s.director,
     seed: s.seed,
-    genre: { id: s.genre, ko: s.story?.genre?.ko, en: s.story?.genre?.en, color: g?.palette?.[0] || '#d4ff3a' },
+    genre: { id: s.genre, ko: s.story?.genre?.ko, en: s.story?.genre?.en, color: g?.palette?.[0] || '#b9a2ff' },
     keywords: Object.values(s.keywords || {}).map((k) => k.ko),
     poster: media(s.poster_final_file || s.poster_file),
     video: kind === 'trailer' ? media(s.video_file) : null,
