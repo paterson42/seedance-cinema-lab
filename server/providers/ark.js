@@ -104,7 +104,26 @@ export async function generateImage({ prompt, seed, genreId }) {
   const d = r?.data?.[0];
   if (!d) throw new ProviderError(`no image in response: ${JSON.stringify(r?.error || r).slice(0, 200)}`, { userMessage: friendly(r?.error?.code) });
   const buffer = d.b64_json ? Buffer.from(d.b64_json, 'base64') : await download(d.url);
-  return { buffer, ext: sniffExt(buffer) };
+  return toJpeg(buffer, sniffExt(buffer));
+}
+
+// Seedream 5.5 returns ~3 MB PNGs. Visitors' phones download the raw poster to add the title and
+// the screens may show it, so store a high-quality JPEG instead (about a fifth of the size).
+// Without ffmpeg, or if conversion fails, the original is kept.
+async function toJpeg(buffer, ext) {
+  if (ext === 'jpg' || !(await hasFfmpeg())) return { buffer, ext };
+  const tmp = path.join(MEDIA_DIR, `_conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+  try {
+    fs.writeFileSync(`${tmp}.${ext}`, buffer);
+    await run('ffmpeg', ['-y', '-v', 'error', '-i', `${tmp}.${ext}`, '-q:v', '2', '-pix_fmt', 'yuvj420p', `${tmp}.jpg`], 30000);
+    return { buffer: fs.readFileSync(`${tmp}.jpg`), ext: 'jpg' };
+  } catch (e) {
+    console.warn(`[poster] JPEG conversion failed, keeping ${ext}:`, e.message);
+    return { buffer, ext };
+  } finally {
+    fs.rmSync(`${tmp}.${ext}`, { force: true });
+    fs.rmSync(`${tmp}.jpg`, { force: true });
+  }
 }
 
 // ───────────────────────── Seedance ─────────────────────────
