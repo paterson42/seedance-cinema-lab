@@ -233,29 +233,33 @@ async function confirmRestart() {
   }
   const fl = s.flows;
   if (fl && fl.max > 0 && fl.left <= 0 && !S.booth) {
-    await confirmSheet({
+    const v = await confirmSheet({
       title: '체험 횟수를 모두 사용했어요',
-      body: `체험은 1인 ${fl.max}회까지예요. 지금 작품은 계속 볼 수 있고, ‘내 결과 다시 보기’에서도 찾을 수 있어요.`,
+      body: `체험은 1인 ${fl.max}회까지예요. 지금 작품은 계속 볼 수 있고, ‘내 결과 다시 보기’에서도 찾을 수 있어요.<br>다른 사람이 이 휴대폰으로 체험하려면 아래에서 번호를 바꿔 시작하세요.`,
       cancel: '계속 보기',
+      alt: '다른 번호로 새로 시작하기',
     });
     confirming = false;
+    if (v === 'alt') restart({ newNumber: true });
     return;
   }
   if (fl && fl.max > 0 && !S.booth) lines.push(`새 작품은 포스터를 만들 때 체험 1회로 세어져요. (1인 ${fl.max}회 · 남은 횟수 ${fl.left}회)`);
-  const ok = await confirmSheet({ title: '처음부터 다시 만들까요?', body: lines.join('<br>'), ok: '처음부터 다시', cancel: '계속 만들기' });
+  const v = await confirmSheet({ title: '처음부터 다시 만들까요?', body: lines.join('<br>'), ok: S.booth ? '처음부터 다시' : '같은 번호로 처음부터', cancel: '계속 만들기', alt: S.booth ? null : '다른 번호로 새로 시작하기' });
   confirming = false;
-  if (ok) restart();
+  if (v === 'alt') restart({ newNumber: true });
+  else if (v) restart();
 }
 
 // Bottom-sheet confirmation. The safe choice is the big primary button; backdrop / Esc cancel.
-function confirmSheet({ title, body, ok, cancel }) {
+function confirmSheet({ title, body, ok, cancel, alt }) {
   return new Promise((resolve) => {
     const wrap = document.createElement('div');
     wrap.className = 'sheet-wrap';
     wrap.innerHTML = `<div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="shT" aria-describedby="shB">
       <h3 id="shT">${esc(title)}</h3><p id="shB">${body}</p>
       <div class="sheet-btns"><button type="button" class="btn btn-primary btn-block" data-no>${esc(cancel)}</button>
-      ${ok ? `<button type="button" class="btn btn-ghost btn-block sheet-danger" data-yes>${esc(ok)}</button>` : ''}</div></div>`;
+      ${ok ? `<button type="button" class="btn btn-ghost btn-block sheet-danger" data-yes>${esc(ok)}</button>` : ''}
+      ${alt ? `<button type="button" class="linkish sheet-alt" data-alt>${esc(alt)}</button>` : ''}</div></div>`;
     document.body.append(wrap);
     const back = document.activeElement;
     let done = false;
@@ -273,6 +277,7 @@ function confirmSheet({ title, body, ok, cancel }) {
     wrap.addEventListener('click', (e) => { if (e.target === wrap) close(false); });
     wrap.querySelector('[data-no]').onclick = () => close(false);
     wrap.querySelector('[data-yes]')?.addEventListener('click', () => close(true));
+    wrap.querySelector('[data-alt]')?.addEventListener('click', () => close('alt'));
     requestAnimationFrame(() => { wrap.classList.add('show'); wrap.querySelector('[data-no]').focus(); });
   });
 }
@@ -888,16 +893,17 @@ async function renderResult(r) {
   $('#again', el).onclick = () => (!r.own ? (location.href = '/') : S.booth ? restart() : confirmRestart());
 }
 
-async function restart() {
-  track('restart');
+// newNumber: forget the phone too (another person on this phone, or a typo) -> back to the ticket page.
+async function restart({ newNumber = false } = {}) {
+  track('restart', newNumber ? { newNumber: true } : undefined);
   S.cast = {};
   S.takes = {};
   S.posterData = null;
   S.posterFor = null;
   if (!S.booth) S.director = '';
   try {
-    await api('/api/session', { method: 'POST', body: { keepPhone: !S.booth, entry: S.booth ? 'booth' : 'qr' } });
-    S.director = S.booth ? '' : S.session.director || '';
+    await api('/api/session', { method: 'POST', body: { keepPhone: !S.booth && !newNumber, entry: S.booth ? 'booth' : 'qr' } });
+    S.director = S.booth || newNumber ? '' : S.session.director || '';
     go(S.session.hasPhone ? 'genre' : 'landing', { slate: S.session.hasPhone });
   } catch (e) { handleError(e); }
 }

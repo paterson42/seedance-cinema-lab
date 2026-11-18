@@ -398,4 +398,5 @@ img, video { display: block; max-width: 100%; }
 .sheet p b { color: var(--text); }
 .sheet-btns { display: grid; gap: 8px; }
 .sheet-danger { color: var(--danger); border-color: rgba(255, 107, 90, .4); }
+.sheet-alt { justify-self: center; font-size: 13.5px; margin-top: 2px; }
 @media (min-width: 760px) { .sheet-wrap { align-items: center; } }
