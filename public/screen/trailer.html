@@ -62,8 +62,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── floating hearts ── */
-    .hearts { position: absolute; z-index: 19; right: 0; bottom: calc(var(--u) * 24); width: calc(var(--u) * 14); height: calc(var(--u) * 46); pointer-events: none; overflow: visible; }
-    .hearts svg { position: absolute; right: calc(var(--u) * 3); bottom: 0; width: var(--s, calc(var(--u) * 3.6)); height: var(--s, calc(var(--u) * 3.6)); opacity: 0;
+    .hearts { position: absolute; z-index: 19; right: calc(var(--u) * 7.2); bottom: calc(var(--u) * 35); width: calc(var(--u) * 12); height: calc(var(--u) * 46); pointer-events: none; overflow: visible; }
+    .hearts svg { position: absolute; right: 0; bottom: 0; width: var(--s, calc(var(--u) * 3.6)); height: var(--s, calc(var(--u) * 3.6)); opacity: 0;
       animation: float var(--d, 3s) cubic-bezier(.3, .6, .4, 1) forwards; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
     @keyframes float {
       0% { opacity: 0; transform: translate(0, 0) scale(.4) rotate(0deg); }
@@ -150,12 +150,19 @@
     let credits = [];        // 제작 / 제공 / 캠페인, from the feed (content.json event.credits)
     let front = $('#sA'), back = $('#sB');
 
-    const alive = (it) => items.some((x) => x.id === it.id);
+    // Shown on a loop while no visitor ad is live yet: a real ad made with this booth flow.
+    // It steps aside as soon as the first visitor ad arrives. Files: public/placeholder/.
+    const SAMPLE = { id: 'sample', title: '민트봄봄랜턴', tagline: '벚꽃 봄날의 산책, 반짝이는 친환경 미니 랜턴', director: 'Seedance', seed: 277156,
+      poster: '/placeholder/sample-ad.jpg', video: '/placeholder/sample-ad.mp4' };
+    let sampleOk = false;
+    fetch(SAMPLE.video, { method: 'HEAD' }).then((r) => { sampleOk = r.ok; }).catch(() => {});
+
+    const alive = (it) => (it.id === SAMPLE.id ? !items.length : items.some((x) => x.id === it.id));
     const num = (n) => (n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n.toLocaleString('ko-KR'));
 
     function pick() {
       while (fresh.length) { const f = fresh.shift(); if (alive(f)) return { it: f, isNew: true }; }
-      if (!items.length) return null;
+      if (!items.length) return sampleOk ? { it: SAMPLE } : null;
       for (let i = 0; i < items.length; i++) {
         const it = items[rot++ % items.length];
         if (items.length === 1 || it.id !== current?.id) return { it };
@@ -174,7 +181,7 @@
       s.setAttribute('viewBox', '0 0 24 24');
       s.setAttribute('fill', '#fe2c55'); // the app's own like colour only
       s.innerHTML = HEART;
-      s.style.setProperty('--x', `calc(var(--u) * ${(Math.random() * 9 - 6.5).toFixed(1)})`);
+      s.style.setProperty('--x', `calc(var(--u) * ${(Math.random() * -7).toFixed(1)})`); // drift left, clear of the sidebar icons
       s.style.setProperty('--r', `${Math.round(Math.random() * 50 - 25)}deg`);
       s.style.setProperty('--d', `${(2.6 + Math.random() * 1.6).toFixed(2)}s`);
       s.style.setProperty('--s', `calc(var(--u) * ${(2 + Math.random() * 1.7).toFixed(1)})`);
