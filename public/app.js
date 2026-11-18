@@ -1079,10 +1079,9 @@ async function composePoster(src, info) {
   const o = offer(info.seed);
   x.textAlign = 'center';
   x.textBaseline = 'alphabetic';
-  // Credits block at the top: 기획 (the visitor) + 제작 / 제공 / 캠페인 from content.json (event.credits),
-  // shared with the booth video screen.
+  // Top of the key visual: only 기획 (the visitor's name). The other credits live in the footer lines.
   const name = String(info.director || '나');
-  const credits = [{ label: '기획', value: name }, ...(S.content?.event?.credits || [])];
+  const credits = [{ label: '기획', value: name }];
   const LAB = '500 25px "Noto Sans KR", sans-serif', VAL = '700 27px "Noto Sans KR", sans-serif';
   // The 기획 line is the visitor's own name, so it is set clearly larger than the other credits.
   const LAB0 = '500 40px "Noto Sans KR", sans-serif', VAL0 = '900 70px "Noto Sans KR", sans-serif';
@@ -1223,7 +1222,7 @@ async function composeTicket(posterSrc, info) {
   x.save();
   rrect(x, px, py, pw, ph, 24); x.clip();
   const sc = pw / img.naturalWidth;
-  x.drawImage(img, px, py - img.naturalHeight * sc * 0.17, pw, img.naturalHeight * sc); // show the product area: below the credits block, above the copy
+  x.drawImage(img, px, py - img.naturalHeight * sc * 0.1, pw, img.naturalHeight * sc); // show the product area: below the credits block, above the copy
   const fade = x.createLinearGradient(0, py + ph * 0.55, 0, py + ph);
   fade.addColorStop(0, 'rgba(20,20,22,0)'); fade.addColorStop(1, 'rgba(20,20,22,.95)');
   x.fillStyle = fade; x.fillRect(px, py, pw, ph);

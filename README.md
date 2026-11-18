@@ -15,7 +15,7 @@ Cinema Lab(`main` 브랜치)과 같은 흐름·같은 서버 구조를 쓰고, �
 | `categories` (who/when/where/what/how/why) | 누가·언제·어디서·무엇을·어떻게·왜 | 타깃 고객 · 시즌/모먼트 · 촬영 장소 · **상품** · 연출 방식 · 구매 포인트(USP) |
 | `director` | 감독 이름 | 방문객 이름 — 키비주얼 상단 크레딧 `기획: ○○○`, 영상 스크린의 `@○○○` |
 | `story.title` / `tagline` / `logline` / `synopsis` | 제목 / 태그라인 / 로그라인 / 시놉시스 | 상품명 / 헤드라인 카피 / 캠페인 컨셉 / 상세페이지 카피 |
-| `poster` | 영화 포스터 | 광고 키비주얼 9:16 (크레딧 블록 · 헤드라인 · 상품명 · 가격 · 특가 스티커 · 구매 버튼 · `광고 ID` · `Sponsored by BytePlus` 합성, 키워드는 넣지 않음) |
+| `poster` | 영화 포스터 | 광고 키비주얼 9:16 (상단 `기획: ○○○` · 헤드라인 · 상품명 · 가격 · 특가 스티커 · 구매 버튼 · `광고 ID` · `Sponsored by BytePlus` 합성, 키워드는 넣지 않음) |
 | `video` / `trailer` | 트레일러 | 숏폼 광고 영상 |
 | ticket (결과 탭) | 영화 티켓 | 상품 카드 (가격 · 할인율 · 무드 · 광고 ID) |
 | seed | SEED NO. (main 에서는 숨김) | `광고 ID` 로 표시 |
@@ -23,7 +23,7 @@ Cinema Lab(`main` 브랜치)과 같은 흐름·같은 서버 구조를 쓰고, �
 | `/screen/poster` | 포스터 스크린 | 키비주얼 스크린 (‘신상 출시’ 간판 · 가격표) |
 | `/screen/trailer` | 예고편 스크린 | 숏폼 피드형 광고 영상 스크린 (오른쪽 액션 레일 · 떠오르는 하트 · `@이름` 캡션 · 위로 넘기는 전환) |
 
-> 화면 문구는 가능한 한 한국어로 씁니다(제품명 Seed · Seedream · Seedance, `Sponsored by BytePlus` 제외). 키비주얼 크레딧(제작 / 제공 / 캠페인)과 스폰서 문구는 `config/content.json` 의 `event.credits`, `event.sponsor` 에서 바꿉니다.
+> 화면 문구는 가능한 한 한국어로 씁니다(제품명 Seed · Seedream · Seedance, `Sponsored by BytePlus` 제외). 키비주얼 하단의 스폰서 문구는 `config/content.json` 의 `event.sponsor` 에서 바꿉니다(상단에는 `기획` 한 줄만 들어갑니다).
 >
 > 영상 스크린 왼쪽 위 로고 자리는 `public/brand/tiktok-logo.svg`(또는 `.png`) 파일이 있으면 표시됩니다. 공식 로고 파일을 넣어 주세요(`public/brand/README.md`).
 >
