@@ -1187,9 +1187,18 @@ async function composePoster(src, info, { layer = false } = {}) {
   spaced(x, `광고 ID ${pad(info.seed)}`, 80, H - 58, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, accent);
   x.textAlign = 'right';
   spaced(x, 'SEOUL 2026', W - 82, H - 58, '30px "Bebas Neue", sans-serif', 4, 'rgba(255,255,255,.75)');
-  x.textAlign = 'center';
+  // Sponsor line with the BytePlus mark in front (official file, white version on the dark footer).
+  const sponsor = S.content?.event?.sponsor || 'Sponsored by BytePlus';
+  const mark = await loadImg('/brand/byteplus-icon-white.png').catch(() => null);
   x.font = '600 30px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.fillStyle = '#fff';
-  x.fillText(S.content?.event?.sponsor || 'Sponsored by BytePlus', W / 2, H - 58);
+  const sw = x.measureText(sponsor).width;
+  // The mark sits inside a 450px square file: 270x194 at (90,129).
+  const mh = 30, mw = mark ? (mh * 270) / 194 : 0, mg = mark ? 14 : 0;
+  const sx = (W - mw - mg - sw) / 2;
+  if (mark) x.drawImage(mark, 90, 129, 270, 194, sx, H - 58 - 26, mw, mh);
+  x.textAlign = 'left';
+  x.fillText(sponsor, sx + mw + mg, H - 58);
+  x.textAlign = 'center';
 
   return layer ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9);
 }
