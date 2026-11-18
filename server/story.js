@@ -64,11 +64,27 @@ function posterPrompt({ genre, kw }) {
   ].join(' ');
 }
 
-function videoPrompt({ genre, kw }) {
+// Two-beat camera plan for the trailer, picked per visitor (by seed) from the genre's signature moves.
+function cameraPlan(genre, seed) {
+  const moves = genre.camera?.length ? genre.camera : [];
+  if (!moves.length) return null;
+  const r = rng(Math.imul((seed ^ 0x9e3779b9) >>> 0, 2654435761) >>> 0); // mix: nearby seeds pick different moves
+  r(); r();
+  const a = Math.floor(r() * moves.length);
+  let b = Math.floor(r() * moves.length);
+  if (moves.length > 1 && b === a) b = (a + 1) % moves.length;
+  return { open: moves[a], close: moves.length > 1 ? moves[b] : null };
+}
+const cameraText = (genre, plan) => (plan
+  ? `Camera plan for this ${SECS()}-second ${genre.en.toLowerCase()} trailer shot: open with ${plan.open}${plan.close ? `, then move into ${plan.close}` : ''}, ending on a striking final frame. Dynamic, deliberate trailer-style camera work with smooth, motivated movement.`
+  : '');
+
+function videoPrompt({ genre, kw, plan }) {
   return [
     `The movie poster comes alive as a ${SECS()}-second teaser trailer shot.`,
     `${kw.who.en} ${kw.what.en} ${kw.how.en}, ${kw.where.en}, ${kw.when.en}.`,
-    `Camera and motion: ${genre.motion}.`,
+    cameraText(genre, plan),
+    `Action and atmosphere: ${genre.motion}.`,
     'Keep the same characters, wardrobe, palette and composition as the poster.',
     VIDEO_REALISM,
     'No text or titles on screen.',
@@ -86,7 +102,7 @@ Return ONLY a JSON object with keys:
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
 "poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
-"video_prompt" (English prompt, 1-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot: one clear camera move, what the actors physically do, small natural details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
+"video_prompt" (English prompt, 2-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot. Build it around the given camera plan (opening move, then closing move) and describe what the actors physically do during each beat, plus small details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly.`;
 
 export async function buildStory({ genreId, keywordIdx, director, seed }) {
@@ -96,13 +112,15 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
   const base = templateStory({ genre, kw, director, seed });
   let story = { ...base, source: 'template' };
   let pPrompt = posterPrompt({ genre, kw });
-  let vPrompt = videoPrompt({ genre, kw });
+  const plan = cameraPlan(genre, seed);
+  let vPrompt = videoPrompt({ genre, kw, plan });
 
   if (!config.mock && config.ark.llmEnabled) {
     try {
       const user = `Genre: ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
 Keywords — 누가: ${kw.who.ko} / 언제: ${kw.when.ko} / 어디서: ${kw.where.ko} / 무엇을: ${kw.what.ko} / 어떻게: ${kw.how.ko} / 왜: ${kw.why.ko}.
-Director: ${director}. Random seed: ${seed}.`;
+Director: ${director}. Random seed: ${seed}.${plan ? `
+Camera plan for the trailer: open with ${plan.open}${plan.close ? `, then ${plan.close}` : ''}.` : ''}`;
       const out = await chatJSON(LLM_SYSTEM(), user);
       const ok = (s, max) => typeof s === 'string' && s.trim() && s.length <= max;
       if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2000) && ok(out.video_prompt, 1200)) {
@@ -115,7 +133,7 @@ Director: ${director}. Random seed: ${seed}.`;
           source: 'seed-llm',
         };
         pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_REALISM}`;
-        vPrompt = `${out.video_prompt.trim()} Camera and motion: ${genre.motion}. ${VIDEO_REALISM}`;
+        vPrompt = [out.video_prompt.trim(), cameraText(genre, plan), `Action and atmosphere: ${genre.motion}.`, VIDEO_REALISM].filter(Boolean).join(' ');
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);
