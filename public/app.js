@@ -745,7 +745,7 @@ const sessionShareInfo = (s) => ({
   image: absUrl(s.poster.finalUrl || s.poster.url), link: absUrl(s.resultUrl),
 });
 
-const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 그림자의 움직임을 계산하는 중', '8초짜리 명장면을 다듬는 중'];
+const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 그림자의 움직임을 계산하는 중', '10초짜리 명장면을 다듬는 중'];
 
 // Live progress for a trailer being made (waiting view and the shared result page).
 // Seedance gives no progress, so: linear to 90% at the learned estimate, then creeping towards 99%,
