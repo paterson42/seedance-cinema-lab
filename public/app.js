@@ -1163,7 +1163,7 @@ async function composePoster(src, info) {
 
   // Who made what (no keyword lines on the key visual)
   x.globalAlpha = 0.62;
-  spaced(x, '카피 Seed   ·   키비주얼 Seedream   ·   영상 Seedance', W / 2, H - 168, '500 25px "Noto Sans KR", sans-serif', 2, '#fff');
+  spaced(x, '컨셉 Seed   ·   키비주얼 Seedream   ·   영상 Seedance', W / 2, H - 168, '500 25px "Noto Sans KR", sans-serif', 2, '#fff');
   x.globalAlpha = 1;
 
   // Footer: ad ID · sponsor · event
