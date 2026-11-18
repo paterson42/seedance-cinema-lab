@@ -16,7 +16,8 @@
          No device frame, no notch, no system UI (clock, battery), no bottom navigation.
        - "For You" (추천) is the selected tab.
        - The UI is not stylised or recoloured: white UI, nothing covering its icons or text.
-       - Our own message (QR call to action) sits below the feed as a headline, outside the UI.
+       - This screen is only a player: no call to action or other message on top of the feed.
+       - UI is sized for a large display seen from a distance, lighter than phone proportions.
        Official UI assets and TikTok Sans are picked up from /brand/tiktok-ui/ when the files are there
        (see public/brand/README.md); until then neutral placeholder icons are shown. */
     @font-face { font-family: 'TikTok Sans'; src: url('/brand/tiktok-ui/TikTokSans-Regular.woff2') format('woff2'); font-weight: 400 500; font-display: swap; }
@@ -32,37 +33,37 @@
     .slide video, .slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .slide img { filter: none; }
     .shade { position: absolute; inset: 0; pointer-events: none; z-index: 5;
-      background: linear-gradient(180deg, rgba(0,0,0,.5) 0, transparent 16%, transparent 52%, rgba(0,0,0,.82) 100%); }
+      background: linear-gradient(180deg, rgba(0,0,0,.4) 0, transparent 12%, transparent 72%, rgba(0,0,0,.6) 100%); }
 
     /* ── top bar: LIVE · tabs (For You selected) · search ── */
-    .top { position: absolute; z-index: 20; left: 0; right: 0; top: calc(var(--u) * 1.2); height: calc(var(--u) * 7); display: flex; align-items: center; justify-content: space-between;
+    .top { position: absolute; z-index: 20; left: 0; right: 0; top: calc(var(--u) * 1); height: calc(var(--u) * 5.6); display: flex; align-items: center; justify-content: space-between;
       padding: 0 calc(var(--u) * 2.6); color: #fff; }
-    .top .ico { width: calc(var(--u) * 3.6); height: calc(var(--u) * 3.6); display: grid; place-items: center; }
+    .top .ico { width: calc(var(--u) * 2.8); height: calc(var(--u) * 2.8); display: grid; place-items: center; }
     .top .ico img, .top .ico svg { width: 100%; height: 100%; object-fit: contain; }
-    .tabs { display: flex; gap: calc(var(--u) * 2.2); font-size: calc(var(--u) * 2); font-weight: 600; color: rgba(255,255,255,.6); }
+    .tabs { display: flex; gap: calc(var(--u) * 1.9); font-size: calc(var(--u) * 1.55); font-weight: 600; color: rgba(255,255,255,.6); }
     .tabs b { position: relative; color: #fff; font-weight: 700; }
-    .tabs b::after { content: ''; position: absolute; left: 25%; right: 25%; bottom: calc(var(--u) * -.9); height: calc(var(--u) * .3); border-radius: 99px; background: #fff; }
+    .tabs b::after { content: ''; position: absolute; left: 25%; right: 25%; bottom: calc(var(--u) * -.7); height: calc(var(--u) * .24); border-radius: 99px; background: #fff; }
 
     /* ── right action rail ── */
-    .rail { position: absolute; z-index: 20; right: calc(var(--u) * 1.5); bottom: calc(var(--u) * 13.5); width: calc(var(--u) * 8); display: grid; justify-items: center; gap: calc(var(--u) * 2.3);
+    .rail { position: absolute; z-index: 20; right: calc(var(--u) * 1.6); bottom: calc(var(--u) * 4.2); width: calc(var(--u) * 6); display: grid; justify-items: center; gap: calc(var(--u) * 1.9);
       color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
-    .avatar { position: relative; width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); border-radius: 50%; border: calc(var(--u) * .28) solid #fff; display: grid; place-items: center;
-      background: #2a2a2e; color: #fff; font-weight: 700; font-size: calc(var(--u) * 2.8); margin-bottom: calc(var(--u) * 1); }
-    .avatar::after { content: '+'; position: absolute; left: 50%; bottom: calc(var(--u) * -1.3); transform: translateX(-50%); width: calc(var(--u) * 2.5); height: calc(var(--u) * 2.5); border-radius: 50%;
-      background: #fe2c55; color: #fff; font: 900 calc(var(--u) * 2) / calc(var(--u) * 2.4) var(--sans); text-align: center; }
-    .act { display: grid; justify-items: center; gap: calc(var(--u) * .4); font-size: calc(var(--u) * 1.45); font-weight: 700; }
-    .act svg { width: calc(var(--u) * 4.6); height: calc(var(--u) * 4.6); filter: drop-shadow(0 1px 5px rgba(0,0,0,.55)); }
-    .act img { width: calc(var(--u) * 4.6); height: calc(var(--u) * 4.6); object-fit: contain; }
+    .avatar { position: relative; width: calc(var(--u) * 4.8); height: calc(var(--u) * 4.8); border-radius: 50%; border: calc(var(--u) * .2) solid #fff; display: grid; place-items: center;
+      background: #2a2a2e; color: #fff; font-weight: 700; font-size: calc(var(--u) * 2.1); margin-bottom: calc(var(--u) * .9); }
+    .avatar::after { content: '+'; position: absolute; left: 50%; bottom: calc(var(--u) * -1); transform: translateX(-50%); width: calc(var(--u) * 1.9); height: calc(var(--u) * 1.9); border-radius: 50%;
+      background: #fe2c55; color: #fff; font: 900 calc(var(--u) * 1.5) / calc(var(--u) * 1.85) var(--sans); text-align: center; }
+    .act { display: grid; justify-items: center; gap: calc(var(--u) * .3); font-size: calc(var(--u) * 1.15); font-weight: 600; }
+    .act svg { width: calc(var(--u) * 3.5); height: calc(var(--u) * 3.5); filter: drop-shadow(0 1px 5px rgba(0,0,0,.55)); }
+    .act img { width: calc(var(--u) * 3.5); height: calc(var(--u) * 3.5); object-fit: contain; }
     .act.like.liked svg { color: #fe2c55; }
     .act.like.pop svg { animation: pop .34s ease-out; }
     @keyframes pop { 40% { transform: scale(1.28); } }
-    .disc { width: calc(var(--u) * 6); height: calc(var(--u) * 6); border-radius: 50%; margin-top: calc(var(--u) * .6); animation: spin 5s linear infinite;
+    .disc { width: calc(var(--u) * 4.4); height: calc(var(--u) * 4.4); border-radius: 50%; margin-top: calc(var(--u) * .4); animation: spin 5s linear infinite;
       background: radial-gradient(circle, #8a8a90 0 26%, #111 27% 34%, #2a2a2e 35% 62%, #111 63%); border: calc(var(--u) * .3) solid #2a2a2e; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── floating hearts ── */
-    .hearts { position: absolute; z-index: 19; right: 0; bottom: calc(var(--u) * 36); width: calc(var(--u) * 16); height: calc(var(--u) * 46); pointer-events: none; overflow: visible; }
-    .hearts svg { position: absolute; right: calc(var(--u) * 3.4); bottom: 0; width: var(--s, calc(var(--u) * 3.6)); height: var(--s, calc(var(--u) * 3.6)); opacity: 0;
+    .hearts { position: absolute; z-index: 19; right: 0; bottom: calc(var(--u) * 24); width: calc(var(--u) * 14); height: calc(var(--u) * 46); pointer-events: none; overflow: visible; }
+    .hearts svg { position: absolute; right: calc(var(--u) * 3); bottom: 0; width: var(--s, calc(var(--u) * 3.6)); height: var(--s, calc(var(--u) * 3.6)); opacity: 0;
       animation: float var(--d, 3s) cubic-bezier(.3, .6, .4, 1) forwards; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
     @keyframes float {
       0% { opacity: 0; transform: translate(0, 0) scale(.4) rotate(0deg); }
@@ -72,30 +73,16 @@
     }
 
     /* ── caption block (bottom-left) ── */
-    .cap { position: absolute; z-index: 20; left: calc(var(--u) * 2.4); right: calc(var(--u) * 11.5); bottom: calc(var(--u) * 11.6); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.7);
+    .cap { position: absolute; z-index: 20; left: calc(var(--u) * 2.4); right: calc(var(--u) * 10.5); bottom: calc(var(--u) * 4.2); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.7);
       transition: opacity .3s ease; }
     .cap.swap { opacity: 0; }
-    .handle { font-size: calc(var(--u) * 2.4); font-weight: 700; }
-    .text { margin-top: calc(var(--u) * .9); font-size: calc(var(--u) * 1.95); line-height: 1.45; font-weight: 500; word-break: keep-all;
-      display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+    .handle { font-size: calc(var(--u) * 1.75); font-weight: 700; }
+    .text { margin-top: calc(var(--u) * .6); font-size: calc(var(--u) * 1.5); line-height: 1.45; font-weight: 400; word-break: keep-all;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .text b { font-weight: 700; }
-    .sound { margin-top: calc(var(--u) * 1.1); display: flex; align-items: center; gap: calc(var(--u) * .9); font-size: calc(var(--u) * 1.55); overflow: hidden; white-space: nowrap; }
-    .sound svg { flex: none; width: calc(var(--u) * 1.9); height: calc(var(--u) * 1.9); }
-    .sound div { overflow: hidden; flex: 1; -webkit-mask: linear-gradient(90deg, #000 85%, transparent); mask: linear-gradient(90deg, #000 85%, transparent); }
-    .sound span { display: inline-block; padding-right: calc(var(--u) * 6); animation: slide 14s linear infinite; }
-    @keyframes slide { to { transform: translateX(-50%); } }
-
-    /* ── progress + bottom call-to-action bar ── */
-    .prog { position: absolute; z-index: 21; left: 0; right: 0; bottom: calc(var(--u) * 9); height: calc(var(--u) * .35); background: rgba(255,255,255,.22); }
+    /* ── playback progress (hairline at the very bottom) ── */
+    .prog { position: absolute; z-index: 21; left: 0; right: 0; bottom: 0; height: calc(var(--u) * .25); background: rgba(255,255,255,.2); }
     .prog i { display: block; height: 100%; width: 0; background: #fff; }
-    .cta { position: absolute; z-index: 21; left: 0; right: 0; bottom: 0; height: calc(var(--u) * 9); display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 1.6);
-      background: #000; color: #fff; font-size: calc(var(--u) * 2.1); font-weight: 900; }
-    .cta .arr { color: var(--accent); font-size: calc(var(--u) * 3.4); line-height: 1; animation: nudge 1.4s ease-in-out infinite; }
-    .cta small { display: block; font-size: calc(var(--u) * 1.25); font-weight: 500; color: rgba(255,255,255,.6); margin-top: calc(var(--u) * .2); }
-    @keyframes nudge { 50% { transform: translateX(calc(var(--u) * -.9)); } }
-    body.qr-right .cta { flex-direction: row-reverse; }
-    body.qr-right .cta .arr { animation-name: nudge-r; }
-    @keyframes nudge-r { 50% { transform: translateX(calc(var(--u) * .9)); } }
 
     /* ── idle (no ads yet) ── */
     .idle { position: absolute; z-index: 15; inset: 0; display: grid; place-content: center; text-align: center; gap: calc(var(--u) * 2); padding: 0 calc(var(--u) * 6);
@@ -114,7 +101,6 @@
 
     <div class="idle" id="idle">
       <b>첫 번째 광고를<br>기다리는 중</b>
-      <span>키비주얼이 움직이는 순간,<br>당신의 광고 영상이 이 화면에 올라옵니다</span>
     </div>
 
     <header class="top">
@@ -137,25 +123,15 @@
     <section class="cap" id="cap">
       <div class="handle" id="handle"></div>
       <div class="text" id="text"></div>
-      <div class="sound"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 4.500 19 3v12.200a3 3 0 1 1-2-2.800V7L11 8v9.200a3 3 0 1 1-2-2.800z"/></svg><div><span id="sound"></span></div></div>
     </section>
 
     <div class="prog"><i id="prog"></i></div>
-    <footer class="cta">
-      <span class="arr" aria-hidden="true">←</span>
-      <div>QR을 스캔하고 나만의 광고 만들기<small>완성된 광고 <span id="count">0</span>편 · Seedance@Seoul 2026</small></div>
-    </footer>
   </div>
 
   <script type="module">
-    import { $, esc, sleep, watchFeed, screenChrome, preload, offer, won } from '/screen/screen.js';
+    import { $, esc, sleep, watchFeed, screenChrome, preload } from '/screen/screen.js';
 
     const chrome = screenChrome();
-    // The QR stand sits to the left of this screen; ?qr=right flips the arrow.
-    const qrRight = new URLSearchParams(location.search).get('qr') === 'right';
-    document.body.classList.toggle('qr-right', qrRight);
-    if (qrRight) $('.cta .arr').textContent = '→';
-
     // Official UI assets: each <img data-asset="name"> tries /brand/tiktok-ui/name.svg then .png.
     // When one loads it replaces the neutral placeholder icon next to it.
     document.querySelectorAll('img[data-asset]').forEach((el) => {
@@ -176,7 +152,6 @@
 
     const alive = (it) => items.some((x) => x.id === it.id);
     const num = (n) => (n >= 10000 ? `${(n / 10000).toFixed(1)}만` : n.toLocaleString('ko-KR'));
-    const tagify = (s) => `#${String(s).replace(/[\s&+·,.'"“”]/g, '')}`;
 
     function pick() {
       while (fresh.length) { const f = fresh.shift(); if (alive(f)) return { it: f, isNew: true }; }
@@ -202,7 +177,7 @@
       s.style.setProperty('--x', `calc(var(--u) * ${(Math.random() * 9 - 6.5).toFixed(1)})`);
       s.style.setProperty('--r', `${Math.round(Math.random() * 50 - 25)}deg`);
       s.style.setProperty('--d', `${(2.6 + Math.random() * 1.6).toFixed(2)}s`);
-      s.style.setProperty('--s', `calc(var(--u) * ${(2.6 + Math.random() * 2.2).toFixed(1)})`);
+      s.style.setProperty('--s', `calc(var(--u) * ${(2 + Math.random() * 1.7).toFixed(1)})`);
       s.addEventListener('animationend', () => s.remove());
       box.append(s);
       likes += 1 + Math.floor(Math.random() * 7);
@@ -214,7 +189,7 @@
 
     // ── overlays for the ad on screen ──
     function dress(it) {
-      const o = offer(it.seed), seed = Number(it.seed) || 1;
+      const seed = Number(it.seed) || 1;
       $('#avatar').textContent = [...String(it.director || '나')][0];
       $('#like').classList.remove('liked');
       likes = 1200 + (seed % 8800);
@@ -224,11 +199,8 @@
       $('#nShare').textContent = num(10 + (seed % 240));
       // Name + caption, as in the feed. Everything about the ad lives in the caption text.
       $('#handle').textContent = it.director || '';
-      const tags = [it.genre?.ko ? `${it.genre.ko}광고` : '', 'AI광고', 'Seedance투어서울', 'BytePlus'].filter(Boolean).map(tagify).join(' ');
-      $('#text').innerHTML = `<b>${esc(it.title)}</b>${it.tagline ? ` — ${esc(it.tagline)}` : ''} · ${won(o.price)} (-${o.off}%)<br>`
-        + `기획 ${esc(it.director)} · Seedance Tour Seoul에서 BytePlus로 만들었어요<br>${esc(tags)}`;
-      const snd = `오리지널 사운드 — ${esc(it.director)}`;
-      $('#sound').innerHTML = `${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+      $('#text').innerHTML = `<b>${esc(it.title)}</b>${it.tagline ? ` — ${esc(it.tagline)}` : ''}<br>`
+        + `기획 ${esc(it.director)} · Seedance Tour Seoul by BytePlus`;
     }
 
     function ready(v) {
@@ -301,7 +273,6 @@
       if (known) for (const it of [...list].reverse()) if (!known.has(it.id)) fresh.push(it);
       known = new Set([...(known || []), ...list.map((x) => x.id)]);
       items = list;
-      $('#count').textContent = items.length;
     });
   </script>
 </body>

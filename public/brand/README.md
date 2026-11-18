@@ -7,7 +7,7 @@ Marketing Style Guide ("The For You Feed"):
   name and caption. No device frame, no notch, no system UI, no bottom navigation.
 - **"For You" (추천)** is the selected tab.
 - The UI is **not stylised or recoloured**, and nothing covers its icons or text.
-- Our own message (the QR call to action) sits below the feed as a headline, outside the UI.
+- The screen is only a player: there is no call to action or other message on top of the feed.
 
 The guide also says not to redraw or restyle the UI, so the real icons and typeface are not in this
 repository. Export them from the official kit (Brand portal → Downloads → "Static Layouts for External
@@ -27,4 +27,4 @@ picked up automatically on reload; until then a neutral placeholder icon is show
 Export icons in white on a transparent background, square, at least 96 px.
 
 If the brand team prefers the Moderate UI (complete UI including the bottom navigation), say so:
-the layout needs the bottom-navigation assets as well, and the QR call to action moves out of the frame.
+the layout then needs the bottom-navigation assets as well.
