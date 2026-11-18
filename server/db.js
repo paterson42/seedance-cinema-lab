@@ -55,6 +55,16 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS idx_events_name ON events(name);
 CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id, name, ts);
 
+-- Operator settings (e.g. allowlist on/off).
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
+-- Pre-registered phone numbers (hash + masked only). extra_flows = extra experiences granted by staff.
+CREATE TABLE IF NOT EXISTS allowlist (
+  phone_hash   TEXT PRIMARY KEY,
+  phone_masked TEXT,
+  extra_flows  INTEGER DEFAULT 0,
+  added_at     INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS kakao_outbox (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   session_id   TEXT,

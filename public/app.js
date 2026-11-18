@@ -99,6 +99,7 @@ async function copyText(text) {
 
 function handleError(e, fallbackView) {
   if (e.code === 'NO_SESSION' || e.code === 'NO_PHONE') { toast(e.message); return go('landing'); }
+  if (e.code === 'NOT_ALLOWED' || e.code === 'FLOW_LIMIT') { S.limit = { code: e.code, message: e.message }; return go('limit'); }
   if (e.code === 'BUSY') { toast(e.message); return resume({ slate: false }); } // already generating: back to its waiting screen
   toast(e.message || '문제가 생겼어요.');
   if (fallbackView) go(fallbackView);
@@ -230,6 +231,17 @@ async function confirmRestart() {
   if (hasPoster) {
     lines.push(`이미 만든 포스터${hasVideo ? '와 예고편' : ''}은 <b>‘내 결과 다시 보기’</b>에서 휴대폰 번호와 감독 이름으로 다시 찾을 수 있어요.${videoBusy ? ' 만들고 있는 예고편도 계속 완성돼요.' : ''}`);
   }
+  const fl = s.flows;
+  if (fl && fl.max > 0 && fl.left <= 0 && !S.booth) {
+    await confirmSheet({
+      title: '체험 횟수를 모두 사용했어요',
+      body: `체험은 1인 ${fl.max}회까지예요. 지금 작품은 계속 볼 수 있고, ‘내 결과 다시 보기’에서도 찾을 수 있어요.`,
+      cancel: '계속 보기',
+    });
+    confirming = false;
+    return;
+  }
+  if (fl && fl.max > 0 && !S.booth) lines.push(`새 작품은 포스터를 만들 때 체험 1회로 세어져요. (1인 ${fl.max}회 · 남은 횟수 ${fl.left}회)`);
   const ok = await confirmSheet({ title: '처음부터 다시 만들까요?', body: lines.join('<br>'), ok: '처음부터 다시', cancel: '계속 만들기' });
   confirming = false;
   if (ok) restart();
@@ -243,7 +255,7 @@ function confirmSheet({ title, body, ok, cancel }) {
     wrap.innerHTML = `<div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="shT" aria-describedby="shB">
       <h3 id="shT">${esc(title)}</h3><p id="shB">${body}</p>
       <div class="sheet-btns"><button type="button" class="btn btn-primary btn-block" data-no>${esc(cancel)}</button>
-      <button type="button" class="btn btn-ghost btn-block sheet-danger" data-yes>${esc(ok)}</button></div></div>`;
+      ${ok ? `<button type="button" class="btn btn-ghost btn-block sheet-danger" data-yes>${esc(ok)}</button>` : ''}</div></div>`;
     document.body.append(wrap);
     const back = document.activeElement;
     let done = false;
@@ -260,7 +272,7 @@ function confirmSheet({ title, body, ok, cancel }) {
     document.addEventListener('keydown', onKey);
     wrap.addEventListener('click', (e) => { if (e.target === wrap) close(false); });
     wrap.querySelector('[data-no]').onclick = () => close(false);
-    wrap.querySelector('[data-yes]').onclick = () => close(true);
+    wrap.querySelector('[data-yes]')?.addEventListener('click', () => close(true));
     requestAnimationFrame(() => { wrap.classList.add('show'); wrap.querySelector('[data-no]').focus(); });
   });
 }
@@ -340,9 +352,25 @@ VIEWS.landing = () => {
       go('genre');
     } catch (err) {
       btn.disabled = false;
-      if (err.code === 'BAD_PHONE') { phone.classList.add('invalid'); $('#phoneHint').textContent = err.message; }
+      if (['BAD_PHONE', 'NOT_ALLOWED', 'FLOW_LIMIT'].includes(err.code)) { phone.classList.add('invalid'); $('#phoneHint').textContent = err.message; }
       else handleError(err);
     }
+  };
+};
+
+// Shown when a number is not on the pre-registered list or has used all its experiences.
+VIEWS.limit = () => {
+  const l = S.limit || { code: 'FLOW_LIMIT', message: '체험 횟수를 모두 사용했어요.' };
+  const el = render(`
+    <p class="scene">${l.code === 'NOT_ALLOWED' ? 'ACCESS · 사전 등록' : 'THAT\'S A WRAP · 체험 완료'}</p>
+    <h2 class="h2">${l.code === 'NOT_ALLOWED' ? '등록된 번호가 <em>아니에요</em>' : '오늘의 촬영은 <em>여기까지</em>'}</h2>
+    <div class="notice"><span class="ico">✦</span><span>${esc(l.message)}</span></div>
+    <button class="btn btn-primary btn-block" id="toLookup">내 결과 다시 보기</button>
+    <p style="text-align:center;margin-top:10px"><button class="linkish" id="toStart">${l.code === 'NOT_ALLOWED' ? '다른 번호로 시작하기' : '처음 화면으로'}</button></p>`);
+  $('#toLookup', el).onclick = () => go('lookup');
+  $('#toStart', el).onclick = async () => {
+    try { await api('/api/session', { method: 'POST', body: { entry: S.booth ? 'booth' : 'qr' } }); } catch {}
+    go('landing');
   };
 };
 
@@ -743,7 +771,7 @@ VIEWS.waiting = () => {
   `);
   $('#copyLink', el).onclick = async () => { await copyText(link); toast('결과 링크를 복사했어요'); };
   bindKakaoSave(el, () => sessionShareInfo(S.session));
-  $('#again', el).onclick = restart;
+  $('#again', el).onclick = () => (S.booth ? restart() : confirmRestart());
   const myPoll = S.pollId;
   const eta0 = s.video.etaSec || 90;
   let i = 0;
@@ -854,7 +882,7 @@ async function renderResult(r) {
     if (a === 'tsave') { download(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`); track('ticket_saved'); toast('티켓을 저장했어요'); }
     if (a === 'tshare') { shareFile(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`, r.title, link); track('ticket_shared'); }
   };
-  $('#again', el).onclick = () => (r.own ? restart() : (location.href = '/'));
+  $('#again', el).onclick = () => (!r.own ? (location.href = '/') : S.booth ? restart() : confirmRestart());
 }
 
 async function restart() {

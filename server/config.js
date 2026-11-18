@@ -86,6 +86,8 @@ export const config = {
     phoneDailyVideos: num('PHONE_DAILY_VIDEOS', 3),
     phoneDailyPosters: num('PHONE_DAILY_POSTERS', 10),
     phoneDailyStories: num('PHONE_DAILY_STORIES', 30),
+    // Experiences per person (a session that made a poster). 0 = unlimited. Staff can grant +1 in /admin.
+    phoneMaxFlows: num('PHONE_MAX_FLOWS', 2),
   },
   kakao: {
     provider: env('KAKAO_PROVIDER', 'off'),

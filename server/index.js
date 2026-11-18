@@ -7,7 +7,10 @@ import { createSession, getSession, getSessionByToken, updateSession, query, que
 import { publicContent, getContent, saveContent, containsBanned } from './content.js';
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
 import { buildStory } from './story.js';
-import { dailyLeft, assertDaily } from './limits.js';
+import {
+  dailyLeft, assertDaily, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
+  allowlistCount, allowlistRecent, parseNumbers, saveAllowlist, clearAllowlist, phoneStatus, grantExtraFlow,
+} from './limits.js';
 import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
 import { etaSec } from './eta.js';
@@ -117,6 +120,7 @@ function sessionView(s) {
       dailyMax: config.limits.phoneDailyVideos,
       remaining: Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
     },
+    flows: flowInfo(s),
     resultUrl: s.result_token ? `/r/${s.result_token}` : null,
     kakaoStatus: s.kakao_status,
     screen: screenView(s),
@@ -193,6 +197,7 @@ route('POST', '/api/session/phone', async (req, res) => {
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)', 'BAD_PHONE');
   if (!consentPrivacy) fail(400, '개인정보 수집·이용에 동의해야 결과를 받아볼 수 있어요.', 'NO_CONSENT');
+  assertPhoneMayEnter(p, fail); // pre-registered list + experiences per person
   const updated = updateSession(s.id, {
     phone_enc: encrypt(p), phone_hash: hashPhone(p), phone_masked: maskPhone(p),
     consent_at: Date.now(), consent_marketing: consentMarketing ? 1 : 0,
@@ -222,6 +227,7 @@ function assertNotBusy(s) {
 route('POST', '/api/session/genre', async (req, res) => {
   const s = requireSession(req);
   assertNotBusy(s);
+  assertMayGenerate(s, fail);
   const { genre } = await readBody(req);
   if (!getContent().genres.some((g) => g.id === genre)) fail(400, '장르를 다시 선택해 주세요.');
   const updated = updateSession(s.id, { genre });
@@ -233,6 +239,7 @@ route('POST', '/api/story', async (req, res) => {
   const s = requireSession(req);
   if (!s.genre) fail(400, '장르를 먼저 선택해 주세요.');
   assertNotBusy(s);
+  assertMayGenerate(s, fail);
   rateLimit(`story:${s.id}`, 30, 600000);
   assertDaily(s, 'story', fail);
   const { keywords, director: rawDirector } = await readBody(req);
@@ -256,6 +263,7 @@ route('POST', '/api/poster', async (req, res) => {
   if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 이야기를 만들어 주세요.');
   if (POSTER_BUSY.includes(s.poster_status)) return json(res, 200, { session: sessionView(s) }); // already making it
   assertNotBusy(s); // a trailer is being made from the current poster
+  assertMayGenerate(s, fail);
   assertDaily(s, 'poster', fail);
   if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
@@ -284,6 +292,7 @@ route('POST', '/api/video', async (req, res) => {
   if (VIDEO_BUSY.includes(s.video_status)) return json(res, 200, { session: sessionView(s) }); // already making it
   assertNotBusy(s); // a poster is being (re)made
   if (s.poster_status !== 'done' || !s.poster_file) fail(400, '포스터를 먼저 만들어 주세요.');
+  assertMayGenerate(s, fail);
   assertDaily(s, 'video', fail);
   if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
@@ -446,6 +455,42 @@ route('POST', '/api/admin/screen', async (req, res) => {
   updateSession(s.id, { [cols[0]]: status });
   logEvent(s.id, `screen_${kind}_${status}`);
   json(res, 200, { ok: true });
+});
+
+// Pre-registered numbers & experiences per person
+route('GET', '/api/admin/allowlist', async (req, res) => {
+  requireAdmin(req);
+  json(res, 200, { enabled: allowlistEnabled(), count: allowlistCount(), recent: allowlistRecent(30), maxFlows: config.limits.phoneMaxFlows });
+});
+route('POST', '/api/admin/allowlist', async (req, res) => {
+  requireAdmin(req);
+  const { action, text, mode, enabled, phone } = await readBody(req, 4 * 1024 * 1024);
+  if (action === 'toggle') {
+    if (enabled && !allowlistCount()) fail(400, '명단이 비어 있어요. 번호를 먼저 올린 뒤 켜 주세요.');
+    setAllowlistEnabled(!!enabled);
+    console.log(`[admin] allowlist ${enabled ? 'ON' : 'OFF'}`);
+    return json(res, 200, { enabled: allowlistEnabled() });
+  }
+  if (action === 'upload') {
+    const { numbers, invalid } = parseNumbers(text);
+    if (!numbers.length) fail(400, '올바른 휴대폰 번호를 찾지 못했어요.');
+    const r = saveAllowlist(numbers, mode === 'replace' ? 'replace' : 'add');
+    console.log(`[admin] allowlist ${mode}: ${numbers.length} numbers, total ${r.after}`);
+    return json(res, 200, { parsed: numbers.length, invalid: invalid.slice(0, 50), invalidCount: invalid.length, ...r });
+  }
+  if (action === 'clear') {
+    clearAllowlist();
+    setAllowlistEnabled(false);
+    console.log('[admin] allowlist cleared and switched off');
+    return json(res, 200, { count: 0, enabled: false });
+  }
+  if (action === 'check' || action === 'grant') {
+    if (action === 'grant' && !grantExtraFlow(phone)) fail(400, '명단에 있는 번호만 횟수를 추가할 수 있어요.');
+    const st = phoneStatus(phone);
+    if (!st) fail(400, '휴대폰 번호 형식을 확인해 주세요.');
+    return json(res, 200, st);
+  }
+  fail(400, 'bad request');
 });
 
 route('GET', '/api/admin/content', async (req, res) => {
