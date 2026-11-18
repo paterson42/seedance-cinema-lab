@@ -1084,20 +1084,27 @@ async function composePoster(src, info) {
   const name = String(info.director || '나');
   const credits = [{ label: '기획', value: name }, ...(S.content?.event?.credits || [])];
   const LAB = '500 25px "Noto Sans KR", sans-serif', VAL = '700 27px "Noto Sans KR", sans-serif';
+  // The 기획 line is the visitor's own name, so it is set clearly larger than the other credits.
+  const LAB0 = '500 34px "Noto Sans KR", sans-serif', VAL0 = '900 52px "Noto Sans KR", sans-serif';
   x.textAlign = 'left';
   x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 12;
+  let cy0 = 0;
   credits.forEach((cr, i) => {
-    const y = 76 + i * 42;
+    const y = i ? 108 + i * 42 : 92;
+    cy0 = y;
     const lab = `${cr.label}: `;
-    x.font = LAB; const lw = x.measureText(lab).width;
-    x.font = VAL; const vw = x.measureText(cr.value).width;
+    const fl = i ? LAB : LAB0;
+    let fv = i ? VAL : VAL0;
+    x.font = fl; const lw = x.measureText(lab).width;
+    x.font = fv; let vw = x.measureText(cr.value).width;
+    if (!i && lw + vw > W * 0.8) { fv = '900 40px "Noto Sans KR", sans-serif'; x.font = fv; vw = x.measureText(cr.value).width; } // very long names
     const x0 = (W - lw - vw) / 2;
-    x.font = LAB; x.fillStyle = 'rgba(255,255,255,.66)'; x.fillText(lab, x0, y);
-    x.font = VAL; x.fillStyle = i ? '#fff' : accent; x.fillText(cr.value, x0 + lw, y);
+    x.font = fl; x.fillStyle = 'rgba(255,255,255,.66)'; x.fillText(lab, x0, y);
+    x.font = fv; x.fillStyle = i ? '#fff' : accent; x.fillText(cr.value, x0 + lw, y);
   });
   x.shadowBlur = 0;
   x.textAlign = 'center';
-  spaced(x, `신상 출시 · ${info.genre?.ko || '광고'} 캠페인`, W / 2, 76 + credits.length * 42 + 30, '700 27px "Noto Sans KR", sans-serif', 5, accent);
+  spaced(x, `신상 출시 · ${info.genre?.ko || '광고'} 캠페인`, W / 2, cy0 + 60, '700 27px "Noto Sans KR", sans-serif', 5, accent);
 
   // Discount sticker
   x.save();
@@ -1216,7 +1223,7 @@ async function composeTicket(posterSrc, info) {
   x.save();
   rrect(x, px, py, pw, ph, 24); x.clip();
   const sc = pw / img.naturalWidth;
-  x.drawImage(img, px, py - img.naturalHeight * sc * 0.15, pw, img.naturalHeight * sc); // show the product area: below the credits block, above the copy
+  x.drawImage(img, px, py - img.naturalHeight * sc * 0.16, pw, img.naturalHeight * sc); // show the product area: below the credits block, above the copy
   const fade = x.createLinearGradient(0, py + ph * 0.55, 0, py + ph);
   fade.addColorStop(0, 'rgba(20,20,22,0)'); fade.addColorStop(1, 'rgba(20,20,22,.95)');
   x.fillStyle = fade; x.fillRect(px, py, pw, ph);
