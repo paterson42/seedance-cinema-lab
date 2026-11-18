@@ -1,6 +1,6 @@
 // Seedance Seoul Commerce Lab — booth client (vanilla JS, mobile first)
 // Internal names follow the original flow: genre = ad mood, director = the visitor's name (credited as 기획),
-// poster = ad key visual, trailer/video = short-form ad, ticket = keepsake discount coupon.
+// poster = ad key visual, trailer/video = short-form ad, ticket = discount coupon.
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -915,7 +915,7 @@ async function renderResult(r) {
     const stage = $('#vstage', el);
     if (tab === 'ticket') {
       stage.innerHTML = '<div class="boot"><div class="spinner"></div></div>';
-      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="tsave">${ic('download')}쿠폰 저장</button><button class="btn" data-a="tshare">${ic('share')}쿠폰 공유</button></div><p class="small" style="text-align:center;margin:0">기념으로 간직하는 쿠폰이에요. AI가 만든 가상의 상품이라 실제 구매나 할인에는 쓸 수 없어요.</p>`;
+      actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="tsave">${ic('download')}쿠폰 저장</button><button class="btn" data-a="tshare">${ic('share')}쿠폰 공유</button></div>`;
       getTicket(r.info, posterSrc).then((t) => { if (stage.isConnected && $('[data-tab="ticket"]', el).getAttribute('aria-selected') === 'true') stage.innerHTML = `<img class="reveal ticket-img" src="${t}" alt="할인 쿠폰">`; });
     } else if (tab === 'poster') {
       stage.innerHTML = `<img class="reveal" src="${esc(posterSrc)}" alt="광고 키비주얼">`;
@@ -1031,7 +1031,7 @@ function loadImg(src) {
 
 // Wait for the faces the canvas needs. Korean web fonts arrive in many small slices, so we ask
 // for the exact characters about to be drawn; otherwise some glyphs fall back to another face.
-const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드쿠폰가정번호념AI가만든의입니다실제나에는쓸수없어요상품SponsoredbyBytePlusSEOUL0123456789%,:→-—';
+const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드쿠폰가정번호사용상품SponsoredbyBytePlusSEOUL0123456789%,:→-—';
 async function fontsReady(text = '') {
   if (!document.fonts?.load) return;
   const sample = `${CANVAS_LABELS}${text}가A`;
@@ -1203,7 +1203,7 @@ async function composePoster(src, info, { layer = false } = {}) {
   return layer ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9);
 }
 
-// ───────────────────────── discount coupon (keepsake) ─────────────────────────
+// ───────────────────────── discount coupon ─────────────────────────
 const ticketCache = new Map();
 function getTicket(info, posterSrc) {
   const key = `${info.seed}|${info.title}`;
@@ -1245,12 +1245,12 @@ async function composeTicket(posterSrc, info) {
   x.fillStyle = fade; x.fillRect(px, py, pw, ph);
   x.restore();
 
-  // Badge on the photo says up front that the product is made up.
+  // Badge on the photo
   x.font = '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif';
-  const bw = x.measureText('가상 상품').width + 4 * 4 + 40;
+  const bw = x.measureText('신상 특가').width + 4 * 4 + 40;
   rrect(x, px + 22, py + 22, bw, 46, 10); x.fillStyle = accent; x.fill();
   x.textAlign = 'left'; x.textBaseline = 'middle';
-  spaced(x, '가상 상품', px + 40, py + 46, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, '#120b24');
+  spaced(x, '신상 특가', px + 40, py + 46, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, '#120b24');
   x.textBaseline = 'alphabetic';
 
   // The offer: big discount, then what it is for and who planned it.
@@ -1310,11 +1310,10 @@ async function composeTicket(posterSrc, info) {
   const by = yP + 52, bh = 120;
   x.fillStyle = '#ecece6';
   while (bx < px + 250) { const w = 2 + Math.floor(rnd() * 5); if (rnd() > 0.35) x.fillRect(bx, by, w, bh); bx += w + 2 + Math.floor(rnd() * 4); }
-  // The stub spells out that this is a keepsake, not something to redeem.
   x.textAlign = 'right';
-  spaced(x, '기념 쿠폰', px + pw, by + 36, '700 38px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, accent);
-  spaced(x, 'AI가 만든 가상의 상품입니다', px + pw, by + 80, '600 24px "Pretendard Variable", "Noto Sans KR", sans-serif', 1, 'rgba(255,255,255,.85)');
-  spaced(x, '실제 구매나 할인에는 쓸 수 없어요', px + pw, by + 114, '500 22px "Pretendard Variable", "Noto Sans KR", sans-serif', 1, 'rgba(255,255,255,.55)');
+  spaced(x, '지금 사용하기', px + pw, by + 36, '700 38px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, accent);
+  spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.75)');
+  spaced(x, `SEOUL 2026   쿠폰 번호 ${pad(info.seed)}`, px + pw, by + 112, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
   return c.toDataURL('image/jpeg', 0.92);
