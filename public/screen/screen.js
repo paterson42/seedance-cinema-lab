@@ -4,7 +4,7 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export const pad = (n, w = 6) => String(n ?? 0).padStart(w, '0');
 export const won = (n) => `${Number(n).toLocaleString('ko-KR')}원`;
-// Same fictional price tag the booth client prints on the key visual (derived from the SEED NO.).
+// Same fictional price tag the booth client prints on the key visual (derived from the ad ID / seed).
 export function offer(seed) {
   const s = Number(seed) || 1;
   const off = [15, 20, 25, 30, 35, 40, 50][s % 7];

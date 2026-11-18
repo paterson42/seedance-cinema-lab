@@ -166,7 +166,7 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 | POST | `/api/session` | 새 체험 세션 (`keepPhone`: 재체험 시 번호 유지) |
 | POST | `/api/session/phone` | 번호 검증·암호화·동의 저장 |
 | POST | `/api/session/genre` | 광고 무드 저장 |
-| POST | `/api/story` | 키워드 + 브랜드 이름(`director`) → SEED NO. 발급, 광고 카피·프롬프트 생성 |
+| POST | `/api/story` | 키워드 + 방문객 이름(`director`) → 광고 ID(seed) 발급, 광고 카피·프롬프트 생성 |
 | POST | `/api/poster` | 키비주얼 생성 큐 등록 |
 | POST | `/api/poster/final` | 텍스트 합성된 최종 키비주얼 업로드 (결과 링크·OG 이미지용) |
 | POST | `/api/video` | 광고 영상 생성 큐 등록 |
