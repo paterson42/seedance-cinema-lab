@@ -142,6 +142,7 @@ function resultView(s) {
     videoUrl: media(s.video_file),
     videoError: s.video_error,
     videoRequestedAt: s.video_requested_at,
+    videoQueuePos: queuePosition('video', s),
     etaSec: etaSec('video', queuePosition('video', s)),
     createdAt: s.created_at,
     expiresAt: s.result_expires_at,

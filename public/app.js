@@ -746,6 +746,31 @@ const sessionShareInfo = (s) => ({
 
 const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카메라 레일을 까는 중', '첫 프레임과 마지막 프레임을 잇는 중', '빛과 그림자의 움직임을 계산하는 중', '8초짜리 명장면을 다듬는 중'];
 
+// Live progress for a trailer being made (waiting view and the shared result page).
+// Seedance gives no progress, so: linear to 90% at the learned estimate, then creeping towards 99%,
+// with a blinking status, rotating messages and the remaining time, so it never looks frozen.
+const progressMarkup = (msg = RENDER_MSGS[0]) => `<div class="wait-overlay">
+    <span class="status-dot" id="wStatus">RENDERING</span>
+    <div class="bar"><i id="wBar"></i></div>
+    <div class="wait-row"><span id="wMsg">${msg}</span><span id="wTime"></span></div>
+  </div>`;
+function trailerProgress(el, get, alive) {
+  let i = 0;
+  (async function loop() {
+    while (alive() && $('#wBar', el)) {
+      const st = get();
+      const sec = Math.max(0, (Date.now() - (st.requestedAt || Date.now())) / 1000);
+      const eta = st.etaSec || 90;
+      const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
+      $('#wBar', el).style.width = `${pct}%`;
+      $('#wTime', el).textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
+      $('#wStatus', el).textContent = st.queuePos > 1 ? `QUEUED · 앞에 ${st.queuePos - 1}명 대기 중` : 'RENDERING';
+      if (Math.floor(sec) % 6 === 0) $('#wMsg', el).textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
+      await sleep(1000);
+    }
+  })();
+}
+
 VIEWS.waiting = () => {
   const s = S.session;
   const poster = S.posterData || s.poster.finalUrl || s.poster.url;
@@ -755,11 +780,7 @@ VIEWS.waiting = () => {
     <h2 class="h2">트레일러 <em>편집 중</em></h2>
     <div class="poster-wrap"><div class="poster-stage wait-card">
       <img class="kenburns" src="${esc(poster)}" alt="">
-      <div class="wait-overlay">
-        <span class="status-dot" id="wStatus">RENDERING</span>
-        <div class="bar"><i id="wBar"></i></div>
-        <div class="wait-row"><span id="wMsg">${RENDER_MSGS[0]}</span><span id="wTime">0:00</span></div>
-      </div>
+      ${progressMarkup()}
     </div></div>
     ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="btn-row"><button class="btn" id="copyLink">결과 링크 복사</button><button class="btn" id="again">${S.booth ? '다음 관람객' : '하나 더 만들기'}</button></div>
@@ -770,21 +791,7 @@ VIEWS.waiting = () => {
   $('#again', el).onclick = () => (S.booth ? restart() : confirmRestart());
   const myPoll = S.pollId;
   const eta0 = s.video.etaSec || 90;
-  let i = 0;
-  (async function loop() {
-    while (myPoll === S.pollId && $('#wBar')) {
-      const sec = (Date.now() - (S.session.video.requestedAt || Date.now())) / 1000;
-      const eta = S.session.video.etaSec || eta0;
-      // Linear to 90% at the estimate, then creeps towards 99% so it never looks stuck.
-      const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
-      $('#wBar').style.width = `${pct}%`;
-      $('#wTime').textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
-      const q = S.session.video.queuePos;
-      $('#wStatus').textContent = q > 1 ? `QUEUED · 앞에 ${q - 1}명 대기 중` : 'RENDERING';
-      if (Math.floor(sec) % 6 === 0) $('#wMsg').textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
-      await sleep(1000);
-    }
-  })();
+  trailerProgress(el, () => ({ requestedAt: S.session.video.requestedAt, etaSec: S.session.video.etaSec || eta0, queuePos: S.session.video.queuePos }), () => myPoll === S.pollId);
   (async function poll() {
     while (myPoll === S.pollId) {
       await sleep(5000);
@@ -896,7 +903,9 @@ async function restart() {
 }
 
 // Public result page: /r/:token  (KakaoTalk link / re-visit)
+let resultWatch = 0; // invalidates the result page's progress/poll loops
 async function showResultPage(tok) {
+  resultWatch++;
   $('#stepCount').textContent = '';
   let data;
   try { data = await api(`/api/result/${encodeURIComponent(tok)}`); }
@@ -908,22 +917,42 @@ async function showResultPage(tok) {
   const r = data.result;
   const info = { title: r.title, tagline: r.tagline, director: r.director, seed: r.seed, genre: r.genre, keywords: r.keywords };
   if (r.videoStatus !== 'done') {
+    const making = ['queued', 'submitting', 'running'].includes(r.videoStatus);
     const el = render(`
       <p class="scene">NOW SHOWING · SOON</p>
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
-      <div class="poster-wrap"><div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
+      <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup('트레일러 편집 중…') : ''}</div>
       <div class="poster-caption"><span>${esc(r.genre?.en || '')}</span><span>A FILM BY ${esc(r.director)}</span></div></div>
-      ${['queued', 'submitting', 'running'].includes(r.videoStatus)
+      ${making
         ? `<div class="notice"><span class="ico">⏱</span><span>트레일러를 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
         : r.videoStatus === 'failed' ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
       <div class="btn-row"><button class="btn" id="psave">${ic('download')}포스터 저장</button><button class="btn" id="pshare">${ic('share')}공유하기</button></div>
       <p style="text-align:center;margin-top:18px"><a class="linkish" href="/">나도 만들어보기</a></p>`);
     const src = await getComposedPoster(info, r.posterUrl, r.posterFinalUrl);
-    $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="">`;
+    $('#stage .boot', el)?.remove();
+    $('#stage', el).insertAdjacentHTML('afterbegin', `<img class="${making ? 'kenburns' : 'reveal'}" src="${esc(src)}" alt="">`);
     $('#psave', el).onclick = () => download(src.startsWith('data:') ? src : `${src}?dl=1`, `seedance-cinema-${pad(r.seed)}.jpg`);
     $('#pshare', el).onclick = () => shareFile(src, `seedance-cinema-${pad(r.seed)}.jpg`, r.title, location.href);
-    if (['queued', 'submitting', 'running'].includes(r.videoStatus)) setTimeout(() => showResultPage(tok), 8000);
+    if (making) {
+      // Keep the page as it is and only refresh the numbers; switch to the trailer when it is ready.
+      let st = { requestedAt: r.videoRequestedAt, etaSec: r.etaSec, queuePos: r.videoQueuePos };
+      const watch = ++resultWatch;
+      trailerProgress(el, () => st, () => watch === resultWatch);
+      (async function poll() {
+        while (watch === resultWatch) {
+          await sleep(6000);
+          let d;
+          try { d = await api(`/api/result/${encodeURIComponent(tok)}`); } catch { continue; }
+          const x = d.result;
+          if (!['queued', 'submitting', 'running'].includes(x.videoStatus)) {
+            if (x.videoStatus === 'done') { navigator.vibrate?.([30, 60, 30]); toast('트레일러가 완성됐어요! 🎬'); }
+            return showResultPage(tok);
+          }
+          st = { requestedAt: x.videoRequestedAt, etaSec: x.etaSec, queuePos: x.videoQueuePos };
+        }
+      })();
+    }
     return;
   }
   renderResult({ title: r.title, tagline: r.tagline, info, posterRaw: r.posterUrl, posterFinal: r.posterFinalUrl, videoUrl: r.videoUrl, resultUrl: location.pathname, own: false, token: tok, screen: r.screen });
