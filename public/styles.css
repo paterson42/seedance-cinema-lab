@@ -11,10 +11,11 @@
   --accent-ink: #0b0d02;
   --danger: #ff6b5a;
   --radius: 16px;
-  --font: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  --font: 'Pretendard Variable', Pretendard, 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
   --display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
   --latin: 'Bebas Neue', 'Oswald', Impact, sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  /* Small labels, tags and counters. Was a typewriter-style mono; now the same family as the body text. */
+  --mono: 'Pretendard Variable', Pretendard, 'Noto Sans KR', -apple-system, sans-serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
@@ -67,7 +68,7 @@ img, video { display: block; max-width: 100%; }
 .brand-mark { font-weight: 900; letter-spacing: -0.02em; font-size: 18px; }
 .brand-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; }
 .top-right { display: flex; align-items: center; gap: 10px; }
-.step-count { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+.step-count { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
 .mode-badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--accent); border: 1px solid rgba(212,255,58,.4); border-radius: 99px; padding: 3px 8px; }
 .progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
 .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .5s cubic-bezier(.2,.8,.2,1); box-shadow: 0 0 10px var(--accent); }

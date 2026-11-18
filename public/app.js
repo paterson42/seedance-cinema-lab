@@ -1028,12 +1028,15 @@ function loadImg(src) {
   });
 }
 
-async function fontsReady() {
+// Wait for the faces the canvas needs. Korean web fonts arrive in many small slices, so we ask
+// for the exact characters about to be drawn; otherwise some glyphs fall back to another face.
+const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드장바구니담기품SponsoredbyBytePlusSEOUL0123456789%,·:→-—';
+async function fontsReady(text = '') {
   if (!document.fonts?.load) return;
-  await Promise.race([
-    Promise.all(['80px "Black Han Sans"', '40px "Bebas Neue"', '500 30px "Noto Sans KR"', '700 30px "Noto Sans KR"', '500 20px "IBM Plex Mono"'].map((f) => document.fonts.load(f, '가A'))),
-    sleep(2500),
-  ]).catch(() => {});
+  const sample = `${CANVAS_LABELS}${text}가A`;
+  const faces = ['80px "Black Han Sans"', '40px "Bebas Neue"', '500 30px "Pretendard Variable"', '700 30px "Pretendard Variable"', '900 30px "Pretendard Variable"',
+    '500 30px "Noto Sans KR"', '700 30px "Noto Sans KR"'];
+  await Promise.race([Promise.all(faces.map((f) => document.fonts.load(f, sample))), sleep(3000)]).catch(() => {});
 }
 
 function spaced(ctx, text, x, y, font, spacing, color) {
@@ -1056,7 +1059,7 @@ function wrapLines(ctx, text, maxW, sep = ' ') {
 }
 
 async function composePoster(src, info) {
-  await fontsReady();
+  await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}${S.content?.event?.sponsor || ''}`);
   const img = await loadImg(src);
   // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
   const W = 1125, H = 2000, OUT_W = 1080;
@@ -1082,9 +1085,9 @@ async function composePoster(src, info) {
   // Top of the key visual: only 기획 (the visitor's name). The other credits live in the footer lines.
   const name = String(info.director || '나');
   const credits = [{ label: '기획', value: name }];
-  const LAB = '500 25px "Noto Sans KR", sans-serif', VAL = '700 27px "Noto Sans KR", sans-serif';
+  const LAB = '500 25px "Pretendard Variable", "Noto Sans KR", sans-serif', VAL = '700 27px "Pretendard Variable", "Noto Sans KR", sans-serif';
   // The 기획 line is the visitor's own name, so it is set clearly larger than the other credits.
-  const LAB0 = '500 40px "Noto Sans KR", sans-serif', VAL0 = '900 70px "Noto Sans KR", sans-serif';
+  const LAB0 = '500 40px "Pretendard Variable", "Noto Sans KR", sans-serif', VAL0 = '900 70px "Pretendard Variable", "Noto Sans KR", sans-serif';
   x.textAlign = 'left';
   x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 12;
   let cy0 = 0;
@@ -1096,14 +1099,14 @@ async function composePoster(src, info) {
     let fv = i ? VAL : VAL0;
     x.font = fl; const lw = x.measureText(lab).width;
     x.font = fv; let vw = x.measureText(cr.value).width;
-    if (!i && lw + vw > W * 0.8) { fv = '900 50px "Noto Sans KR", sans-serif'; x.font = fv; vw = x.measureText(cr.value).width; } // very long names
+    if (!i && lw + vw > W * 0.8) { fv = '900 50px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.font = fv; vw = x.measureText(cr.value).width; } // very long names
     const x0 = (W - lw - vw) / 2;
     x.font = fl; x.fillStyle = 'rgba(255,255,255,.66)'; x.fillText(lab, x0, y);
     x.font = fv; x.fillStyle = i ? '#fff' : accent; x.fillText(cr.value, x0 + lw, y);
   });
   x.shadowBlur = 0;
   x.textAlign = 'center';
-  spaced(x, `신상 출시 · ${info.genre?.ko || '광고'} 캠페인`, W / 2, cy0 + 60, '700 27px "Noto Sans KR", sans-serif', 5, accent);
+  spaced(x, `신상 출시 · ${info.genre?.ko || '광고'} 캠페인`, W / 2, cy0 + 60, '700 27px "Pretendard Variable", "Noto Sans KR", sans-serif', 5, accent);
 
   // Discount sticker
   x.save();
@@ -1112,7 +1115,7 @@ async function composePoster(src, info) {
   x.beginPath(); x.arc(0, 0, 108, 0, Math.PI * 2);
   x.fillStyle = accent; x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 30; x.fill();
   x.shadowBlur = 0;
-  spaced(x, '특가', 0, -36, '700 32px "Noto Sans KR", sans-serif', 8, ink);
+  spaced(x, '특가', 0, -36, '700 32px "Pretendard Variable", "Noto Sans KR", sans-serif', 8, ink);
   let ss = 94;
   const setS = () => (x.font = `${ss}px "Bebas Neue", sans-serif`);
   setS();
@@ -1124,7 +1127,7 @@ async function composePoster(src, info) {
   // Product name (auto-fit, up to 2 lines)
   const title = info.title;
   let size = 164;
-  const setT = () => (x.font = `${size}px "Black Han Sans", "Noto Sans KR", sans-serif`);
+  const setT = () => (x.font = `${size}px "Black Han Sans", "Pretendard Variable", "Noto Sans KR", sans-serif`);
   setT();
   while (x.measureText(title).width > W * 0.86 && size > 92) { size -= 4; setT(); }
   let tLines = [title];
@@ -1136,14 +1139,14 @@ async function composePoster(src, info) {
   x.shadowBlur = 0;
 
   // Headline copy above the product name
-  x.font = '500 38px "Noto Sans KR", sans-serif';
+  x.font = '500 38px "Pretendard Variable", "Noto Sans KR", sans-serif';
   const tag = wrapLines(x, info.tagline || '', W * 0.8).slice(0, 2);
   const tagBottom = titleBottom - tLines.length * size * 1.02 - 26;
   x.fillStyle = 'rgba(255,255,255,.92)';
   tag.forEach((l, i) => x.fillText(l, W / 2, tagBottom - (tag.length - 1 - i) * 52));
 
   // Price row: 35%  19,900원  31,000원(struck)
-  const fBig = '88px "Bebas Neue", "Noto Sans KR", sans-serif', fWas = '42px "Bebas Neue", "Noto Sans KR", sans-serif';
+  const fBig = '88px "Bebas Neue", "Pretendard Variable", "Noto Sans KR", sans-serif', fWas = '42px "Bebas Neue", "Pretendard Variable", "Noto Sans KR", sans-serif';
   const parts = [[`${o.off}%`, fBig, accent], [won(o.price), fBig, '#fff'], [won(o.was), fWas, 'rgba(255,255,255,.5)']];
   const widths = parts.map(([t, f]) => { x.font = f; return x.measureText(t).width; });
   const gap = 26;
@@ -1162,25 +1165,25 @@ async function composePoster(src, info) {
   const cw = 460, chh = 86, cy = H - 328;
   rrect(x, (W - cw) / 2, cy, cw, chh, chh / 2);
   x.fillStyle = accent; x.fill();
-  x.font = '700 36px "Noto Sans KR", sans-serif'; x.fillStyle = ink;
+  x.font = '700 36px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.fillStyle = ink;
   x.textBaseline = 'middle';
   x.fillText('지금 구매하기  →', W / 2, cy + chh / 2 + 2);
   x.textBaseline = 'alphabetic';
 
   // Who made what (no keyword lines on the key visual)
   x.globalAlpha = 0.62;
-  spaced(x, '컨셉 Seed   ·   키비주얼 Seedream   ·   영상 Seedance', W / 2, H - 168, '500 25px "Noto Sans KR", sans-serif', 2, '#fff');
+  spaced(x, '컨셉 Seed   ·   키비주얼 Seedream   ·   영상 Seedance', W / 2, H - 168, '500 25px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, '#fff');
   x.globalAlpha = 1;
 
   // Footer: ad ID · sponsor · event
   x.fillStyle = 'rgba(255,255,255,.25)';
   x.fillRect(80, H - 112, W - 160, 1);
   x.textAlign = 'left';
-  spaced(x, `광고 ID ${pad(info.seed)}`, 80, H - 58, '700 26px "Noto Sans KR", sans-serif', 2, accent);
+  spaced(x, `광고 ID ${pad(info.seed)}`, 80, H - 58, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, accent);
   x.textAlign = 'right';
   spaced(x, 'SEOUL 2026', W - 82, H - 58, '30px "Bebas Neue", sans-serif', 4, 'rgba(255,255,255,.75)');
   x.textAlign = 'center';
-  x.font = '600 30px "Noto Sans KR", sans-serif'; x.fillStyle = '#fff';
+  x.font = '600 30px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.fillStyle = '#fff';
   x.fillText(S.content?.event?.sponsor || 'Sponsored by BytePlus', W / 2, H - 58);
 
   return c.toDataURL('image/jpeg', 0.9);
@@ -1200,7 +1203,7 @@ function rrect(x, X, Y, w, h, r) {
 }
 
 async function composeTicket(posterSrc, info) {
-  await fontsReady();
+  await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}`);
   const img = await loadImg(posterSrc);
   const W = 900, H = 1500, M = 40;
   const accent = '#d4ff3a', bg = '#0a0a0b';
@@ -1229,25 +1232,25 @@ async function composeTicket(posterSrc, info) {
   x.restore();
 
   // 신상품 badge
-  x.font = '700 26px "Noto Sans KR", sans-serif';
+  x.font = '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif';
   const bw = x.measureText('신상품').width + 3 * 4 + 40;
   rrect(x, px + 22, py + 22, bw, 46, 10); x.fillStyle = accent; x.fill();
   x.textAlign = 'left'; x.textBaseline = 'middle';
-  spaced(x, '신상품', px + 40, py + 46, '700 26px "Noto Sans KR", sans-serif', 4, '#0b0d02');
+  spaced(x, '신상품', px + 40, py + 46, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, '#0b0d02');
   x.textBaseline = 'alphabetic';
 
   // product name + who planned it
   let size = 96;
-  const setT = () => (x.font = `${size}px "Black Han Sans", "Noto Sans KR", sans-serif`);
+  const setT = () => (x.font = `${size}px "Black Han Sans", "Pretendard Variable", "Noto Sans KR", sans-serif`);
   setT();
   while (x.measureText(info.title).width > pw && size > 52) { size -= 4; setT(); }
   x.fillStyle = '#fff';
   x.fillText(info.title, px, py + ph + 40 + size * 0.85);
   const yDir = py + ph + 40 + size * 0.85 + 62;
-  spaced(x, `기획 ${String(info.director || '나')}`, px, yDir, '700 34px "Noto Sans KR", sans-serif', 3, accent);
+  spaced(x, `기획 ${String(info.director || '나')}`, px, yDir, '700 34px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, accent);
 
   // info grid
-  x.font = '500 30px "Noto Sans KR", sans-serif';
+  x.font = '500 30px "Pretendard Variable", "Noto Sans KR", sans-serif';
   x.fillStyle = 'rgba(255,255,255,.82)';
   let copy = info.tagline || '';
   while (copy.length > 4 && x.measureText(copy).width > pw) copy = `${copy.slice(0, -2).trimEnd()}…`;
@@ -1264,10 +1267,10 @@ async function composeTicket(posterSrc, info) {
   cells.forEach(([k, v], i) => {
     const cx = px + cw * i;
     if (i) { x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(cx, gy + 18, 2, 88); }
-    spaced(x, k, cx + (i ? 18 : 0), gy + 44, '500 18px "Noto Sans KR", sans-serif', 2, 'rgba(255,255,255,.5)');
-    x.font = '44px "Bebas Neue", "Noto Sans KR", sans-serif';
+    spaced(x, k, cx + (i ? 18 : 0), gy + 44, '500 18px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, 'rgba(255,255,255,.5)');
+    x.font = '44px "Bebas Neue", "Pretendard Variable", "Noto Sans KR", sans-serif';
     let vs = 44;
-    while (x.measureText(v).width > cw - 24 && vs > 26) { vs -= 2; x.font = `${vs}px "Bebas Neue", "Noto Sans KR", sans-serif`; }
+    while (x.measureText(v).width > cw - 24 && vs > 26) { vs -= 2; x.font = `${vs}px "Bebas Neue", "Pretendard Variable", "Noto Sans KR", sans-serif`; }
     x.fillStyle = '#fff';
     x.fillText(v, cx + (i ? 18 : 0), gy + 96);
   });
@@ -1290,9 +1293,9 @@ async function composeTicket(posterSrc, info) {
   x.fillStyle = '#ecece6';
   while (bx < px + 330) { const w = 2 + Math.floor(rnd() * 5); if (rnd() > 0.35) x.fillRect(bx, by, w, bh); bx += w + 2 + Math.floor(rnd() * 4); }
   x.textAlign = 'right';
-  spaced(x, '장바구니 담기', px + pw, by + 36, '700 38px "Noto Sans KR", sans-serif', 4, accent);
-  spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.75)');
-  spaced(x, `SEOUL 2026 · 광고 ID ${pad(info.seed)}`, px + pw, by + 112, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
+  spaced(x, '장바구니 담기', px + pw, by + 36, '700 38px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, accent);
+  spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.75)');
+  spaced(x, `SEOUL 2026 · 광고 ID ${pad(info.seed)}`, px + pw, by + 112, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
   return c.toDataURL('image/jpeg', 0.92);

@@ -9,8 +9,8 @@
   --bg: #050405;
   --display: 'Bebas Neue', 'Black Han Sans', sans-serif;
   --kr: 'Black Han Sans', 'Noto Sans KR', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --sans: 'Noto Sans KR', system-ui, sans-serif;
+  --mono: 'Pretendard Variable', Pretendard, 'Noto Sans KR', sans-serif; /* small labels (was a mono face) */
+  --sans: 'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, sans-serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
