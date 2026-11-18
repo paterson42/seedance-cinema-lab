@@ -320,10 +320,6 @@ VIEWS.landing = () => {
           <details><summary>자세히 보기</summary><pre>${esc(c.consentPrivacy)}</pre></details>
         </label>
       </div>
-      <div class="check">
-        <input type="checkbox" id="cMarketing">
-        <label for="cMarketing">[선택] ${esc(c.consentMarketing)}</label>
-      </div>
       <button class="btn btn-primary btn-block" id="startBtn" type="submit" style="margin-top:8px">티켓 받고 입장하기 ${ic('arrow')}</button>
       </div>
       <div class="ticket-perf"></div>
@@ -343,7 +339,7 @@ VIEWS.landing = () => {
   $('#phoneForm', el).onsubmit = async (e) => {
     e.preventDefault();
     const d = phone.value.replace(/\D/g, '');
-    if (!/^01[016789]\d{7,8}$/.test(d) || (d.startsWith('010') && d.length !== 11)) {
+    if (!/^0\d{9,10}$/.test(d)) {
       phone.classList.add('invalid');
       $('#phoneHint').textContent = '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)';
       return phone.focus();
@@ -353,7 +349,7 @@ VIEWS.landing = () => {
     btn.disabled = true;
     try {
       if (!S.session || S.session.story) await api('/api/session', { method: 'POST', body: { entry: S.booth ? 'booth' : 'qr' } });
-      await api('/api/session/phone', { method: 'POST', body: { phone: d, consentPrivacy: true, consentMarketing: $('#cMarketing').checked } });
+      await api('/api/session/phone', { method: 'POST', body: { phone: d, consentPrivacy: true } });
       go('genre');
     } catch (err) {
       btn.disabled = false;

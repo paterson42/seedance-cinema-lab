@@ -88,6 +88,8 @@ export const config = {
     phoneDailyStories: num('PHONE_DAILY_STORIES', 30),
     // Experiences per person (a session that made a poster). 0 = unlimited. Staff can grant +1 in /admin.
     phoneMaxFlows: num('PHONE_MAX_FLOWS', 2),
+    // Staff test numbers (comma separated): no list / experience / daily / per-session limits.
+    testPhones: env('TEST_PHONES', '00000000000').split(',').map((p) => p.replace(/\D/g, '')).filter(Boolean),
   },
   kakao: {
     provider: env('KAKAO_PROVIDER', 'off'),

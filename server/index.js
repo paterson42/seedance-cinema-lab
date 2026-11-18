@@ -8,7 +8,7 @@ import { publicContent, getContent, saveContent, containsBanned } from './conten
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
 import { buildStory } from './story.js';
 import {
-  dailyLeft, assertDaily, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
+  dailyLeft, assertDaily, isTestSession, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
   allowlistCount, allowlistRecent, parseNumbers, saveAllowlist, clearAllowlist, phoneStatus, grantExtraFlow,
 } from './limits.js';
 import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
@@ -107,7 +107,7 @@ function sessionView(s) {
       queuePos: posterQ,
       requestedAt: s.poster_requested_at,
       etaSec: etaSec('poster', posterQ),
-      remaining: Math.min(dailyLeft(s, 'poster'), Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0))),
+      remaining: isTestSession(s) ? 99 : Math.min(dailyLeft(s, 'poster'), Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0))),
     },
     video: {
       status: s.video_status,
@@ -118,7 +118,7 @@ function sessionView(s) {
       etaSec: etaSec('video', videoQ),
       dailyLeft: dailyLeft(s, 'video'),
       dailyMax: config.limits.phoneDailyVideos,
-      remaining: Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
+      remaining: isTestSession(s) ? 99 : Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
     },
     flows: flowInfo(s),
     resultUrl: s.result_token ? `/r/${s.result_token}` : null,
@@ -194,16 +194,16 @@ route('POST', '/api/session', async (req, res) => {
 route('POST', '/api/session/phone', async (req, res) => {
   const s = requireSession(req, { phone: false });
   rateLimit(`phone:${ip(req)}`, 1000, 600000);
-  const { phone, consentPrivacy, consentMarketing } = await readBody(req);
+  const { phone, consentPrivacy } = await readBody(req);
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)', 'BAD_PHONE');
   if (!consentPrivacy) fail(400, '개인정보 수집·이용에 동의해야 결과를 받아볼 수 있어요.', 'NO_CONSENT');
   assertPhoneMayEnter(p, fail); // pre-registered list + experiences per person
   const updated = updateSession(s.id, {
     phone_enc: encrypt(p), phone_hash: hashPhone(p), phone_masked: maskPhone(p),
-    consent_at: Date.now(), consent_marketing: consentMarketing ? 1 : 0,
+    consent_at: Date.now(), consent_marketing: 0, // phone numbers are not used for marketing
   });
-  logEvent(s.id, 'phone_ok', { marketing: !!consentMarketing });
+  logEvent(s.id, 'phone_ok');
   json(res, 200, { session: sessionView(updated) });
 });
 
@@ -266,7 +266,7 @@ route('POST', '/api/poster', async (req, res) => {
   assertNotBusy(s); // a trailer is being made from the current poster
   assertMayGenerate(s, fail);
   assertDaily(s, 'poster', fail);
-  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
+  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession && !isTestSession(s)) fail(429, '이 체험에서 만들 수 있는 포스터 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
     updateSession(s.id, { result_token: token(16), result_expires_at: Date.now() + config.resultTtlDays * 86400000 });
   }
@@ -295,7 +295,7 @@ route('POST', '/api/video', async (req, res) => {
   if (s.poster_status !== 'done' || !s.poster_file) fail(400, '포스터를 먼저 만들어 주세요.');
   assertMayGenerate(s, fail);
   assertDaily(s, 'video', fail);
-  if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
+  if ((s.video_count || 0) >= config.queue.videoMaxPerSession && !isTestSession(s)) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
   logEvent(s.id, 'video_requested');
   json(res, 200, { session: sessionView(getSession(s.id)) });

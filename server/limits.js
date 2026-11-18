@@ -4,7 +4,12 @@
 // from the event log. Failed generations do not count against the visitor.
 import { config } from './config.js';
 import { db, queryOne, query } from './db.js';
-import { normalizePhone, maskPhone, hashPhone } from './privacy.js';
+import { normalizePhone, maskPhone, hashPhone, isTestPhone } from './privacy.js';
+
+const TEST_HASHES = new Set(config.limits.testPhones.map(hashPhone));
+/** Sessions on a staff test number skip every limit (list, experiences, daily, per session). */
+export const isTestSession = (s) => !!s?.phone_hash && TEST_HASHES.has(s.phone_hash);
+const UNLIMITED = 99;
 
 const DAY_MS = 86400000;
 const KST_MS = 9 * 3600000;
@@ -41,6 +46,7 @@ function countToday(phoneHash, name) {
 export function dailyLeft(s, kind) {
   const k = KINDS[kind];
   if (!s?.phone_hash) return k.max();
+  if (isTestSession(s)) return UNLIMITED;
   const used = countToday(s.phone_hash, k.used) - (k.failed ? countToday(s.phone_hash, k.failed) : 0);
   return Math.max(0, k.max() - Math.max(0, used));
 }
@@ -112,6 +118,7 @@ const sessionCounted = (s) => (s.poster_count || 0) > 0 || ['queued', 'running']
 export function flowInfo(s) {
   if (!s?.phone_hash) return null;
   const used = queryOne(`SELECT COUNT(*) AS n FROM sessions WHERE phone_hash = ? AND ${COUNTED}`, s.phone_hash).n;
+  if (isTestSession(s)) return { used, max: 0, left: UNLIMITED, counted: sessionCounted(s), test: true }; // max 0 = no limit
   const max = config.limits.phoneMaxFlows + (listedRow(s.phone_hash)?.extra_flows || 0);
   return { used, max, left: Math.max(0, max - used), counted: sessionCounted(s) };
 }
@@ -123,6 +130,7 @@ const MSG = {
 
 /** Entry check for a number that is about to join (before it is saved on the session). */
 export function assertPhoneMayEnter(phone, fail) {
+  if (isTestPhone(phone)) return;
   const hash = hashPhone(phone);
   if (allowlistEnabled() && !listedRow(hash)) fail(403, MSG.NOT_ALLOWED, 'NOT_ALLOWED');
   const f = flowInfo({ phone_hash: hash });
@@ -131,6 +139,7 @@ export function assertPhoneMayEnter(phone, fail) {
 
 /** Checks on every generation step. A session that already started its experience may finish it. */
 export function assertMayGenerate(s, fail) {
+  if (isTestSession(s)) return;
   if (allowlistEnabled() && !listedRow(s.phone_hash)) fail(403, MSG.NOT_ALLOWED, 'NOT_ALLOWED');
   if (config.limits.phoneMaxFlows <= 0) return;
   const f = flowInfo(s);
@@ -145,7 +154,7 @@ export function phoneStatus(phone) {
   const row = listedRow(hash);
   const f = flowInfo({ phone_hash: hash });
   const s = { phone_hash: hash };
-  return { masked: maskPhone(p), listed: !!row, extraFlows: row?.extra_flows || 0, flowsUsed: f.used, flowsMax: f.max, trailersLeftToday: dailyLeft(s, 'video') };
+  return { masked: maskPhone(p), test: isTestPhone(p), listed: !!row, extraFlows: row?.extra_flows || 0, flowsUsed: f.used, flowsMax: f.max, trailersLeftToday: dailyLeft(s, 'video') };
 }
 export function grantExtraFlow(phone) {
   const p = normalizePhone(phone);

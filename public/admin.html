@@ -233,6 +233,7 @@ async function alCheck(action) {
   if (action === 'grant' && !confirm('이 번호에 체험 1회를 더 줄까요?')) return;
   try {
     const d = await alPost({ action, phone: $('#alPhone').value });
+    if (d.test) { $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · <span class="ok">테스트 번호 — 명단·횟수·하루 한도 없이 생성 가능</span> · 사용한 체험 ${d.flowsUsed}회`; return loadAllowlist(); }
     $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · 명단 ${d.listed ? '<span class="ok">등록됨</span>' : '<span class="bad">없음</span>'}`
       + ` · 체험 ${d.flowsUsed} / ${d.flowsMax}회${d.extraFlows ? ` (추가 ${d.extraFlows}회 포함)` : ''} · 오늘 남은 트레일러 ${d.trailersLeftToday}편`;
   } catch (e) { $('#alStatus').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }

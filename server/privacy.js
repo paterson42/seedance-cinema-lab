@@ -4,9 +4,14 @@ import { config } from './config.js';
 const key = crypto.createHash('sha256').update(`enc:${config.appSecret}`).digest();
 const hmacKey = crypto.createHash('sha256').update(`idx:${config.appSecret}`).digest();
 
-/** Normalizes Korean mobile numbers. Returns 11/10-digit "01X..." string or null. */
+// Staff test numbers (TEST_PHONES) are accepted as-is even though they are not real mobile numbers.
+const TEST_PHONES = new Set(config.limits.testPhones);
+export const isTestPhone = (p) => TEST_PHONES.has(p);
+
+/** Normalizes Korean mobile numbers. Returns 11/10-digit "01X..." string (or a test number) or null. */
 export function normalizePhone(input) {
   let d = String(input || '').replace(/\D/g, '');
+  if (TEST_PHONES.has(d)) return d;
   if (d.startsWith('82')) d = '0' + d.slice(2).replace(/^0/, '');
   if (!/^01[016789]\d{7,8}$/.test(d)) return null;
   if (d.startsWith('010') && d.length !== 11) return null;
