@@ -197,7 +197,7 @@ route('POST', '/api/session/phone', async (req, res) => {
   const { phone, consentPrivacy } = await readBody(req);
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)', 'BAD_PHONE');
-  if (!consentPrivacy) fail(400, '개인정보 수집·이용에 동의해야 결과를 받아볼 수 있어요.', 'NO_CONSENT');
+  if (!consentPrivacy) fail(400, '개인정보 수집 및 이용에 동의해야 결과를 받아볼 수 있어요.', 'NO_CONSENT');
   assertPhoneMayEnter(p, fail); // pre-registered list + experiences per person
   const updated = updateSession(s.id, {
     phone_enc: encrypt(p), phone_hash: hashPhone(p), phone_masked: maskPhone(p),
@@ -597,7 +597,7 @@ const server = http.createServer(async (req, res) => {
 startJobs();
 server.listen(config.port, () => {
   console.log(`\n🛍️  Seedance Seoul Commerce Lab  →  http://localhost:${config.port}`);
-  console.log(`   mode: ${config.mock ? 'MOCK (데모 — ARK_API_KEY 미설정)' : 'LIVE'}  ·  kakao: ${config.kakao.provider}`);
+  console.log(`   mode: ${config.mock ? 'MOCK (데모 — ARK_API_KEY 미설정)' : 'LIVE'}   kakao: ${config.kakao.provider}`);
   console.log(`   admin: http://localhost:${config.port}/admin?token=${config.adminToken}`);
-  console.log(`   screens: http://localhost:${config.port}/screen/poster  ·  /screen/trailer\n`);
+  console.log(`   screens: http://localhost:${config.port}/screen/poster   /screen/trailer\n`);
 });

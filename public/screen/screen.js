@@ -20,7 +20,7 @@ const key = params.get('key');
 export function watchFeed(kind, onItems, everyMs = 6000) {
   const dot = document.createElement('div');
   dot.className = 'scr-offline';
-  dot.textContent = 'OFFLINE · 마지막 목록으로 송출 중';
+  dot.textContent = '오프라인: 마지막 목록으로 송출 중';
   dot.hidden = true;
   document.body.append(dot);
   (async function loop() {

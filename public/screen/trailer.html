@@ -36,7 +36,7 @@
     .shade { position: absolute; inset: 0; pointer-events: none; z-index: 5;
       background: linear-gradient(180deg, rgba(0,0,0,.4) 0, transparent 12%, transparent 72%, rgba(0,0,0,.6) 100%); }
 
-    /* ── top bar: LIVE · tabs (For You selected) · search ── */
+    /* ── top bar: LIVE, tabs (For You selected), search ── */
     .top { position: absolute; z-index: 20; left: 0; right: 0; top: calc(var(--u) * 1); height: calc(var(--u) * 5.6); display: flex; align-items: center; justify-content: space-between;
       padding: 0 calc(var(--u) * 2.6); color: #fff; }
     .top .ico { width: calc(var(--u) * 2.8); height: calc(var(--u) * 2.8); display: grid; place-items: center; }
@@ -208,7 +208,7 @@
       // Name + caption, as in the feed. Everything about the ad lives in the caption text.
       $('#handle').textContent = it.director || '';
       $('#text').innerHTML = `<b>${esc(it.title)}</b>${it.tagline ? ` — ${esc(it.tagline)}` : ''}<br>`
-        + `기획 ${esc(it.director)} · Seedance Tour Seoul by BytePlus`;
+        + `기획 ${esc(it.director)}, Seedance Tour Seoul by BytePlus`;
     }
 
     function ready(v) {

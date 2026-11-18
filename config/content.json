@@ -1,12 +1,12 @@
 {
   "event": {
-    "name": "SEEDANCE@SEOUL COMMERCE LAB",
+    "name": "SEEDANCE COMMERCE LAB",
     "city": "SEOUL",
     "year": "2026",
     "credits": [
       { "label": "제작", "value": "SEEDANCE 2.5 Flash" },
       { "label": "제공", "value": "BytePlus Korea" },
-      { "label": "캠페인", "value": "Seedance@Seoul 2026" }
+      { "label": "캠페인", "value": "Seedance Seoul 2026" }
     ],
     "sponsor": "Sponsored by BytePlus"
   },
@@ -15,8 +15,8 @@
     "heroSub": "광고 무드를 고르고 키워드를 뽑으면, AI가 나만의 광고 키비주얼과 숏폼 광고 영상을 만들어 드려요.",
     "posterNotice": "AI가 이 카피로 광고 이미지(키비주얼)를 만들어요. 완성된 광고는 내 이름과 함께 부스 스크린에 자동으로 나와요.",
     "videoNotice": "Seedance가 키비주얼을 숏폼 광고 영상으로 만듭니다.",
-    "consentPrivacy": "수집 항목: 휴대폰 번호 · 이름\n이용 목적: 체험 결과(키비주얼·광고 영상) 재조회, 부스 스크린 송출(이름), 이벤트 참여 확인\n보관 기간: 행사 종료 후 30일 이내 파기\n동의를 거부할 수 있으나, 이 경우 체험에 참여할 수 없습니다.",
-    "consentMarketing": "BytePlus · Seedance 신제품 소식과 이벤트 안내를 카카오톡/문자로 받아봅니다."
+    "consentPrivacy": "수집 항목: 휴대폰 번호, 이름\n이용 목적: 체험 결과(키비주얼, 광고 영상) 재조회, 부스 스크린 송출(이름), 이벤트 참여 확인\n보관 기간: 행사 종료 후 30일 이내 파기\n동의를 거부할 수 있으나, 이 경우 체험에 참여할 수 없습니다.",
+    "consentMarketing": "BytePlus와 Seedance 신제품 소식과 이벤트 안내를 카카오톡/문자로 받아봅니다."
   },
   "bannedWords": [
     "씨발",

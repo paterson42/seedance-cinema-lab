@@ -2,7 +2,7 @@
   "name": "seedance-seoul-commerce-lab",
   "version": "1.0.0",
   "private": true,
-  "description": "Seedance Seoul Commerce Lab — 이커머스·광고 컨셉 체험 부스용 인터랙티브 웹 서비스 (키비주얼: Seedream, 숏폼 광고 영상: Seedance, 결과 전달: 카카오톡)",
+  "description": "Seedance Seoul Commerce Lab — 이커머스와 광고 컨셉 체험 부스용 인터랙티브 웹 서비스 (키비주얼: Seedream, 숏폼 광고 영상: Seedance, 결과 전달: 카카오톡)",
   "type": "module",
   "engines": {
     "node": ">=22.13"

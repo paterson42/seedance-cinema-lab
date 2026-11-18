@@ -87,7 +87,7 @@ cat <<EOF
 ✅ done — mode: $MODE
    site     https://$DOMAIN
    admin    https://$DOMAIN/admin?token=$TOKEN
-   screens  https://$DOMAIN/screen/poster  ·  https://$DOMAIN/screen/trailer
+   screens  https://$DOMAIN/screen/poster, https://$DOMAIN/screen/trailer
    logs     journalctl -u cinema -f
    config   nano $APP_DIR/.env   then   systemctl restart cinema
 EOF

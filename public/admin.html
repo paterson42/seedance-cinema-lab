@@ -62,7 +62,7 @@
   </div>
   <div id="dash" hidden>
     <header>
-      <h1>Seedance Commerce Lab · 운영자</h1>
+      <h1>Seedance Commerce Lab, 운영자</h1>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="pill" id="mode"></span><span class="pill" id="models"></span><span class="pill" id="kakaoP"></span>
         <span class="muted" id="updated"></span>
@@ -71,7 +71,7 @@
     <main>
       <div class="grid" id="stats"></div>
       <div class="card" id="alCard">
-        <h2>사전 등록 명단 · 1인 체험 횟수</h2>
+        <h2>사전 등록 명단, 1인 체험 횟수</h2>
         <div class="al-top">
           <span>명단 제한: <span class="al-state" id="alState">-</span></span>
           <button id="alToggle" class="ghost">-</button>
@@ -92,7 +92,7 @@
             <p id="alMsg" class="muted"></p>
           </div>
           <div>
-            <b>번호 확인 · 횟수 추가</b>
+            <b>번호 확인, 횟수 추가</b>
             <p class="muted" style="margin:4px 0 8px">현장 문의용: 명단 등록 여부와 사용한 체험 횟수를 확인하고, 필요하면 1회를 더 줄 수 있어요.</p>
             <div class="al-row" style="margin-top:0"><input id="alPhone" placeholder="010-0000-0000" inputmode="numeric"><button id="alCheck" class="ghost">확인</button><button id="alGrant" class="ghost">체험 +1회</button></div>
             <p id="alStatus"></p>
@@ -103,7 +103,7 @@
       </div>
       <div class="card"><h2>퍼널 (세션 수 기준)</h2><div class="funnel" id="funnel"></div></div>
       <div class="card">
-        <h2>대형 스크린 — 제출된 키비주얼 · 광고 영상</h2>
+        <h2>대형 스크린 — 제출된 키비주얼, 광고 영상</h2>
         <p class="muted" id="screenNote"></p>
         <div class="shots" id="screen"></div>
       </div>
@@ -111,8 +111,8 @@
       <div class="card"><h2>카카오톡 발송 기록</h2><table id="outbox"></table></div>
       <div class="card"><h2>최근 생성 실패</h2><table id="failures"></table></div>
       <div class="card">
-        <h2>콘텐츠 관리 — 광고 무드 · 키워드 풀 · 안내 문구 (config/content.json)</h2>
-        <p class="muted">저장 즉시 반영됩니다. 이전 버전은 content.json.bak 으로 보관돼요. 키워드 수/카테고리 내용은 자유롭게 조정할 수 있지만 카테고리 6개(who·when·where·what·how·why)와 what 의 n(상품명용 명사)은 필수입니다. genres 는 광고 무드, what 은 상품 풀이에요.</p>
+        <h2>콘텐츠 관리 — 광고 무드, 키워드 풀, 안내 문구 (config/content.json)</h2>
+        <p class="muted">저장 즉시 반영됩니다. 이전 버전은 content.json.bak 으로 보관돼요. 키워드 수/카테고리 내용은 자유롭게 조정할 수 있지만 카테고리 6개(who/when/where/what/how/why)와 what 의 n(상품명용 명사)은 필수입니다. genres 는 광고 무드, what 은 상품 풀이에요.</p>
         <textarea id="content" spellcheck="false"></textarea>
         <div style="display:flex;gap:10px;align-items:center;margin-top:10px"><button id="save">콘텐츠 저장</button><span id="saveMsg" class="muted"></span></div>
       </div>
@@ -137,7 +137,7 @@ async function load() {
   $('#login').hidden = true; $('#dash').hidden = false;
   $('#mode').textContent = d.mode === 'mock' ? 'DEMO (MOCK)' : 'LIVE';
   $('#mode').className = 'pill ' + (d.mode === 'mock' ? '' : 'live');
-  $('#models').textContent = `${d.models.image} · ${d.models.video}`;
+  $('#models').textContent = `${d.models.image}, ${d.models.video}`;
   $('#kakaoP').textContent = `kakao: ${d.kakaoProvider}`;
   $('#updated').textContent = '갱신 ' + new Date().toLocaleTimeString('ko-KR');
   const stats = [
@@ -160,11 +160,11 @@ async function loadScreen() {
   const r = await req('/api/admin/screen');
   if (!r.ok) return;
   const d = await r.json();
-  $('#screenNote').innerHTML = `${d.autoApprove ? '자동 승인 중 — 제출 즉시 송출됩니다. 부적절한 광고는 숨기기를 눌러 바로 내릴 수 있어요.' : '수동 승인 모드 — 승인해야 송출됩니다.'} (SCREEN_AUTO_APPROVE) · 화면 주소: <a href="/screen/poster" target="_blank">/screen/poster</a> · <a href="/screen/trailer" target="_blank">/screen/trailer</a>`;
+  $('#screenNote').innerHTML = `${d.autoApprove ? '자동 승인 중 — 제출 즉시 송출됩니다. 부적절한 광고는 숨기기를 눌러 바로 내릴 수 있어요.' : '수동 승인 모드 — 승인해야 송출됩니다.'} (SCREEN_AUTO_APPROVE), 화면 주소: <a href="/screen/poster" target="_blank">/screen/poster</a>, <a href="/screen/trailer" target="_blank">/screen/trailer</a>`;
   const ctl = (it, kind, status) => !status ? '<span class="muted">-</span>'
     : `<span class="s-${status}">${SL[status]}</span> <button class="${status === 'live' ? 'off' : ''}" data-id="${esc(it.id)}" data-kind="${kind}" data-to="${status === 'live' ? 'hidden' : 'live'}">${status === 'live' ? '숨기기' : '송출'}</button>`;
   $('#screen').innerHTML = d.items.length ? d.items.map((it) => `<div class="shot"><img src="${esc(it.poster)}" alt="" loading="lazy"><div class="b">
-      <b>〈${esc(it.title)}〉</b><span class="muted">${esc(it.director)} · ${esc(it.genre?.ko)} · ${t(Math.max(it.posterAt || 0, it.trailerAt || 0))}</span>
+      <b>〈${esc(it.title)}〉</b><span class="muted">${esc(it.director)}, ${esc(it.genre?.ko)}, ${t(Math.max(it.posterAt || 0, it.trailerAt || 0))}</span>
       <div class="row"><span>키비주얼</span><span>${ctl(it, 'poster', it.posterStatus)}</span></div>
       <div class="row"><span>광고 영상</span><span>${ctl(it, 'trailer', it.trailerStatus)}</span></div></div></div>`).join('')
     : '<p class="muted">아직 제출된 광고가 없어요.</p>';
@@ -191,8 +191,8 @@ async function loadAllowlist() {
   $('#alToggle').textContent = d.enabled ? '명단 제한 끄기' : '명단 제한 켜기';
   $('#alToggle').dataset.to = d.enabled ? '0' : '1';
   $('#alCount').textContent = `등록 번호 ${d.count}개`;
-  $('#alNote').textContent = `1인 체험 횟수: ${d.maxFlows || '제한 없음'}${d.maxFlows ? '회 (키비주얼을 만든 체험 1회 = 1회, 같은 체험 안에서 다시 만들기는 추가로 세지 않음, 실패는 제외)' : ''} · PHONE_MAX_FLOWS`;
-  $('#alRecent').innerHTML = d.recent.length ? d.recent.map((x) => `${esc(x.phone_masked)}${x.extra_flows ? ` <span class="ok">+${x.extra_flows}회</span>` : ''} <span>· ${t(x.added_at)}</span>`).join('<br>') : '없음';
+  $('#alNote').textContent = `1인 체험 횟수: ${d.maxFlows || '제한 없음'}${d.maxFlows ? '회 (키비주얼을 만든 체험 1회 = 1회, 같은 체험 안에서 다시 만들기는 추가로 세지 않음, 실패는 제외)' : ''}, PHONE_MAX_FLOWS`;
+  $('#alRecent').innerHTML = d.recent.length ? d.recent.map((x) => `${esc(x.phone_masked)}${x.extra_flows ? ` <span class="ok">+${x.extra_flows}회</span>` : ''} <span>/ ${t(x.added_at)}</span>`).join('<br>') : '없음';
 }
 async function alPost(body) {
   const r = await req('/api/admin/allowlist', { method: 'POST', body: JSON.stringify(body) });
@@ -216,7 +216,7 @@ async function alUpload(mode) {
   if (mode === 'replace' && !confirm('지금 명단을 이 번호들로 전체 교체할까요? 여기에 없는 번호는 명단에서 빠져요.')) return;
   try {
     const d = await alPost({ action: 'upload', text, mode });
-    $('#alMsg').innerHTML = `<span class="ok">${d.parsed}개 번호 인식 · 명단 ${d.before} → ${d.after}개</span>`
+    $('#alMsg').innerHTML = `<span class="ok">${d.parsed}개 번호 인식, 명단 ${d.before} → ${d.after}개</span>`
       + (d.invalidCount ? `<br><span class="bad">번호로 읽지 못한 줄 ${d.invalidCount}개:</span> ${d.invalid.map(esc).join(' / ')}` : '');
     $('#alText').value = ''; $('#alFile').value = '';
   } catch (e) { $('#alMsg').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
@@ -233,9 +233,9 @@ async function alCheck(action) {
   if (action === 'grant' && !confirm('이 번호에 체험 1회를 더 줄까요?')) return;
   try {
     const d = await alPost({ action, phone: $('#alPhone').value });
-    if (d.test) { $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · <span class="ok">테스트 번호 — 명단·횟수·하루 한도 없이 생성 가능</span> · 사용한 체험 ${d.flowsUsed}회`; return loadAllowlist(); }
-    $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · 명단 ${d.listed ? '<span class="ok">등록됨</span>' : '<span class="bad">없음</span>'}`
-      + ` · 체험 ${d.flowsUsed} / ${d.flowsMax}회${d.extraFlows ? ` (추가 ${d.extraFlows}회 포함)` : ''} · 오늘 남은 광고 영상 ${d.trailersLeftToday}편`;
+    if (d.test) { $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b>, <span class="ok">테스트 번호 — 명단/횟수/하루 한도 없이 생성 가능</span>, 사용한 체험 ${d.flowsUsed}회`; return loadAllowlist(); }
+    $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b>, 명단 ${d.listed ? '<span class="ok">등록됨</span>' : '<span class="bad">없음</span>'}`
+      + `, 체험 ${d.flowsUsed} / ${d.flowsMax}회${d.extraFlows ? ` (추가 ${d.extraFlows}회 포함)` : ''}, 오늘 남은 광고 영상 ${d.trailersLeftToday}편`;
   } catch (e) { $('#alStatus').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
   loadAllowlist();
 }

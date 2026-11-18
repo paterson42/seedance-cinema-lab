@@ -131,7 +131,7 @@ const SCENES = {
 };
 const STOPS = ['접수', '준비', '포장', '출고', '배송', '완료'];
 const ORDER = ['landing', 'lookup', 'genre', 'cast', 'story', 'poster', 'trailer', 'waiting', 'done'];
-const sceneLabel = (view) => { const sc = SCENES[view]; return `${sc.n}단계 · ${sc.ko}`; };
+const sceneLabel = (view) => { const sc = SCENES[view]; return `${sc.n}단계 ${sc.ko}`; };
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}.${pad(d.getMonth() + 1, 2)}.${pad(d.getDate(), 2)}`; };
 let slateTimer = 0;
@@ -255,7 +255,7 @@ async function confirmRestart() {
   const hasVideo = videoBusy || s.video?.status === 'done';
   const lines = [
     S.booth ? '첫 화면으로 돌아가 새로 시작해요.' : '광고 무드 선택부터 새로 시작해요.',
-    `지금 고른 무드·키워드${s.story ? '와 광고 카피' : ''}는 이 화면에서 사라져요.`,
+    `지금 고른 무드와 키워드${s.story ? ', 광고 카피' : ''}는 이 화면에서 사라져요.`,
   ];
   if (hasPoster) {
     lines.push(`이미 만든 키비주얼${hasVideo ? '과 광고 영상' : ''}은 <b>‘내 결과 다시 보기’</b>에서 휴대폰 번호와 이름으로 다시 찾을 수 있어요.${videoBusy ? ' 만들고 있는 광고 영상도 계속 완성돼요.' : ''}`);
@@ -272,7 +272,7 @@ async function confirmRestart() {
     if (v === 'alt') restart({ newNumber: true });
     return;
   }
-  if (fl && fl.max > 0 && !S.booth) lines.push(`새 광고는 키비주얼을 만들 때 체험 1회로 세어져요. (1인 ${fl.max}회 · 남은 횟수 ${fl.left}회)`);
+  if (fl && fl.max > 0 && !S.booth) lines.push(`새 광고는 키비주얼을 만들 때 체험 1회로 세어져요. (1인 ${fl.max}회, 남은 횟수 ${fl.left}회)`);
   const v = await confirmSheet({ title: '처음부터 다시 만들까요?', body: lines.join('<br>'), ok: S.booth ? '처음부터 다시' : '같은 번호로 처음부터', cancel: '계속 만들기', alt: S.booth ? null : '다른 번호로 새로 시작하기' });
   confirming = false;
   if (v === 'alt') restart({ newNumber: true });
@@ -318,7 +318,7 @@ VIEWS.landing = () => {
   const c = S.content.copy;
   const title = esc(c.heroTitle).replace(/광고\./, '<em>광고.</em>');
   const el = render(`
-    <p class="eyebrow">${esc(S.content.event.name)} · ${esc(S.content.event.city)} ${esc(S.content.event.year)}</p>
+    <p class="eyebrow">${esc(S.content.event.name)} ${esc(S.content.event.city)} ${esc(S.content.event.year)}</p>
     <h1 class="h1">${title}</h1>
     <p class="lead">${esc(c.heroSub)}</p>
     <div class="hero-strip">
@@ -339,13 +339,13 @@ VIEWS.landing = () => {
       <div class="ticket-perf"></div>
       <div class="ticket-body">
       <label class="field">
-        <span>${S.boot.kakao.enabled ? "참가 패스 발급 · 결과를 받을 휴대폰 번호" : "참가 패스 발급 · 내 결과를 다시 찾을 휴대폰 번호"}</span>
+        <span>${S.boot.kakao.enabled ? "결과를 받을 휴대폰 번호" : "내 결과를 다시 찾을 휴대폰 번호"}</span>
         <input class="input" id="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" maxlength="13" required>
         <div class="input-hint" id="phoneHint"></div>
       </label>
       <div class="check">
         <input type="checkbox" id="cPrivacy">
-        <label for="cPrivacy"><span class="req">[필수]</span>개인정보 수집·이용 동의
+        <label for="cPrivacy"><span class="req">[필수]</span>개인정보 수집 및 이용 동의
           <details><summary>자세히 보기</summary><pre>${esc(c.consentPrivacy)}</pre></details>
         </label>
       </div>
@@ -373,7 +373,7 @@ VIEWS.landing = () => {
       $('#phoneHint').textContent = '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)';
       return phone.focus();
     }
-    if (!$('#cPrivacy').checked) return toast('개인정보 수집·이용에 동의해 주세요.');
+    if (!$('#cPrivacy').checked) return toast('개인정보 수집 및 이용에 동의해 주세요.');
     const btn = $('#startBtn');
     btn.disabled = true;
     try {
@@ -392,7 +392,7 @@ VIEWS.landing = () => {
 VIEWS.limit = () => {
   const l = S.limit || { code: 'FLOW_LIMIT', message: '체험 횟수를 모두 사용했어요.' };
   const el = render(`
-    <p class="scene">${l.code === 'NOT_ALLOWED' ? 'ACCESS · 사전 등록' : 'THAT\'S A WRAP · 체험 완료'}</p>
+    <p class="scene">${l.code === 'NOT_ALLOWED' ? '사전 등록' : '체험 완료'}</p>
     <h2 class="h2">${l.code === 'NOT_ALLOWED' ? '등록된 번호가 <em>아니에요</em>' : '오늘의 촬영은 <em>여기까지</em>'}</h2>
     <div class="notice"><span class="ico">✦</span><span>${esc(l.message)}</span></div>
     <button class="btn btn-primary btn-block" id="toLookup">내 결과 다시 보기</button>
@@ -423,7 +423,7 @@ VIEWS.lookup = () => {
       $('#lookupList').innerHTML = results.map((r) => `
         <a class="result-item" href="${esc(r.url)}">
           <img src="${esc(r.poster)}" alt="">
-          <div><b>${esc(r.title)}</b><span class="small">${esc(r.genre)} · ${new Date(r.createdAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
+          <div><b>${esc(r.title)}</b><span class="small">${esc(r.genre)}, ${new Date(r.createdAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
           <span class="small mono">${r.videoStatus === 'done' ? '▶ 영상' : r.videoStatus === 'idle' ? '키비주얼' : '생성 중'}</span>
         </a>`).join('');
     } catch (err) { toast(err.message); }
@@ -478,7 +478,7 @@ VIEWS.cast = () => {
         </div>`).join('')}
     </div>
     <label class="field">
-      <span>내 이름 · 광고에 ‘기획 ○○○’으로 들어가요</span>
+      <span>내 이름 (광고에 ‘기획 ○○○’으로 들어가요)</span>
       <input class="input" id="director" type="text" maxlength="12" placeholder="예) 홍길동" autocomplete="nickname" value="${esc(S.director)}">
     </label>
     <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 광고 카피 쓰기 ${ic('arrow')}</button></div>
@@ -546,7 +546,7 @@ async function makeStory() {
       <div>
         <div class="countdown" id="scd" style="--p:0%"><b id="scdNum">${storyEta()}</b></div>
         <div class="loading-msg" id="smsg">Seed가 <b>${esc(director)}</b> 님의<br>광고 카피를 쓰는 중…</div>
-        <div class="loading-sub">무드 + 키워드 6개 → 카피 · 프롬프트</div>
+        <div class="loading-sub">무드 + 키워드 6개 → 카피와 프롬프트</div>
       </div>
       <div class="belt"><i></i></div>
     </div>`, { restart: false });
@@ -589,12 +589,12 @@ VIEWS.story = () => {
     <div class="seed-chip">광고 ID ${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
-    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 · ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} · -${offer(s.seed).off}%</span></div>
+    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} (-${offer(s.seed).off}%)</span></div>
     <p class="story-body">${esc(st.logline)}</p>
     <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
       <div class="p-body"><pre>${esc(s.posterPrompt)}</pre>
-        <div class="p-meta"><span>SEEDREAM · 9:16${st.source === 'seed-llm' ? ' · Seed 작성' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
+        <div class="p-meta"><span>SEEDREAM 9:16${st.source === 'seed-llm' ? ', Seed 작성' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
       </div>
     </details>
     <div class="story-meta" style="margin-top:14px">${tags}</div>
@@ -642,7 +642,7 @@ VIEWS.poster = () => {
       <div>
         <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">${s.poster.etaSec || 60}</b></div>
         <div class="loading-msg" id="lmsg">${POSTER_MSGS[0]}</div>
-        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 9:16 키비주얼</div>
+        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” 9:16 키비주얼</div>
       </div>
       <div class="belt"><i></i></div>
     </div></div>
@@ -663,7 +663,7 @@ VIEWS.poster = () => {
       if (left <= 0 && !el2.dataset.over) { el2.dataset.over = 1; $('#lmsg').textContent = '거의 다 됐어요! 마지막 컷을 다듬는 중…'; lastMsg = Infinity; }
       if (Date.now() - lastMsg > 3200) { msgI = (msgI + 1) % POSTER_MSGS.length; $('#lmsg').textContent = POSTER_MSGS[msgI]; lastMsg = Date.now(); }
       const q = S.session.poster.queuePos;
-      if (q > 1) $('#lsub').textContent = `앞에 ${q - 1}명 대기 중 · 곧 시작해요`;
+      if (q > 1) $('#lsub').textContent = `앞에 ${q - 1}명 대기 중, 곧 시작해요`;
       await sleep(1000);
     }
   })();
@@ -694,7 +694,7 @@ async function renderPosterDone() {
     <h2 class="h2">이 광고의 첫 번째 고객은 <em>당신</em>입니다.</h2>
     <div class="poster-wrap">
       <div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>기획 · ${esc(s.director)}</span><span>${esc(s.story.genre.ko)} · 9:16</span></div>
+      <div class="poster-caption"><span>기획 ${esc(s.director)}</span><span>${esc(s.story.genre.ko)} 9:16</span></div>
     </div>
     <div class="btn-row"><button class="btn" id="save">${ic('download')}키비주얼 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
@@ -733,7 +733,7 @@ VIEWS.trailer = () => {
     <p class="story-body">${esc(s.story.videoKo)}</p>
     <p class="small" style="margin:-10px 0 18px">${esc(S.content.copy.videoNotice)}</p>
     <details class="prompt-box"><summary>자동 생성된 광고 영상 제작 프롬프트</summary>
-      <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE · 이미지→영상</span><button class="copy-btn" data-copy>복사</button></div></div>
+      <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE 이미지→영상</span><button class="copy-btn" data-copy>복사</button></div></div>
     </details>
     <div class="cta-bar">
       ${noMore ? `<div class="notice"><span class="ico">✦</span><span>${s.video.dailyLeft <= 0
@@ -765,7 +765,7 @@ function screenCard(state = {}, { poster = false, trailer = false } = {}) {
   }).join('');
   return `<div class="screen-card">
     <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>부스 대형 스크린에 자동 송출</b>
-      <span>완성된 키비주얼과 광고 영상은 기획자 이름·상품명과 함께 부스 스크린에 자동으로 걸려요.</span></div></div>
+      <span>완성된 키비주얼과 광고 영상은 기획자 이름, 상품명과 함께 부스 스크린에 자동으로 걸려요.</span></div></div>
     <div class="sc-rows">${rows}</div></div>`;
 }
 function refreshScreenCard(el, state = {}) {
@@ -822,7 +822,7 @@ function trailerProgress(el, get, alive) {
       const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
       $('#wBar', el).style.width = `${pct}%`;
       $('#wTime', el).textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
-      $('#wStatus', el).textContent = st.queuePos > 1 ? `QUEUED · 앞에 ${st.queuePos - 1}명 대기 중` : 'RENDERING';
+      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중` : 'RENDERING';
       if (Math.floor(sec) % 6 === 0) $('#wMsg', el).textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
       await sleep(1000);
     }
@@ -840,7 +840,7 @@ VIEWS.waiting = () => {
       <img class="kenburns" src="${esc(poster)}" alt="">
       ${progressMarkup()}
     </div></div>
-    ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 완성되면 같은 링크에서 바로 볼 수 있어요`)}
+    ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, `약 ${fmtDur(s.video.etaSec)} 걸려요. 자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!`, `약 ${fmtDur(s.video.etaSec)} 걸려요. 자리를 떠나도 괜찮아요. 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="btn-row"><button class="btn" id="copyLink">결과 링크 복사</button><button class="btn" id="again">${S.booth ? '다음 참가자' : '하나 더 만들기'}</button></div>
     <p class="small" style="text-align:center;margin-top:14px">이 화면을 켜 두면 완성되는 즉시 재생돼요.</p>
   `);
@@ -893,11 +893,11 @@ async function renderResult(r) {
         ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(r.posterFinal || r.posterRaw)}"></video>`
         : `<img class="kenburns" src="${esc(r.posterFinal || r.posterRaw)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`}
     </div>
-    <div class="poster-caption"><span>광고 ID ${pad(r.info.seed)}</span><span>기획 · ${esc(r.info.director)}</span></div></div>
+    <div class="poster-caption"><span>광고 ID ${pad(r.info.seed)}</span><span>기획 ${esc(r.info.director)}</span></div></div>
     <div class="actions" id="actions"></div>
     ${screenCard(r.screen, { poster: true, trailer: !!r.videoUrl })}
     ${r.own ? (k.enabled
-      ? `<div class="kakao-card${sent ? '' : ' off'}"><span class="k-ico">TALK</span><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} · 링크는 일정 기간 후 만료돼요`}</span></div></div>`
+      ? `<div class="kakao-card${sent ? '' : ' off'}"><span class="k-ico">TALK</span><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} 번호로 보냈어요. 링크는 일정 기간 후 만료돼요`}</span></div></div>`
       : kakaoCard(false, '', '', '언제든 다시 보고, 키비주얼과 영상을 저장할 수 있어요')) : ''}
     <div class="end-card">
       <div class="big">${r.own ? '이 광고의 첫 번째 고객은 당신입니다.' : '나도 나만의 광고를 만들어 볼까요?'}</div>
@@ -931,7 +931,7 @@ async function renderResult(r) {
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director} · ${won(offer(r.info.seed).price)} (-${offer(r.info.seed).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance@Seoul Commerce Lab`;
+  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director}, ${won(offer(r.info.seed).price)} (-${offer(r.info.seed).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance Commerce Lab`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -983,7 +983,7 @@ async function showResultPage(tok) {
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
       <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup('광고 영상 편집 중…') : ''}</div>
-      <div class="poster-caption"><span>광고 ID ${pad(r.seed)}</span><span>기획 · ${esc(r.director)}</span></div></div>
+      <div class="poster-caption"><span>광고 ID ${pad(r.seed)}</span><span>기획 ${esc(r.director)}</span></div></div>
       ${making
         ? `<div class="notice"><span class="ico">⏱</span><span>광고 영상을 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
         : r.videoStatus === 'failed' ? `<div class="error-box"><b>광고 영상 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
@@ -1030,7 +1030,7 @@ function loadImg(src) {
 
 // Wait for the faces the canvas needs. Korean web fonts arrive in many small slices, so we ask
 // for the exact characters about to be drawn; otherwise some glyphs fall back to another face.
-const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드장바구니담기품SponsoredbyBytePlusSEOUL0123456789%,·:→-—';
+const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드장바구니담기품SponsoredbyBytePlusSEOUL0123456789%,:→-—';
 async function fontsReady(text = '') {
   if (!document.fonts?.load) return;
   const sample = `${CANVAS_LABELS}${text}가A`;
@@ -1106,7 +1106,7 @@ async function composePoster(src, info) {
   });
   x.shadowBlur = 0;
   x.textAlign = 'center';
-  spaced(x, `신상 출시 · ${info.genre?.ko || '광고'} 캠페인`, W / 2, cy0 + 60, '700 27px "Pretendard Variable", "Noto Sans KR", sans-serif', 5, accent);
+  spaced(x, `${info.genre?.ko || '광고'} 캠페인 신상 출시`, W / 2, cy0 + 60, '700 27px "Pretendard Variable", "Noto Sans KR", sans-serif', 5, accent);
 
   // Discount sticker
   x.save();
@@ -1172,10 +1172,10 @@ async function composePoster(src, info) {
 
   // Who made what (no keyword lines on the key visual)
   x.globalAlpha = 0.62;
-  spaced(x, '컨셉 Seed   ·   키비주얼 Seedream   ·   영상 Seedance', W / 2, H - 168, '500 25px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, '#fff');
+  spaced(x, '컨셉 Seed       키비주얼 Seedream       영상 Seedance', W / 2, H - 168, '500 25px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, '#fff');
   x.globalAlpha = 1;
 
-  // Footer: ad ID · sponsor · event
+  // Footer: ad ID, sponsor, event
   x.fillStyle = 'rgba(255,255,255,.25)';
   x.fillRect(80, H - 112, W - 160, 1);
   x.textAlign = 'left';
@@ -1295,7 +1295,7 @@ async function composeTicket(posterSrc, info) {
   x.textAlign = 'right';
   spaced(x, '장바구니 담기', px + pw, by + 36, '700 38px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, accent);
   spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.75)');
-  spaced(x, `SEOUL 2026 · 광고 ID ${pad(info.seed)}`, px + pw, by + 112, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.5)');
+  spaced(x, `SEOUL 2026   광고 ID ${pad(info.seed)}`, px + pw, by + 112, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
   return c.toDataURL('image/jpeg', 0.92);

@@ -122,7 +122,7 @@
   <div class="canvas" id="canvas">
     <header>
       <div class="marquee"><div class="bulbs"></div><div class="bulbs b2"></div>
-        <h1>신상 출시</h1><p>오늘의 신상 광고 <b id="count">0</b> · <b id="clock">--:--</b> · SEOUL</p></div>
+        <h1>신상 출시</h1><p>오늘의 신상 광고 <b id="count">0</b>편 &nbsp;&nbsp; <b id="clock">--:--</b> &nbsp;&nbsp; SEOUL</p></div>
     </header>
     <main>
       <div class="slot" id="slot">
@@ -191,7 +191,7 @@
       old.forEach((o) => { o.classList.add('out'); setTimeout(() => o.remove(), 1500); });
       glass.style.setProperty('--glow', it ? `rgba(${hexRgb(it.genre?.color)}, .4)` : 'rgba(255,240,210,.12)');
       $('#plate').innerHTML = it
-        ? `<b>〈${esc(it.title)}〉</b><span>기획 ${esc(it.director)} · -${offer(it.seed).off}% ${won(offer(it.seed).price)}</span>`
+        ? `<b>〈${esc(it.title)}〉</b><span>기획 ${esc(it.director)} &nbsp;&nbsp; -${offer(it.seed).off}% ${won(offer(it.seed).price)}</span>`
         : '<b>곧 공개</b><span>SEEDANCE COMMERCE LAB</span>';
       $('#slot .new-tag')?.remove();
       if (it && newIds.has(it.id)) $('#slot').insertAdjacentHTML('afterbegin', '<div class="new-tag">NEW</div>');
@@ -202,7 +202,7 @@
       const list = items.slice(0, 20);
       const html = list.length
         ? list.map((it) => `<span><em>${esc(it.genre?.ko || '광고')}</em>${esc(it.director)} 님 기획 〈${esc(it.title)}〉${it.tagline ? ` — ${esc(it.tagline)}` : ''}</span>`).join('<span>★</span>')
-        : '<span>곧 첫 번째 광고가 공개됩니다</span><span>★</span><span>광고 무드를 고르고, 키워드를 뽑고, 나만의 광고를 기획해 보세요</span><span>★</span><span>Seed · Seedream · Seedance</span>';
+        : '<span>곧 첫 번째 광고가 공개됩니다</span><span>★</span><span>광고 무드를 고르고, 키워드를 뽑고, 나만의 광고를 기획해 보세요</span><span>★</span><span>Seed, Seedream, Seedance</span>';
       // two copies so the loop is seamless (animates to -50%)
       const one = `${html}<span>★</span>${cta}<span>★</span>`;
       $('#track').innerHTML = one + one;
