@@ -49,6 +49,8 @@ async function ark(pathname, { method = 'POST', body, timeoutMs = 60000, attempt
 }
 
 function friendly(code = '', status) {
+  // The generated soundtrack (not the visitor's keywords) tripped the copyright check; a retry usually passes.
+  if (/OutputAudio/i.test(code)) return '영상에 들어간 AI 배경음이 저작권 검사에 걸렸어요. 키워드는 문제없으니 그대로 다시 시도해 주세요.';
   if (/Sensitive|risk|moderation|Inappropriate|PolicyViolation/i.test(code)) return '안전 정책에 걸려 생성하지 못했어요. 키워드를 바꿔서 다시 시도해 주세요.';
   if (status === 429 || /RateLimit|QuotaExceeded|ServerOverloaded/i.test(code)) return '지금 체험하는 분이 많아요. 잠시 후 다시 시도해 주세요.';
   if (status === 401 || status === 403) return '생성 서버 인증에 문제가 있어요. 부스 스태프에게 알려주세요.';
