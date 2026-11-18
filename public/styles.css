@@ -64,7 +64,7 @@ img, video { display: block; max-width: 100%; }
 .top-back:hover, .top-back:active { background: rgba(212, 255, 58, .14); border-color: rgba(212, 255, 58, .5); }
 .top-back[hidden] { display: none; }
 @media (max-width: 480px) { .top-back:not([hidden]) + .brand .brand-sub { display: none; } }
-.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand { display: flex; align-items: baseline; gap: 7px; text-decoration: none; } /* SEOUL sits on the same baseline as the wordmark */
 .brand-mark { font-weight: 900; letter-spacing: -0.02em; font-size: 18px; }
 .brand-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; }
 .top-right { display: flex; align-items: center; gap: 10px; }
