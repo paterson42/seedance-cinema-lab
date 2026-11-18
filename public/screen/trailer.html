@@ -3,18 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>광고 영상 스크린 — Seedance Commerce Lab</title>
+  <title>광고 영상 스크린 (For You 피드) — Seedance Commerce Lab</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/screen/screen.css">
   <style>
-    /* One portrait 9:16 panel that plays the finished ads like a short-form video feed:
-       full-bleed video, a right-hand action rail with floating hearts, the creator's handle
-       and caption at the bottom-left, and a swipe-up transition between ads. */
+    /* One portrait 9:16 panel that plays the finished ads inside the For You feed.
+       Follows the TikTok Product Marketing Style Guide ("The For You Feed"):
+       - Minimum UI, the mode for out-of-home / immersive content: top bar, sidebar, name and caption.
+         No device frame, no notch, no system UI (clock, battery), no bottom navigation.
+       - "For You" (추천) is the selected tab.
+       - The UI is not stylised or recoloured: white UI, nothing covering its icons or text.
+       - Our own message (QR call to action) sits below the feed as a headline, outside the UI.
+       Official UI assets and TikTok Sans are picked up from /brand/tiktok-ui/ when the files are there
+       (see public/brand/README.md); until then neutral placeholder icons are shown. */
+    @font-face { font-family: 'TikTok Sans'; src: url('/brand/tiktok-ui/TikTokSans-Regular.woff2') format('woff2'); font-weight: 400 500; font-display: swap; }
+    @font-face { font-family: 'TikTok Sans'; src: url('/brand/tiktok-ui/TikTokSans-Bold.woff2') format('woff2'); font-weight: 600 900; font-display: swap; }
     body { background: #000; }
-    .canvas { background: #000; font-family: var(--sans); }
+    .canvas { background: #000; font-family: 'TikTok Sans', var(--sans); }
 
     /* ── video slides (two layers, swiped vertically) ── */
     .slide { position: absolute; inset: 0; transform: translateY(100%); transition: transform .7s cubic-bezier(.3, .9, .25, 1); background: #000; }
@@ -26,29 +34,30 @@
     .shade { position: absolute; inset: 0; pointer-events: none; z-index: 5;
       background: linear-gradient(180deg, rgba(0,0,0,.5) 0, transparent 16%, transparent 52%, rgba(0,0,0,.82) 100%); }
 
-    /* ── top bar: logo slot · feed tabs · clock ── */
-    .top { position: absolute; z-index: 20; left: 0; right: 0; top: 0; height: calc(var(--u) * 8.5); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-      padding: 0 calc(var(--u) * 2.4); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
-    .logo { height: calc(var(--u) * 3.4); max-width: calc(var(--u) * 14); object-fit: contain; object-position: left center; justify-self: start; }
-    .tabs { display: flex; gap: calc(var(--u) * 2.6); font-size: calc(var(--u) * 2.05); font-weight: 700; color: rgba(255,255,255,.62); }
-    .tabs b { position: relative; color: #fff; font-weight: 900; }
-    .tabs b::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: calc(var(--u) * -.9); height: calc(var(--u) * .35); border-radius: 99px; background: #fff; }
-    .top .clock { justify-self: end; font-family: var(--mono); font-size: calc(var(--u) * 1.5); color: rgba(255,255,255,.75); letter-spacing: .08em; }
+    /* ── top bar: LIVE · tabs (For You selected) · search ── */
+    .top { position: absolute; z-index: 20; left: 0; right: 0; top: calc(var(--u) * 1.2); height: calc(var(--u) * 7); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 calc(var(--u) * 2.6); color: #fff; }
+    .top .ico { width: calc(var(--u) * 3.6); height: calc(var(--u) * 3.6); display: grid; place-items: center; }
+    .top .ico img, .top .ico svg { width: 100%; height: 100%; object-fit: contain; }
+    .tabs { display: flex; gap: calc(var(--u) * 2.2); font-size: calc(var(--u) * 2); font-weight: 600; color: rgba(255,255,255,.6); }
+    .tabs b { position: relative; color: #fff; font-weight: 700; }
+    .tabs b::after { content: ''; position: absolute; left: 25%; right: 25%; bottom: calc(var(--u) * -.9); height: calc(var(--u) * .3); border-radius: 99px; background: #fff; }
 
     /* ── right action rail ── */
-    .rail { position: absolute; z-index: 20; right: calc(var(--u) * 1.5); bottom: calc(var(--u) * 17); width: calc(var(--u) * 8); display: grid; justify-items: center; gap: calc(var(--u) * 2.3);
+    .rail { position: absolute; z-index: 20; right: calc(var(--u) * 1.5); bottom: calc(var(--u) * 13.5); width: calc(var(--u) * 8); display: grid; justify-items: center; gap: calc(var(--u) * 2.3);
       color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
     .avatar { position: relative; width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); border-radius: 50%; border: calc(var(--u) * .28) solid #fff; display: grid; place-items: center;
-      background: var(--g, var(--accent)); color: #0b0d02; font-family: var(--kr); font-size: calc(var(--u) * 3); margin-bottom: calc(var(--u) * 1); }
+      background: #2a2a2e; color: #fff; font-weight: 700; font-size: calc(var(--u) * 2.8); margin-bottom: calc(var(--u) * 1); }
     .avatar::after { content: '+'; position: absolute; left: 50%; bottom: calc(var(--u) * -1.3); transform: translateX(-50%); width: calc(var(--u) * 2.5); height: calc(var(--u) * 2.5); border-radius: 50%;
       background: #fe2c55; color: #fff; font: 900 calc(var(--u) * 2) / calc(var(--u) * 2.4) var(--sans); text-align: center; }
     .act { display: grid; justify-items: center; gap: calc(var(--u) * .4); font-size: calc(var(--u) * 1.45); font-weight: 700; }
     .act svg { width: calc(var(--u) * 4.6); height: calc(var(--u) * 4.6); filter: drop-shadow(0 1px 5px rgba(0,0,0,.55)); }
-    .act.like svg { color: #fe2c55; }
+    .act img { width: calc(var(--u) * 4.6); height: calc(var(--u) * 4.6); object-fit: contain; }
+    .act.like.liked svg { color: #fe2c55; }
     .act.like.pop svg { animation: pop .34s ease-out; }
     @keyframes pop { 40% { transform: scale(1.28); } }
     .disc { width: calc(var(--u) * 6); height: calc(var(--u) * 6); border-radius: 50%; margin-top: calc(var(--u) * .6); animation: spin 5s linear infinite;
-      background: radial-gradient(circle, var(--g, var(--accent)) 0 26%, #111 27% 34%, #2a2a2e 35% 62%, #111 63%); border: calc(var(--u) * .3) solid #2a2a2e; }
+      background: radial-gradient(circle, #8a8a90 0 26%, #111 27% 34%, #2a2a2e 35% 62%, #111 63%); border: calc(var(--u) * .3) solid #2a2a2e; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── floating hearts ── */
@@ -66,21 +75,10 @@
     .cap { position: absolute; z-index: 20; left: calc(var(--u) * 2.4); right: calc(var(--u) * 11.5); bottom: calc(var(--u) * 11.6); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.7);
       transition: opacity .3s ease; }
     .cap.swap { opacity: 0; }
-    .shop { display: inline-flex; align-items: center; gap: calc(var(--u) * .8); margin-bottom: calc(var(--u) * 1.5); padding: calc(var(--u) * .7) calc(var(--u) * 1.5) calc(var(--u) * .7) calc(var(--u) * 1.1);
-      border-radius: calc(var(--u) * .9); background: rgba(20,20,22,.72); backdrop-filter: blur(6px); font-size: calc(var(--u) * 1.6); font-weight: 700; text-shadow: none; }
-    .shop svg { width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2); color: var(--accent); }
-    .shop em { font-style: normal; color: var(--accent); }
-    .shop s { font-weight: 400; color: rgba(255,255,255,.55); font-size: .86em; }
-    .new { display: inline-block; margin: 0 0 calc(var(--u) * 1.2) calc(var(--u) * .8); padding: calc(var(--u) * .5) calc(var(--u) * 1.2); border-radius: 99px; background: #fe2c55; font-size: calc(var(--u) * 1.4); font-weight: 900; text-shadow: none; vertical-align: top; }
-    .new[hidden] { display: none; }
-    .handle { font-size: calc(var(--u) * 2.5); font-weight: 900; letter-spacing: -.01em; }
-    .handle span { margin-left: calc(var(--u) * .9); font-size: calc(var(--u) * 1.4); font-weight: 500; color: rgba(255,255,255,.75); }
+    .handle { font-size: calc(var(--u) * 2.4); font-weight: 700; }
     .text { margin-top: calc(var(--u) * .9); font-size: calc(var(--u) * 1.95); line-height: 1.45; font-weight: 500; word-break: keep-all;
-      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .text b { font-weight: 900; }
-    .tags { margin-top: calc(var(--u) * .6); font-size: calc(var(--u) * 1.75); font-weight: 700; line-height: 1.5; word-break: keep-all; }
-    .made { margin-top: calc(var(--u) * 1); font-size: calc(var(--u) * 1.4); color: rgba(255,255,255,.82); line-height: 1.55; }
-    .made b { color: #fff; }
+      display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+    .text b { font-weight: 700; }
     .sound { margin-top: calc(var(--u) * 1.1); display: flex; align-items: center; gap: calc(var(--u) * .9); font-size: calc(var(--u) * 1.55); overflow: hidden; white-space: nowrap; }
     .sound svg { flex: none; width: calc(var(--u) * 1.9); height: calc(var(--u) * 1.9); }
     .sound div { overflow: hidden; flex: 1; -webkit-mask: linear-gradient(90deg, #000 85%, transparent); mask: linear-gradient(90deg, #000 85%, transparent); }
@@ -120,28 +118,25 @@
     </div>
 
     <header class="top">
-      <!-- Logo slot: shows /brand/tiktok-logo.svg (or .png) when the official file is added; empty otherwise. -->
-      <div><img class="logo" id="logo" alt="" hidden></div>
-      <div class="tabs"><span>팔로잉</span><b>추천</b></div>
-      <span class="clock" id="clock">--:--</span>
+      <!-- Official top-bar icons load from /brand/tiktok-ui/ when present; the slots stay empty otherwise. -->
+      <span class="ico"><img data-asset="top-live" alt="" hidden></span>
+      <div class="tabs"><span>탐색</span><span>친구</span><span>팔로잉</span><b>추천</b></div>
+      <span class="ico"><img data-asset="top-search" alt="" hidden></span>
     </header>
 
     <aside class="rail" aria-hidden="true">
       <div class="avatar" id="avatar"></div>
-      <div class="act like" id="like"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.3 8.300 2.200 4.500 5.800 4.500c2 0 3.400 1 4.200 2.300h4c.8-1.300 2.200-2.300 4.200-2.300 3.600 0 5.500 3.800 3.800 7.200C19.500 16.400 12 21 12 21z"/></svg><span id="nLike">0</span></div>
-      <div class="act"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.500c5 0 9 3.400 9 7.700 0 4.200-4 7.600-9 7.600-.9 0-1.800-.1-2.600-.3L5 20.800l.9-3.700C4.100 15.700 3 13.600 3 11.200c0-4.300 4-7.700 9-7.700z"/><circle cx="8.300" cy="11.300" r="1.100" fill="#000" opacity=".55"/><circle cx="12" cy="11.300" r="1.100" fill="#000" opacity=".55"/><circle cx="15.700" cy="11.300" r="1.100" fill="#000" opacity=".55"/></svg><span id="nCmt">0</span></div>
-      <div class="act"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.500 3.500h11a1 1 0 0 1 1 1v16l-6.500-4.200-6.500 4.200v-16a1 1 0 0 1 1-1z"/></svg><span id="nSave">0</span></div>
-      <div class="act"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.500 4.500 21.500 12l-8 7.500v-4.600c-5-.3-8.300 1.200-10.500 4.600.3-6 3.500-10.300 10.500-10.800z"/></svg><span id="nShare">0</span></div>
+      <div class="act like" id="like"><img data-asset="like" alt="" hidden><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.3 8.300 2.200 4.500 5.800 4.500c2 0 3.400 1 4.200 2.300h4c.8-1.300 2.200-2.300 4.200-2.300 3.600 0 5.500 3.800 3.800 7.200C19.500 16.400 12 21 12 21z"/></svg><span id="nLike">0</span></div>
+      <div class="act"><img data-asset="comment" alt="" hidden><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.500c5 0 9 3.400 9 7.700 0 4.200-4 7.600-9 7.600-.9 0-1.800-.1-2.600-.3L5 20.800l.9-3.700C4.100 15.700 3 13.600 3 11.200c0-4.300 4-7.700 9-7.700z"/><circle cx="8.300" cy="11.300" r="1.100" fill="#000" opacity=".55"/><circle cx="12" cy="11.300" r="1.100" fill="#000" opacity=".55"/><circle cx="15.700" cy="11.300" r="1.100" fill="#000" opacity=".55"/></svg><span id="nCmt">0</span></div>
+      <div class="act"><img data-asset="save" alt="" hidden><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.500 3.500h11a1 1 0 0 1 1 1v16l-6.500-4.200-6.500 4.200v-16a1 1 0 0 1 1-1z"/></svg><span id="nSave">0</span></div>
+      <div class="act"><img data-asset="share" alt="" hidden><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.500 4.500 21.500 12l-8 7.500v-4.600c-5-.3-8.300 1.200-10.500 4.600.3-6 3.500-10.300 10.500-10.800z"/></svg><span id="nShare">0</span></div>
       <div class="disc"></div>
     </aside>
     <div class="hearts" id="hearts" aria-hidden="true"></div>
 
     <section class="cap" id="cap">
-      <div><span class="shop" id="shop"></span><span class="new" id="newTag" hidden>방금 올라옴</span></div>
       <div class="handle" id="handle"></div>
       <div class="text" id="text"></div>
-      <div class="tags" id="tags"></div>
-      <div class="made" id="made"></div>
       <div class="sound"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 4.500 19 3v12.200a3 3 0 1 1-2-2.800V7L11 8v9.200a3 3 0 1 1-2-2.800z"/></svg><div><span id="sound"></span></div></div>
     </section>
 
@@ -153,23 +148,22 @@
   </div>
 
   <script type="module">
-    import { $, esc, sleep, watchFeed, screenChrome, clock, preload, offer, won } from '/screen/screen.js';
+    import { $, esc, sleep, watchFeed, screenChrome, preload, offer, won } from '/screen/screen.js';
 
     const chrome = screenChrome();
-    clock($('#clock'));
     // The QR stand sits to the left of this screen; ?qr=right flips the arrow.
     const qrRight = new URLSearchParams(location.search).get('qr') === 'right';
     document.body.classList.toggle('qr-right', qrRight);
     if (qrRight) $('.cta .arr').textContent = '→';
 
-    // Logo slot: use the official asset if the booth team has added one.
-    (function logoSlot() {
-      const el = $('#logo');
-      const tries = ['/brand/tiktok-logo.svg', '/brand/tiktok-logo.png'];
-      el.onload = () => { el.hidden = false; };
+    // Official UI assets: each <img data-asset="name"> tries /brand/tiktok-ui/name.svg then .png.
+    // When one loads it replaces the neutral placeholder icon next to it.
+    document.querySelectorAll('img[data-asset]').forEach((el) => {
+      const tries = ['svg', 'png'].map((x) => `/brand/tiktok-ui/${el.dataset.asset}.${x}`);
+      el.onload = () => { el.hidden = false; el.parentElement.querySelector('svg')?.remove(); };
       el.onerror = () => { const next = tries.shift(); if (next) el.src = next; };
       el.src = tries.shift();
-    })();
+    });
 
     const MAX_VIDEO_MS = 40000, HEART_MS = 520;
     let items = [];          // newest first (live ad videos)
@@ -197,14 +191,13 @@
 
     // ── hearts ──
     const HEART = '<path d="M12 21s-7.500-4.600-10-9.300C.300 8.300 2.200 4.500 5.800 4.500c2 0 3.400 1 4.200 2.300h4c.8-1.300 2.200-2.300 4.200-2.300 3.600 0 5.500 3.800 3.800 7.200C19.500 16.400 12 21 12 21z"/>';
-    const COLORS = ['#fe2c55', '#ff5c8a', '#ff8fb1', '#d4ff3a', '#ffffff', '#25f4ee'];
     let likes = 0;
     function heart() {
       const box = $('#hearts');
       if (box.childElementCount > 22) return;
       const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       s.setAttribute('viewBox', '0 0 24 24');
-      s.setAttribute('fill', COLORS[Math.floor(Math.random() * COLORS.length)]);
+      s.setAttribute('fill', '#fe2c55'); // the app's own like colour only
       s.innerHTML = HEART;
       s.style.setProperty('--x', `calc(var(--u) * ${(Math.random() * 9 - 6.5).toFixed(1)})`);
       s.style.setProperty('--r', `${Math.round(Math.random() * 50 - 25)}deg`);
@@ -214,30 +207,28 @@
       box.append(s);
       likes += 1 + Math.floor(Math.random() * 7);
       $('#nLike').textContent = num(likes);
-      const l = $('#like'); l.classList.remove('pop'); void l.offsetWidth; l.classList.add('pop');
+      const l = $('#like'); l.classList.add('liked'); l.classList.remove('pop'); void l.offsetWidth; l.classList.add('pop');
     }
     let heartTimer = 0;
     const hearts = (on) => { clearInterval(heartTimer); if (on) heartTimer = setInterval(() => { if (Math.random() < 0.8) heart(); }, HEART_MS); };
 
     // ── overlays for the ad on screen ──
-    function dress(it, isNew) {
-      const o = offer(it.seed), seed = Number(it.seed) || 1, color = it.genre?.color || '#d4ff3a';
-      $('#feed').style.setProperty('--g', color);
+    function dress(it) {
+      const o = offer(it.seed), seed = Number(it.seed) || 1;
       $('#avatar').textContent = [...String(it.director || '나')][0];
+      $('#like').classList.remove('liked');
       likes = 1200 + (seed % 8800);
       $('#nLike').textContent = num(likes);
       $('#nCmt').textContent = num(20 + (seed % 380));
       $('#nSave').textContent = num(40 + (seed % 900));
       $('#nShare').textContent = num(10 + (seed % 240));
-      $('#shop').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M5 8h14l-1.200 12H6.200z"/><path d="M9 8V6.500a3 3 0 0 1 6 0V8"/></svg>${esc(it.title)} · <em>-${o.off}%</em> ${won(o.price)} <s>${won(o.was)}</s>`;
-      $('#newTag').hidden = !isNew;
-      $('#handle').innerHTML = `@${esc(it.director)}<span>기획 · 방금</span>`;
-      $('#text').innerHTML = `<b>${esc(it.title)}</b>${it.tagline ? ` — ${esc(it.tagline)}` : ''}`;
-      $('#tags').textContent = [it.genre?.ko ? `${it.genre.ko}광고` : '', 'AI광고', 'Seedance투어서울', 'BytePlus'].filter(Boolean).map(tagify).join(' ');
-      const by = credits.map((c) => `${esc(c.label)} <b>${esc(c.value)}</b>`).join(' · ');
-      $('#made').innerHTML = `기획 <b>${esc(it.director)}</b>${by ? ` · ${by}` : ''}<br>Seedance Tour Seoul에서 <b>BytePlus</b>로 만들었어요`;
-      const snd = `오리지널 사운드 — ${esc(it.director)} · ${esc(it.title)} · Seedance@Seoul 2026 · Sponsored by BytePlus`;
-      $('#sound').innerHTML = `${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+      // Name + caption, as in the feed. Everything about the ad lives in the caption text.
+      $('#handle').textContent = it.director || '';
+      const tags = [it.genre?.ko ? `${it.genre.ko}광고` : '', 'AI광고', 'Seedance투어서울', 'BytePlus'].filter(Boolean).map(tagify).join(' ');
+      $('#text').innerHTML = `<b>${esc(it.title)}</b>${it.tagline ? ` — ${esc(it.tagline)}` : ''} · ${won(o.price)} (-${o.off}%)<br>`
+        + `기획 ${esc(it.director)} · Seedance Tour Seoul에서 BytePlus로 만들었어요<br>${esc(tags)}`;
+      const snd = `오리지널 사운드 — ${esc(it.director)}`;
+      $('#sound').innerHTML = `${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${snd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
     }
 
     function ready(v) {
@@ -281,7 +272,7 @@
       await sleep(first ? 50 : 380);
       $('#feed').classList.remove('empty');
       $('#idle').hidden = true;
-      dress(it, isNew);
+      dress(it);
       $('#prog').style.width = '0';
       $('#cap').classList.remove('swap');
       hearts(true);
