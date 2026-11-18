@@ -383,7 +383,7 @@ route('GET', '/api/screen/feed', async (req, res) => {
   const rows = kind === 'trailer'
     ? query("SELECT * FROM sessions WHERE screen_video = 'live' AND video_status = 'done' AND video_file IS NOT NULL ORDER BY screen_video_at DESC LIMIT 60")
     : query("SELECT * FROM sessions WHERE screen_poster = 'live' AND poster_status = 'done' ORDER BY screen_poster_at DESC LIMIT 60");
-  json(res, 200, { kind, items: rows.map((s) => screenItem(s, kind)), now: Date.now() });
+  json(res, 200, { kind, items: rows.map((s) => screenItem(s, kind)), credits: getContent().event?.credits || [], now: Date.now() });
 });
 
 const EVENT_NAMES = new Set([

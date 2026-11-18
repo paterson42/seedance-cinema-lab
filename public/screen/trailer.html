@@ -65,13 +65,15 @@
     /* end title card */
     .end { display: grid; align-content: center; justify-items: center; gap: calc(var(--u) * 1.2); text-align: center; padding: calc(var(--u) * 2.4);
       background: radial-gradient(ellipse 80% 45% at 50% 32%, rgba(var(--rgb), .28), transparent 72%), #040404; }
-    .end img { height: calc(var(--u) * 33); aspect-ratio: 9 / 16; object-fit: cover; border-radius: 2px; box-shadow: 0 0 calc(var(--u) * 6) rgba(var(--rgb), .45), 0 calc(var(--u) * 2) calc(var(--u) * 5) #000; }
+    .end img { height: calc(var(--u) * 30); aspect-ratio: 9 / 16; object-fit: cover; border-radius: 2px; box-shadow: 0 0 calc(var(--u) * 6) rgba(var(--rgb), .45), 0 calc(var(--u) * 2) calc(var(--u) * 5) #000; }
     .end small { margin-top: calc(var(--u) * .8); font-family: var(--mono); font-size: calc(var(--u) * 1.05); letter-spacing: .3em; color: var(--muted); }
     .end h2 { margin: 0; font-family: var(--kr); font-weight: 400; font-size: calc(var(--u) * 3.8); line-height: 1.08; word-break: keep-all; }
     .end .tl { margin: 0; font-size: calc(var(--u) * 1.55); color: #d6d0c4; font-weight: 500; word-break: keep-all; }
     .end .billing { margin-top: calc(var(--u) * .6); padding-top: calc(var(--u) * 1.2); border-top: 1px solid rgba(255,255,255,.14); width: 100%;
       font-family: 'Bebas Neue', var(--sans); font-size: calc(var(--u) * 1.4); letter-spacing: .1em; line-height: 1.45; color: #b8b2a6; }
     .end .billing b { color: var(--ink); font-family: var(--sans); font-weight: 700; letter-spacing: 0; }
+    .end .billing .cr { font-family: var(--sans); font-size: calc(var(--u) * 1.3); letter-spacing: 0; line-height: 1.6; }
+    .end .billing .cr span { color: var(--muted); }
     .end .cs { font-family: var(--display); font-size: calc(var(--u) * 3.6); letter-spacing: .08em; line-height: 1; color: var(--accent); text-shadow: 0 0 calc(var(--u) * 2) rgba(212,255,58,.35); }
 
     /* ── curtains & valance ── */
@@ -127,7 +129,7 @@
         <small>THE FOLLOWING PREVIEW</small>
         <h3>다음 예고편</h3>
         <p>이 예고편은 <b id="preDir"></b> 감독이<br>Seedance Cinema Lab<br>부스에서 직접 만들었습니다.</p>
-        <div class="meta"><span>ALL AUDIENCES</span><span id="preSeed"></span><span>SEED · SEEDREAM · SEEDANCE</span></div>
+        <div class="meta"><span>ALL AUDIENCES</span><span id="preGenre"></span><span>SEED · SEEDREAM · SEEDANCE</span></div>
       </div></div>
       <div class="scene play" id="sPlay">
         <video id="vid" muted playsinline preload="auto"></video>
@@ -176,6 +178,7 @@
     const fresh = [];        // new submissions — they jump the rotation
     let rot = 0;
     let current = null;
+    let credits = [];        // 제작 / 배급 / 상영관, from the feed
 
     const hexRgb = (h) => { const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})/i.exec(h || ''); return m ? m.slice(1).map((x) => parseInt(x, 16)).join(',') : '212,255,58'; };
     const show = (id) => document.querySelectorAll('.scene').forEach((s) => s.classList.toggle('on', s.id === id));
@@ -222,12 +225,12 @@
       await preload(it.poster);
       // pre-show
       $('#preDir').textContent = it.director;
-      $('#preSeed').textContent = `SEED NO.${pad(it.seed)}`;
+      $('#preGenre').textContent = `${it.genre?.en || ''} · ${it.genre?.ko || ''}`;
       show('sPre');
       $('#hall').classList.remove('closed');
       await sleep(PRE_MS);
       // trailer
-      $('#playTag').innerHTML = `<b style="--g:${esc(it.genre?.color || '')}">${esc(it.genre?.en || '')}</b>NO.${pad(it.seed)}`;
+      $('#playTag').innerHTML = `<b style="--g:${esc(it.genre?.color || '')}">${esc(it.genre?.en || '')}</b>`;
       $('#playDir').textContent = `${it.director} 감독`;
       $('#playLower').classList.remove('on');
       $('#prog').style.width = '0';
@@ -242,7 +245,9 @@
       $('#endGenre').textContent = `${it.genre?.en || ''} · ${it.genre?.ko || ''}`;
       $('#endTitle').textContent = `〈${it.title}〉`;
       $('#endTag').textContent = it.tagline ? `“${it.tagline}”` : '';
-      $('#endBill').innerHTML = `DIRECTED BY <b>${esc(it.director)}</b> &nbsp; SCREENPLAY BY <b>Seed</b><br>KEY ART BY <b>Seedream</b> &nbsp; MOTION BY <b>Seedance</b>`;
+      // same 제작 / 배급 / 상영관 credits as on the poster (content.json event.credits)
+      $('#endBill').innerHTML = `<div>DIRECTED BY <b>${esc(it.director)}</b></div>`
+        + credits.map((c) => `<div class="cr"><span>${esc(c.label)}:</span> <b>${esc(c.value)}</b></div>`).join('');
       show('sEnd');
       // warm up the next trailer while the end card is up
       const nx = peek();
@@ -266,7 +271,8 @@
       }
     })();
 
-    watchFeed('trailer', (list) => {
+    watchFeed('trailer', (list, d) => {
+      credits = d?.credits || credits;
       if (known) for (const it of [...list].reverse()) if (!known.has(it.id)) fresh.push(it);
       known = new Set([...(known || []), ...list.map((x) => x.id)]);
       items = list;

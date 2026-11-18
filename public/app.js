@@ -299,7 +299,7 @@ VIEWS.landing = () => {
         <div class="ticket-meta">
           <div><small>SCREEN</small><b>01</b></div>
           <div><small>DATE</small><b>${today()}</b></div>
-          <div><small>SEAT</small><b>YOU</b></div>
+          <div><small>DIRECTOR</small><b>YOU</b></div>
         </div>
       </div>
       <div class="ticket-perf"></div>
@@ -507,7 +507,7 @@ async function makeStory() {
     <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh;width:100%">
       <div>
         <div class="countdown" style="--p:0%"><b>S</b></div>
-        <div class="loading-msg">Seed가 SEED NO.를 발급하고<br>당신의 이야기를 쓰는 중…</div>
+        <div class="loading-msg">Seed가 <b>${esc(director)}</b> 감독님의<br>시놉시스를 생성 중…</div>
         <div class="loading-sub">GENRE + 6 KEYWORDS → STORY & PROMPT</div>
       </div>
       <div class="film-strip"></div>
@@ -528,15 +528,14 @@ VIEWS.story = () => {
   const el = render(`
     <button class="back" data-back>← 키워드 다시 뽑기</button>
     <p class="scene">${sceneLabel('story')}</p>
-    <div class="seed-chip"><i></i>SEED NO.${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
     <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">A FILM BY ${esc(s.director)}</span></div>
     <p class="story-body">${esc(st.logline)}</p>
     <details class="prompt-box"><summary>시놉시스 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
-    <details class="prompt-box" id="promptBox"><summary>자동으로 만들어지는 요청 보기</summary>
+    <details class="prompt-box" id="promptBox"><summary>자동 생성된 포스터 제작 프롬프트</summary>
       <div class="p-body"><pre>${esc(s.posterPrompt)}</pre>
-        <div class="p-meta"><span>SEEDREAM · 9:16 · SEED ${s.seed}${st.source === 'seed-llm' ? ' · WRITTEN BY SEED' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
+        <div class="p-meta"><span>SEEDREAM · 9:16${st.source === 'seed-llm' ? ' · WRITTEN BY SEED' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
       </div>
     </details>
     <div class="story-meta" style="margin-top:14px">${tags}</div>
@@ -559,7 +558,7 @@ VIEWS.story = () => {
 
 const POSTER_MSGS = [
   'Seedream이 조명을 세팅하는 중…', '주인공이 의상을 갈아입는 중…', '세트장에 안개를 깔고 있어요…',
-  'SEED NO.로 장면을 고정하는 중…', '컬러 그레이딩을 입히는 중…', '마지막 컷을 고르는 중…',
+  '카메라 앵글을 잡는 중…', '컬러 그레이딩을 입히는 중…', '마지막 컷을 고르는 중…',
 ];
 
 VIEWS.poster = () => {
@@ -579,7 +578,7 @@ VIEWS.poster = () => {
   }
   const el = render(`
     <p class="scene">${sceneLabel('poster')}</p>
-    <div class="notice"><span class="ico">✦</span><span><b>SEED NO.${pad(s.seed)}</b> → Seedream. ${esc(S.content.copy.posterNotice)}</span></div>
+    <div class="notice"><span class="ico">✦</span><span>${esc(S.content.copy.posterNotice)}</span></div>
     <div class="poster-wrap"><div class="loading-stage">
       <div>
         <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">${s.poster.etaSec || 60}</b></div>
@@ -635,7 +634,7 @@ async function renderPosterDone() {
     <h2 class="h2">이 영화의 첫 관객은 <em>당신</em>입니다.</h2>
     <div class="poster-wrap">
       <div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>NO.${pad(s.seed)}</span><span>${esc(s.story.genre.en)} · 9:16</span></div>
+      <div class="poster-caption"><span>A FILM BY ${esc(s.director)}</span><span>${esc(s.story.genre.en)} · 9:16</span></div>
     </div>
     <div class="btn-row"><button class="btn" id="save">${ic('download')}포스터 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
@@ -663,7 +662,6 @@ async function renderPosterDone() {
 
 VIEWS.trailer = () => {
   const s = S.session;
-  const k = S.boot.kakao;
   const failed = s.video.status === 'failed';
   const noMore = s.video.remaining <= 0; // per-session or per-phone daily limit used up
   const el = render(`
@@ -675,10 +673,9 @@ VIEWS.trailer = () => {
     ${failed ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(s.video.error || '')}</div>` : ''}
     <p class="story-body">${esc(s.story.videoKo)}</p>
     <p class="small" style="margin:-10px 0 18px">${esc(S.content.copy.videoNotice)}</p>
-    <details class="prompt-box"><summary>Seedance 트레일러 프롬프트 보기</summary>
-      <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE · IMAGE→VIDEO · SEED ${s.seed}</span><button class="copy-btn" data-copy>복사</button></div></div>
+    <details class="prompt-box"><summary>자동 생성된 트레일러 제작 프롬프트</summary>
+      <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE · IMAGE→VIDEO</span><button class="copy-btn" data-copy>복사</button></div></div>
     </details>
-    ${kakaoCard(k.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 알려드려요`, `약 ${fmtDur(s.video.etaSec)} · 자리를 떠나도 괜찮아요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="cta-bar">
       ${noMore ? `<div class="notice"><span class="ico">✦</span><span>${s.video.dailyLeft <= 0
         ? `트레일러는 번호당 하루 ${s.video.dailyMax}편까지 만들 수 있어요. 오늘은 모두 만들었어요! 만든 작품은 ‘내 결과 다시 보기’에서 볼 수 있어요.`
@@ -687,7 +684,6 @@ VIEWS.trailer = () => {
     </div>
   `);
   $('[data-back]', el).onclick = () => go('poster');
-  bindKakaoSave(el, () => sessionShareInfo(S.session));
   $('[data-copy]', el).onclick = async () => { await copyText(s.videoPrompt); toast('프롬프트를 복사했어요'); track('prompt_copied', { kind: 'video' }); };
   $('#makeVideo', el).onclick = async () => {
     $('#makeVideo').disabled = true;
@@ -765,7 +761,7 @@ VIEWS.waiting = () => {
         <div class="wait-row"><span id="wMsg">${RENDER_MSGS[0]}</span><span id="wTime">0:00</span></div>
       </div>
     </div></div>
-    ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, '자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!')}
+    ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!`, `약 ${fmtDur(s.video.etaSec)} 걸려요 · 자리를 떠나도 괜찮아요. 완성되면 같은 링크에서 바로 볼 수 있어요`)}
     <div class="btn-row"><button class="btn" id="copyLink">결과 링크 복사</button><button class="btn" id="again">${S.booth ? '다음 관람객' : '하나 더 만들기'}</button></div>
     <p class="small" style="text-align:center;margin-top:14px">이 화면을 켜 두면 완성되는 즉시 재생돼요.</p>
   `);
@@ -832,7 +828,7 @@ async function renderResult(r) {
         ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(r.posterFinal || r.posterRaw)}"></video>`
         : `<img class="kenburns" src="${esc(r.posterFinal || r.posterRaw)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`}
     </div>
-    <div class="poster-caption"><span>NO.${pad(r.info.seed)}</span><span>A FILM BY ${esc(r.info.director)}</span></div></div>
+    <div class="poster-caption"><span>${esc(r.info.genre?.en || '')}</span><span>A FILM BY ${esc(r.info.director)}</span></div></div>
     <div class="actions" id="actions"></div>
     ${screenCard(r.screen, { poster: true, trailer: !!r.videoUrl })}
     ${r.own ? (k.enabled
@@ -870,7 +866,7 @@ async function renderResult(r) {
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director} · SEED NO.${pad(r.info.seed)}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance Seoul Cinema Lab`;
+  const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance Seoul Cinema Lab`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -917,7 +913,7 @@ async function showResultPage(tok) {
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
       <div class="poster-wrap"><div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>NO.${pad(r.seed)}</span><span>A FILM BY ${esc(r.director)}</span></div></div>
+      <div class="poster-caption"><span>${esc(r.genre?.en || '')}</span><span>A FILM BY ${esc(r.director)}</span></div></div>
       ${['queued', 'submitting', 'running'].includes(r.videoStatus)
         ? `<div class="notice"><span class="ico">⏱</span><span>트레일러를 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
         : r.videoStatus === 'failed' ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
@@ -993,8 +989,22 @@ async function composePoster(src, info) {
   const accent = '#d4ff3a';
   x.textAlign = 'center';
   x.textBaseline = 'alphabetic';
-  spaced(x, 'SEEDANCE CINEMA LAB PRESENTS', W / 2, 86, '34px "Bebas Neue", "Noto Sans KR", sans-serif', 8, 'rgba(255,255,255,.88)');
-  spaced(x, `AN ORIGINAL ${info.genre.en} FILM`, W / 2, 128, '24px "Bebas Neue", "Noto Sans KR", sans-serif', 6, accent);
+  // Billing block: 제작 / 배급 / 상영관 from content.json (event.credits), shared with the trailer screen.
+  const credits = S.content?.event?.credits || [];
+  const LAB = '500 25px "Noto Sans KR", sans-serif', VAL = '700 27px "Noto Sans KR", sans-serif';
+  x.textAlign = 'left';
+  x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 12;
+  credits.forEach((cr, i) => {
+    const y = 76 + i * 42;
+    const lab = `${cr.label}: `;
+    x.font = LAB; const lw = x.measureText(lab).width;
+    x.font = VAL; const vw = x.measureText(cr.value).width;
+    const x0 = (W - lw - vw) / 2;
+    x.font = LAB; x.fillStyle = 'rgba(255,255,255,.66)'; x.fillText(lab, x0, y);
+    x.font = VAL; x.fillStyle = '#fff'; x.fillText(cr.value, x0 + lw, y);
+  });
+  x.shadowBlur = 0;
+  x.textAlign = 'center';
 
   // Title (auto-fit, up to 2 lines)
   const title = info.title;
@@ -1018,20 +1028,15 @@ async function composePoster(src, info) {
   tag.forEach((l, i) => x.fillText(l, W / 2, tagBottom - (tag.length - 1 - i) * 50));
 
   // Credits
-  spaced(x, `A FILM BY ${String(info.director || 'YOU').toUpperCase()}`, W / 2, H - 216, '50px "Bebas Neue", "Noto Sans KR", sans-serif', 10, '#fff');
-  const kws = Object.values(info.keywords || {}).map((k) => k.ko);
+  spaced(x, `A FILM BY ${String(info.director || 'YOU').toUpperCase()}`, W / 2, H - 196, '50px "Bebas Neue", "Noto Sans KR", sans-serif', 10, '#fff');
   x.globalAlpha = 0.6;
-  spaced(x, `STORY BY SEED   ·   KEY ART BY SEEDREAM   ·   MOTION BY SEEDANCE   ·   SEED ${info.seed}`, W / 2, H - 162, '24px "Bebas Neue", sans-serif', 3, '#fff');
-  x.font = '400 21px "Noto Sans KR", sans-serif';
-  const kwLines = wrapLines(x, kws.join('  ·  '), W * 0.86, '  ·  ').slice(0, 2);
-  x.fillStyle = '#fff';
-  kwLines.forEach((l, i) => x.fillText(l, W / 2, H - 126 + i * 30));
+  spaced(x, 'STORY BY SEED   ·   KEY ART BY SEEDREAM   ·   MOTION BY SEEDANCE', W / 2, H - 132, '24px "Bebas Neue", sans-serif', 3, '#fff');
   x.globalAlpha = 1;
 
   x.fillStyle = 'rgba(255,255,255,.25)';
   x.fillRect(80, H - 72, W - 160, 1);
   x.textAlign = 'left';
-  spaced(x, `NO.${pad(info.seed)}`, 80, H - 34, '30px "Bebas Neue", sans-serif', 4, accent);
+  spaced(x, String(info.genre?.en || 'FILM').toUpperCase(), 80, H - 34, '30px "Bebas Neue", sans-serif', 4, accent);
   x.textAlign = 'right';
   spaced(x, 'SEOUL 2026', W - 84, H - 34, '30px "Bebas Neue", sans-serif', 4, '#fff');
   x.textAlign = 'center';
@@ -1106,7 +1111,7 @@ async function composeTicket(posterSrc, info) {
     ['DATE', today()],
     ['TIME', `${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`],
     ['GENRE', info.genre?.en || 'FILM'],
-    ['SEAT', pad(info.seed)],
+    ['SCREEN', '01'],
   ];
   const gy = yDir + 50, cw = pw / cells.length;
   x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(px, gy, pw, 2);
@@ -1141,7 +1146,7 @@ async function composeTicket(posterSrc, info) {
   x.textAlign = 'right';
   spaced(x, 'ADMIT ONE', px + pw, by + 40, '50px "Bebas Neue", sans-serif', 6, accent);
   spaced(x, 'SEEDANCE CINEMA LAB', px + pw, by + 80, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.75)');
-  spaced(x, `SEOUL 2026 · NO.${pad(info.seed)}`, px + pw, by + 112, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
+  spaced(x, 'SEOUL 2026', px + pw, by + 112, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
   return c.toDataURL('image/jpeg', 0.92);

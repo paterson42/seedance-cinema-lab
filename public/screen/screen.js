@@ -7,7 +7,7 @@ export const pad = (n, w = 6) => String(n ?? 0).padStart(w, '0');
 const params = new URLSearchParams(location.search);
 const key = params.get('key');
 
-// Polls the feed; calls onItems(items) after every successful fetch. Keeps the last
+// Polls the feed; calls onItems(items, response) after every successful fetch. Keeps the last
 // good list while the network is down and shows a small OFFLINE marker.
 export function watchFeed(kind, onItems, everyMs = 6000) {
   const dot = document.createElement('div');
@@ -21,7 +21,7 @@ export function watchFeed(kind, onItems, everyMs = 6000) {
         const q = new URLSearchParams({ kind, ...(key ? { key } : {}) });
         const r = await fetch(`/api/screen/feed?${q}`, { cache: 'no-store' });
         if (r.status === 401) { dot.textContent = 'SCREEN KEY 필요 — 주소에 ?key= 를 붙여 주세요'; dot.hidden = false; }
-        else if (r.ok) { dot.hidden = true; onItems((await r.json()).items || []); }
+        else if (r.ok) { dot.hidden = true; const d = await r.json(); onItems(d.items || [], d); }
         else dot.hidden = false;
       } catch { dot.hidden = false; }
       await sleep(everyMs);
