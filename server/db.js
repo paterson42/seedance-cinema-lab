@@ -84,6 +84,8 @@ const MIGRATIONS = {
   screen_poster_at: 'INTEGER',
   screen_video: 'TEXT',       // null | pending | live | hidden  (trailer screen)
   screen_video_at: 'INTEGER',
+  poster_overlay_file: 'TEXT', // transparent PNG of the key visual's text layer
+  video_raw_file: 'TEXT',      // the clip as Seedance returned it, before the text layer
 };
 const have = new Set(db.prepare('PRAGMA table_info(sessions)').all().map((c) => c.name));
 for (const [col, type] of Object.entries(MIGRATIONS)) if (!have.has(col)) db.exec(`ALTER TABLE sessions ADD COLUMN ${col} ${type}`);

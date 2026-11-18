@@ -71,6 +71,12 @@ export const config = {
     // booth screens play muted anyway, so it is off unless asked for.
     videoAudio: bool('SEEDANCE_AUDIO', false),
   },
+  // The key visual's text layer is laid over the finished clip with ffmpeg (needs ffmpeg).
+  video: {
+    overlay: bool('VIDEO_OVERLAY', true),
+    fadeAt: num('VIDEO_OVERLAY_FADE_AT', 1),    // seconds of clean footage before the text comes in
+    fadeSec: num('VIDEO_OVERLAY_FADE_SEC', 0.6), // 0 = text is there from the first frame
+  },
   queue: {
     posterConcurrency: num('POSTER_CONCURRENCY', 6),
     videoMaxInflight: num('VIDEO_MAX_INFLIGHT', 10),

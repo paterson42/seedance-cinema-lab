@@ -708,7 +708,8 @@ async function renderPosterDone() {
   $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="${esc(s.story.title)} 광고 키비주얼">`;
   // Uploading the finished key visual also puts it on the booth key-visual screen (server side).
   if (src.startsWith('data:') && !s.poster.finalUrl) {
-    api('/api/poster/final', { method: 'POST', body: { dataUrl: src }, retries: 3 })
+    const overlayUrl = await composePoster(null, infoFromSession(s), { layer: true }).catch(() => null);
+    api('/api/poster/final', { method: 'POST', body: { dataUrl: src, overlayUrl }, retries: 3 })
       .then(() => S.view === 'poster' && refreshScreenCard(el, S.session.screen)).catch(() => {});
   }
   const fname = `seedance-commerce-${pad(s.seed)}.jpg`;
@@ -1058,18 +1059,22 @@ function wrapLines(ctx, text, maxW, sep = ' ') {
   return lines;
 }
 
-async function composePoster(src, info) {
+// layer: true draws only the lettering on a transparent canvas (PNG). The server lays that over
+// the finished video, so the video shows the same text as the key visual.
+async function composePoster(src, info, { layer = false } = {}) {
   await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}${S.content?.event?.sponsor || ''}`);
-  const img = await loadImg(src);
+  const img = layer ? null : await loadImg(src);
   // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
   const W = 1125, H = 2000, OUT_W = 1080;
   const c = document.createElement('canvas');
   c.width = OUT_W; c.height = Math.round((OUT_W * H) / W);
   const x = c.getContext('2d');
   x.scale(OUT_W / W, OUT_W / W);
-  const r = Math.max(W / img.naturalWidth, H / img.naturalHeight);
-  const iw = img.naturalWidth * r, ih = img.naturalHeight * r;
-  x.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih);
+  if (img) {
+    const r = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+    const iw = img.naturalWidth * r, ih = img.naturalHeight * r;
+    x.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih);
+  }
 
   let g = x.createLinearGradient(0, 0, 0, H * 0.24);
   g.addColorStop(0, 'rgba(0,0,0,.8)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1186,7 +1191,7 @@ async function composePoster(src, info) {
   x.font = '600 30px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.fillStyle = '#fff';
   x.fillText(S.content?.event?.sponsor || 'Sponsored by BytePlus', W / 2, H - 58);
 
-  return c.toDataURL('image/jpeg', 0.9);
+  return layer ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9);
 }
 
 // ───────────────────────── product card ─────────────────────────

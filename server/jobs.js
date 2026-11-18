@@ -8,6 +8,7 @@ import { query, queryOne, getSession, updateSession, logEvent, db } from './db.j
 import { generateImage, submitVideo, getVideoTask } from './providers/ark.js';
 import { sendTrailerReady } from './providers/kakao.js';
 import { token } from './privacy.js';
+import { burnOverlay } from './overlay.js';
 
 const runningPosters = new Set();
 let videoPolling = false;
@@ -19,10 +20,15 @@ function saveMedia(buffer, ext) {
   return name;
 }
 
-export function saveFinalPoster(sessionId, buffer) {
+const dropMedia = (file) => file && fs.rmSync(path.join(MEDIA_DIR, file), { force: true });
+
+// overlay: the same lettering on a transparent background, burnt onto the video later.
+export function saveFinalPoster(sessionId, buffer, overlay) {
   const s = getSession(sessionId);
-  if (s.poster_final_file) fs.rmSync(path.join(MEDIA_DIR, s.poster_final_file), { force: true });
-  return updateSession(sessionId, { poster_final_file: saveMedia(buffer, 'jpg') });
+  dropMedia(s.poster_final_file);
+  const patch = { poster_final_file: saveMedia(buffer, 'jpg') };
+  if (overlay) { dropMedia(s.poster_overlay_file); patch.poster_overlay_file = saveMedia(overlay, 'png'); }
+  return updateSession(sessionId, patch);
 }
 
 // ───────────── Poster (Seedream) ─────────────
@@ -66,6 +72,7 @@ export function enqueuePoster(sessionId) {
     poster_requested_at: Date.now(),
     poster_error: null,
     poster_final_file: null,
+    poster_overlay_file: null,
     video_status: 'idle',
     video_error: null,
   });
@@ -133,10 +140,15 @@ async function pollVideos() {
       try {
         const r = await getVideoTask(s.video_task_id);
         if (r.status === 'succeeded') {
-          const file = r.buffer ? saveMedia(r.buffer, 'mp4') : null;
-          if (s.video_file) fs.rmSync(path.join(MEDIA_DIR, s.video_file), { force: true });
+          // Lay the key visual's lettering over the clip; the clean clip is kept beside it.
+          const titled = r.buffer ? await burnOverlay(r.buffer, getSession(s.id).poster_overlay_file) : null;
+          const raw = r.buffer ? saveMedia(r.buffer, 'mp4') : null;
+          const file = titled ? saveMedia(titled, 'mp4') : raw;
+          dropMedia(s.video_file);
+          if (s.video_raw_file !== s.video_file) dropMedia(s.video_raw_file);
+          logEvent(s.id, 'video_overlay', { ok: !!titled });
           const done = updateSession(s.id, {
-            video_status: 'done', video_file: file, video_done_at: Date.now(), video_count: (s.video_count || 0) + 1,
+            video_status: 'done', video_file: file, video_raw_file: raw, video_done_at: Date.now(), video_count: (s.video_count || 0) + 1,
           });
           logEvent(s.id, 'video_done', { ms: Date.now() - s.video_requested_at });
           postTrailerToScreen(s.id);

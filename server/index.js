@@ -278,12 +278,15 @@ route('POST', '/api/poster', async (req, res) => {
 route('POST', '/api/poster/final', async (req, res) => {
   const s = requireSession(req);
   if (s.poster_status !== 'done') fail(400, '키비주얼이 아직 준비되지 않았어요.');
-  const { dataUrl } = await readBody(req, 8 * 1024 * 1024);
+  const { dataUrl, overlayUrl } = await readBody(req, 12 * 1024 * 1024);
   const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
   if (!m) fail(400, '이미지 형식이 올바르지 않아요.');
   const buf = Buffer.from(m[1], 'base64');
   if (buf[0] !== 0xff || buf[1] !== 0xd8) fail(400, '이미지 형식이 올바르지 않아요.');
-  saveFinalPoster(s.id, buf);
+  // Optional: the same lettering as a transparent PNG, laid over the video when it is done.
+  const o = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(overlayUrl || ''));
+  const obuf = o ? Buffer.from(o[1], 'base64') : null;
+  saveFinalPoster(s.id, buf, obuf && obuf[0] === 0x89 && obuf[1] === 0x50 ? obuf : null);
   const updated = postPosterToScreen(s.id); // titled poster is ready: hang it on the booth screen
   json(res, 200, { session: sessionView(updated) });
 });
@@ -373,7 +376,9 @@ function screenItem(s, kind) {
     genre: { id: s.genre, ko: s.story?.genre?.ko, en: s.story?.genre?.en, color: g?.palette?.[0] || '#b9a2ff' },
     keywords: Object.values(s.keywords || {}).map((k) => k.ko),
     poster: media(s.poster_final_file || s.poster_file),
-    video: kind === 'trailer' ? media(s.video_file) : null,
+    // The booth feed screen has its own top bar and caption, so it plays the clip without the
+    // burnt-in lettering; phones and the result link get the lettered one.
+    video: kind === 'trailer' ? media(s.video_raw_file || s.video_file) : null,
     at: kind === 'trailer' ? s.screen_video_at : s.screen_poster_at,
   };
 }
