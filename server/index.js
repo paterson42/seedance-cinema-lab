@@ -7,8 +7,13 @@ import { createSession, getSession, getSessionByToken, updateSession, query, que
 import { publicContent, getContent, saveContent, containsBanned } from './content.js';
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
 import { buildStory } from './story.js';
-import { enqueuePoster, enqueueVideo, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
+import {
+  dailyLeft, assertDaily, isTestSession, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
+  allowlistCount, allowlistRecent, parseNumbers, saveAllowlist, clearAllowlist, phoneStatus, grantExtraFlow,
+} from './limits.js';
+import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
+import { etaSec } from './eta.js';
 
 // ───────────── tiny HTTP toolkit ─────────────
 const MIME = {
@@ -18,9 +23,9 @@ const MIME = {
 };
 
 class HttpError extends Error {
-  constructor(status, message, code) { super(message); this.status = status; this.code = code; }
+  constructor(status, message, code, extra) { super(message); this.status = status; this.code = code; this.extra = extra; }
 }
-const fail = (status, message, code) => { throw new HttpError(status, message, code); };
+const fail = (status, message, code, extra) => { throw new HttpError(status, message, code, extra); };
 
 function json(res, status, body, headers = {}) {
   res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store', ...headers });
@@ -81,7 +86,8 @@ const screenView = (s) => ({ poster: screenState(s.screen_poster), trailer: scre
 
 function sessionView(s) {
   if (!s) return null;
-  const etaSec = config.queue.videoEtaSec;
+  const posterQ = queuePosition('poster', s);
+  const videoQ = queuePosition('video', s);
   return {
     id: s.id,
     phoneMasked: s.phone_masked,
@@ -98,19 +104,23 @@ function sessionView(s) {
       url: media(s.poster_file),
       finalUrl: media(s.poster_final_file),
       error: s.poster_error,
-      queuePos: queuePosition('poster', s),
+      queuePos: posterQ,
       requestedAt: s.poster_requested_at,
-      remaining: Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0)),
+      etaSec: etaSec('poster', posterQ),
+      remaining: isTestSession(s) ? 99 : Math.min(dailyLeft(s, 'poster'), Math.max(0, config.queue.posterMaxPerSession - (s.poster_count || 0))),
     },
     video: {
       status: s.video_status,
       url: media(s.video_file),
       error: s.video_error,
-      queuePos: queuePosition('video', s),
+      queuePos: videoQ,
       requestedAt: s.video_requested_at,
-      etaSec,
-      remaining: Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0)),
+      etaSec: etaSec('video', videoQ),
+      dailyLeft: dailyLeft(s, 'video'),
+      dailyMax: config.limits.phoneDailyVideos,
+      remaining: isTestSession(s) ? 99 : Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
     },
+    flows: flowInfo(s),
     resultUrl: s.result_token ? `/r/${s.result_token}` : null,
     kakaoStatus: s.kakao_status,
     screen: screenView(s),
@@ -132,7 +142,8 @@ function resultView(s) {
     videoUrl: media(s.video_file),
     videoError: s.video_error,
     videoRequestedAt: s.video_requested_at,
-    etaSec: config.queue.videoEtaSec,
+    videoQueuePos: queuePosition('video', s),
+    etaSec: etaSec('video', queuePosition('video', s)),
     createdAt: s.created_at,
     expiresAt: s.result_expires_at,
     screen: screenView(s),
@@ -157,7 +168,7 @@ route('GET', '/api/bootstrap', async (req, res) => {
     content: publicContent(),
     mode: config.mock ? 'mock' : 'live',
     kakao: { enabled: kakaoEnabled(), provider: config.kakao.provider, jsKey: config.kakao.jsKey || null },
-    videoEtaSec: config.queue.videoEtaSec,
+    videoEtaSec: etaSec('video'),
     publicBaseUrl: config.publicBaseUrlSet ? config.publicBaseUrl : null,
     session: sessionView(s),
   });
@@ -183,20 +194,41 @@ route('POST', '/api/session', async (req, res) => {
 route('POST', '/api/session/phone', async (req, res) => {
   const s = requireSession(req, { phone: false });
   rateLimit(`phone:${ip(req)}`, 1000, 600000);
-  const { phone, consentPrivacy, consentMarketing } = await readBody(req);
+  const { phone, consentPrivacy } = await readBody(req);
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요. (예: 010-1234-5678)', 'BAD_PHONE');
   if (!consentPrivacy) fail(400, '개인정보 수집·이용에 동의해야 결과를 받아볼 수 있어요.', 'NO_CONSENT');
+  assertPhoneMayEnter(p, fail); // pre-registered list + experiences per person
   const updated = updateSession(s.id, {
     phone_enc: encrypt(p), phone_hash: hashPhone(p), phone_masked: maskPhone(p),
-    consent_at: Date.now(), consent_marketing: consentMarketing ? 1 : 0,
+    consent_at: Date.now(), consent_marketing: 0, // phone numbers are not used for marketing
   });
-  logEvent(s.id, 'phone_ok', { marketing: !!consentMarketing });
+  logEvent(s.id, 'phone_ok');
   json(res, 200, { session: sessionView(updated) });
 });
 
+// One generation at a time per visitor. While a poster or trailer is being made, any request that
+// would start or change one answers 409 BUSY with the current session, and the phone goes back to
+// the waiting screen. Repeating the same request (double tap, network retry) is answered with the
+// session as-is (see /api/poster and /api/video), which also lands on the waiting screen.
+const POSTER_BUSY = ['queued', 'running'];
+const VIDEO_BUSY = ['queued', 'submitting', 'running'];
+function busyWith(s) {
+  if (POSTER_BUSY.includes(s.poster_status)) return 'poster';
+  if (VIDEO_BUSY.includes(s.video_status)) return 'video';
+  return null;
+}
+function assertNotBusy(s) {
+  const b = busyWith(s);
+  if (!b) return;
+  fail(409, b === 'poster' ? '키비주얼을 만들고 있어요. 완성될 때까지 조금만 기다려 주세요.' : '광고 영상을 만들고 있어요. 완성될 때까지 조금만 기다려 주세요.',
+    'BUSY', { busy: b, session: sessionView(s) });
+}
+
 route('POST', '/api/session/genre', async (req, res) => {
   const s = requireSession(req);
+  assertNotBusy(s);
+  assertMayGenerate(s, fail);
   const { genre } = await readBody(req);
   if (!getContent().genres.some((g) => g.id === genre)) fail(400, '광고 무드를 다시 선택해 주세요.');
   const updated = updateSession(s.id, { genre });
@@ -207,14 +239,18 @@ route('POST', '/api/session/genre', async (req, res) => {
 route('POST', '/api/story', async (req, res) => {
   const s = requireSession(req);
   if (!s.genre) fail(400, '광고 무드를 먼저 선택해 주세요.');
+  assertNotBusy(s);
+  assertMayGenerate(s, fail);
   rateLimit(`story:${s.id}`, 30, 600000);
+  assertDaily(s, 'story', fail);
   const { keywords, director: rawDirector } = await readBody(req);
   const director = String(rawDirector || '').replace(/[<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
-  if (!director) fail(400, '브랜드 이름을 입력해 주세요.', 'NO_DIRECTOR');
+  if (!director) fail(400, '이름을 입력해 주세요.', 'NO_DIRECTOR');
   if (containsBanned(director)) fail(400, '다른 이름을 입력해 주세요.', 'BANNED');
   const seed = crypto.randomInt(1, 1000000);
   const built = await buildStory({ genreId: s.genre, keywordIdx: keywords, director, seed });
   if (built.error) fail(400, built.error);
+  assertNotBusy(getSession(s.id)); // a generation may have started during the LLM call
   const updated = updateSession(s.id, {
     keywords: built.keywords, director, seed, story: built.story,
     poster_prompt: built.posterPrompt, video_prompt: built.videoPrompt,
@@ -226,8 +262,11 @@ route('POST', '/api/story', async (req, res) => {
 route('POST', '/api/poster', async (req, res) => {
   const s = requireSession(req);
   if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 광고 카피를 만들어 주세요.');
-  if (['queued', 'running'].includes(s.poster_status)) return json(res, 200, { session: sessionView(s) });
-  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession) fail(429, '이 체험에서 만들 수 있는 키비주얼 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
+  if (POSTER_BUSY.includes(s.poster_status)) return json(res, 200, { session: sessionView(s) }); // already making it
+  assertNotBusy(s); // a trailer is being made from the current poster
+  assertMayGenerate(s, fail);
+  assertDaily(s, 'poster', fail);
+  if ((s.poster_count || 0) >= config.queue.posterMaxPerSession && !isTestSession(s)) fail(429, '이 체험에서 만들 수 있는 키비주얼 수를 모두 사용했어요. 새로 체험을 시작해 주세요.', 'LIMIT');
   if (!s.result_token) {
     updateSession(s.id, { result_token: token(16), result_expires_at: Date.now() + config.resultTtlDays * 86400000 });
   }
@@ -244,15 +283,19 @@ route('POST', '/api/poster/final', async (req, res) => {
   if (!m) fail(400, '이미지 형식이 올바르지 않아요.');
   const buf = Buffer.from(m[1], 'base64');
   if (buf[0] !== 0xff || buf[1] !== 0xd8) fail(400, '이미지 형식이 올바르지 않아요.');
-  const updated = saveFinalPoster(s.id, buf);
+  saveFinalPoster(s.id, buf);
+  const updated = postPosterToScreen(s.id); // titled poster is ready: hang it on the booth screen
   json(res, 200, { session: sessionView(updated) });
 });
 
 route('POST', '/api/video', async (req, res) => {
   const s = requireSession(req);
+  if (VIDEO_BUSY.includes(s.video_status)) return json(res, 200, { session: sessionView(s) }); // already making it
+  assertNotBusy(s); // a poster is being (re)made
   if (s.poster_status !== 'done' || !s.poster_file) fail(400, '키비주얼을 먼저 만들어 주세요.');
-  if (['queued', 'submitting', 'running'].includes(s.video_status)) return json(res, 200, { session: sessionView(s) });
-  if ((s.video_count || 0) >= config.queue.videoMaxPerSession) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
+  assertMayGenerate(s, fail);
+  assertDaily(s, 'video', fail);
+  if ((s.video_count || 0) >= config.queue.videoMaxPerSession && !isTestSession(s)) fail(429, '이 체험에서 만들 수 있는 영상 수를 모두 사용했어요.', 'LIMIT');
   enqueueVideo(s.id);
   logEvent(s.id, 'video_requested');
   json(res, 200, { session: sessionView(getSession(s.id)) });
@@ -276,13 +319,13 @@ route('POST', '/api/lookup', async (req, res) => {
   const p = normalizePhone(phone);
   if (!p) fail(400, '휴대폰 번호 형식을 확인해 주세요.', 'BAD_PHONE');
   const name = String(director || '').replace(/\s+/g, ' ').trim();
-  if (!name) fail(400, '체험할 때 입력한 브랜드 이름을 입력해 주세요.');
+  if (!name) fail(400, '체험할 때 입력한 이름을 입력해 주세요.');
   const rows = query(
     "SELECT * FROM sessions WHERE phone_hash = ? AND poster_status = 'done' AND result_token IS NOT NULL ORDER BY created_at DESC LIMIT 10",
     hashPhone(p),
   ).filter((s) => (s.director || '').toLowerCase() === name.toLowerCase() && (!s.result_expires_at || s.result_expires_at > Date.now()));
   logEvent(null, rows.length ? 'lookup_ok' : 'lookup_miss');
-  if (!rows.length) fail(404, '일치하는 결과가 없어요. 번호와 브랜드 이름을 다시 확인해 주세요.', 'NOT_FOUND');
+  if (!rows.length) fail(404, '일치하는 결과가 없어요. 번호와 이름을 다시 확인해 주세요.', 'NOT_FOUND');
   json(res, 200, {
     results: rows.map((s) => ({
       url: `/r/${s.result_token}`, title: s.story?.title, genre: s.story?.genre?.ko,
@@ -342,7 +385,7 @@ route('GET', '/api/screen/feed', async (req, res) => {
   const rows = kind === 'trailer'
     ? query("SELECT * FROM sessions WHERE screen_video = 'live' AND video_status = 'done' AND video_file IS NOT NULL ORDER BY screen_video_at DESC LIMIT 60")
     : query("SELECT * FROM sessions WHERE screen_poster = 'live' AND poster_status = 'done' ORDER BY screen_poster_at DESC LIMIT 60");
-  json(res, 200, { kind, items: rows.map((s) => screenItem(s, kind)), now: Date.now() });
+  json(res, 200, { kind, items: rows.map((s) => screenItem(s, kind)), credits: getContent().event?.credits || [], now: Date.now() });
 });
 
 const EVENT_NAMES = new Set([
@@ -414,6 +457,42 @@ route('POST', '/api/admin/screen', async (req, res) => {
   updateSession(s.id, { [cols[0]]: status });
   logEvent(s.id, `screen_${kind}_${status}`);
   json(res, 200, { ok: true });
+});
+
+// Pre-registered numbers & experiences per person
+route('GET', '/api/admin/allowlist', async (req, res) => {
+  requireAdmin(req);
+  json(res, 200, { enabled: allowlistEnabled(), count: allowlistCount(), recent: allowlistRecent(30), maxFlows: config.limits.phoneMaxFlows });
+});
+route('POST', '/api/admin/allowlist', async (req, res) => {
+  requireAdmin(req);
+  const { action, text, mode, enabled, phone } = await readBody(req, 4 * 1024 * 1024);
+  if (action === 'toggle') {
+    if (enabled && !allowlistCount()) fail(400, '명단이 비어 있어요. 번호를 먼저 올린 뒤 켜 주세요.');
+    setAllowlistEnabled(!!enabled);
+    console.log(`[admin] allowlist ${enabled ? 'ON' : 'OFF'}`);
+    return json(res, 200, { enabled: allowlistEnabled() });
+  }
+  if (action === 'upload') {
+    const { numbers, invalid } = parseNumbers(text);
+    if (!numbers.length) fail(400, '올바른 휴대폰 번호를 찾지 못했어요.');
+    const r = saveAllowlist(numbers, mode === 'replace' ? 'replace' : 'add');
+    console.log(`[admin] allowlist ${mode}: ${numbers.length} numbers, total ${r.after}`);
+    return json(res, 200, { parsed: numbers.length, invalid: invalid.slice(0, 50), invalidCount: invalid.length, ...r });
+  }
+  if (action === 'clear') {
+    clearAllowlist();
+    setAllowlistEnabled(false);
+    console.log('[admin] allowlist cleared and switched off');
+    return json(res, 200, { count: 0, enabled: false });
+  }
+  if (action === 'check' || action === 'grant') {
+    if (action === 'grant' && !grantExtraFlow(phone)) fail(400, '명단에 있는 번호만 횟수를 추가할 수 있어요.');
+    const st = phoneStatus(phone);
+    if (!st) fail(400, '휴대폰 번호 형식을 확인해 주세요.');
+    return json(res, 200, st);
+  }
+  fail(400, 'bad request');
 });
 
 route('GET', '/api/admin/content', async (req, res) => {
@@ -510,7 +589,7 @@ const server = http.createServer(async (req, res) => {
   } catch (e) {
     const status = e instanceof HttpError ? e.status : 500;
     if (status === 500) console.error(e);
-    if (!res.headersSent) json(res, status, { error: status === 500 ? '서버에 일시적인 문제가 생겼어요.' : e.message, code: e.code });
+    if (!res.headersSent) json(res, status, { ...(status !== 500 && e.extra), error: status === 500 ? '서버에 일시적인 문제가 생겼어요.' : e.message, code: e.code });
     else res.end();
   }
 });

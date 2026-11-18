@@ -42,52 +42,59 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Story fields keep their original names so the rest of the flow is unchanged:
 //   title = product name, tagline = headline copy, logline = campaign concept,
-//   synopsis = product-page copy, director = the visitor's brand name.
+//   synopsis = product-page copy, director = the visitor's own name (credited as the ad's creator).
 function templateStory({ genre, kw, director, seed }) {
   const r = rng(seed);
   const title = pick(r, genre.titles).replace('{n}', kw.what.n);
   const tagline = pick(r, genre.taglines);
   const logline = `${kw.when.ko}, ${kw.where.ko} ${kw.who.ko}에게 ${obj(kw.what.ko)} ${kw.how.ko} 선보인다. 구매 포인트는 단 하나 — ${kw.why.ko}.`;
-  const synopsis = `${director}의 신상 〈${title}〉. ${logline} ${genre.tail}`;
+  const synopsis = `${director} 님이 기획한 신상 〈${title}〉. ${logline} ${genre.tail}`;
   return { title, tagline, logline, synopsis, director };
 }
 
+// Appended to every key-visual / ad-video prompt (Seed-written or template) so results read as a
+// real commercial shoot, not a glossy AI render.
+const POSTER_REALISM = 'Photographed like a real commercial advertising shoot: professional camera and real lenses, true-to-life product materials and surface texture, natural skin texture on any person, practical motivated lighting, natural color, believable proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration.';
+const VIDEO_REALISM = 'Live-action commercial footage: real camera movement with natural motion blur, realistic physics and weight, the product, faces and hands stay consistent with the key visual without morphing.';
+const VIDEO_GUARD = 'Keep the same product, palette and composition as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
+const SECS = () => config.ark.videoDuration;
+
 function posterPrompt({ genre, kw }) {
   return [
-    'Commercial advertising key visual for an e-commerce campaign, vertical 2:3 composition.',
+    'Commercial advertising key visual for an e-commerce campaign, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), product centred with headroom.',
     `Hero product: ${kw.what.en}, sharply detailed and clearly the focus of the frame, with clean unbranded packaging.`,
     `Featuring ${kw.who.en}.`,
     `Setting: ${kw.where.en}, ${kw.when.en}.`,
     `Creative concept: ${kw.how.en}. The image should convey ${kw.why.en}.`,
     `Style: ${genre.style}.`,
-    'Premium product photography, desirable and tactile, strong focal point, rich depth, art-directed lighting, masterpiece quality.',
+    'Premium product photography, desirable and tactile, strong focal point, rich depth, art-directed lighting.',
+    POSTER_REALISM,
     'Keep the top edge and the lower third darker and uncluttered for headline and call-to-action placement. No text, no letters, no words, no logos, no brand names, no price tags, no watermark.',
   ].join(' ');
 }
 
 function videoPrompt({ genre, kw }) {
   return [
-    'The ad key visual comes alive as an 8-second vertical short-form commercial shot.',
+    `The ad key visual comes alive as a ${SECS()}-second vertical short-form commercial shot.`,
     `${cap(kw.what.en)} stays the hero of the shot, ${kw.how.en}, with ${kw.who.en}, ${kw.where.en}, ${kw.when.en}.`,
     `Camera and motion: ${genre.motion}.`,
-    `Smooth, coherent, polished commercial motion. ${VIDEO_GUARD}`,
+    VIDEO_REALISM,
+    VIDEO_GUARD,
   ].join(' ');
 }
 
 function videoPromptKo({ genre, kw }) {
-  return `키비주얼 속 ${subj(kw.what.ko)} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 무드의 카메라 워크로 8초 내외의 숏폼 광고를 만듭니다.`;
+  return `키비주얼 속 ${subj(kw.what.ko)} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 무드의 카메라 워크로 ${SECS()}초 숏폼 광고를 만듭니다.`;
 }
 
-const VIDEO_GUARD = 'Keep the same product, palette and composition as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
-
-const LLM_SYSTEM = `You are a sharp, playful Korean advertising copywriter working at an AI e-commerce ad booth.
-The visitor's brand is launching one fictional product. Return ONLY a JSON object with keys:
-"title" (Korean product name, 2-12 characters, catchy and brandable, no quotes, must not be a real existing brand or product name),
+const LLM_SYSTEM = () => `You are a sharp, playful Korean advertising copywriter working at an AI e-commerce ad booth.
+The visitor is launching one fictional product. Return ONLY a JSON object with keys:
+"title" (Korean product name, 2-10 characters, catchy and brandable, no quotes, must not be a real existing brand or product name),
 "tagline" (Korean ad headline, one sentence, max 30 characters),
 "logline" (Korean, 1-2 sentences describing the campaign concept, must naturally include all six keywords),
 "synopsis" (Korean product-page copy, 3-4 sentences, persuasive but with no medical, health or guaranteed-result claims),
-"poster_prompt" (English image prompt for a vertical 2:3 advertising key visual. The product is the clear hero with clean unbranded packaging. Describe product, model, setting, lighting, color grading, composition. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
-"video_prompt" (English prompt, 1-3 sentences, describing how this exact key visual comes alive as an 8-second vertical short-form commercial: camera movement, product and model motion, atmosphere. No on-screen text).
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot: the product as the clear hero with clean unbranded packaging, the model if any (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
+"video_prompt" (English prompt, 1-3 sentences, describing how this exact key visual comes alive as a ${config.ark.videoDuration}-second vertical short-form commercial shot: one clear camera move, what the product and model physically do, small natural details like light changes, steam or droplets. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly. Never mention real brands, celebrities or trademarks.`;
 
 export async function buildStory({ genreId, keywordIdx, director, seed }) {
@@ -103,8 +110,8 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
     try {
       const user = `Ad mood: ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
 Keywords — 타깃 고객: ${kw.who.ko} / 시점: ${kw.when.ko} / 장소: ${kw.where.ko} / 상품: ${kw.what.ko} / 연출: ${kw.how.ko} / 구매 포인트: ${kw.why.ko}.
-Brand name: ${director}. Random seed: ${seed}.`;
-      const out = await chatJSON(LLM_SYSTEM, user);
+Random seed: ${seed}.`;
+      const out = await chatJSON(LLM_SYSTEM(), user);
       const ok = (s, max) => typeof s === 'string' && s.trim() && s.length <= max;
       if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2000) && ok(out.video_prompt, 1200)) {
         story = {
@@ -115,9 +122,9 @@ Brand name: ${director}. Random seed: ${seed}.`;
           director,
           source: 'seed-llm',
         };
-        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}.`;
-        // The model-written prompt often omits these guards; without them Seedance can burn captions into the video.
-        vPrompt = `${out.video_prompt.trim()} ${VIDEO_GUARD}`;
+        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_REALISM}`;
+        // The model-written prompt often omits the no-caption guard; without it Seedance can burn captions into the video.
+        vPrompt = `${out.video_prompt.trim()} Camera and motion: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);

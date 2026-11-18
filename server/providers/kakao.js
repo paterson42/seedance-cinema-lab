@@ -1,4 +1,6 @@
 // KakaoTalk result notification.
+//  - off     : (default) nothing is sent; visitors save their own result link to
+//              KakaoTalk from the site (share sheet → '나와의 채팅').
 //  - mock    : no real send; recorded in kakao_outbox (visible on /admin)
 //  - webhook : POSTs a JSON payload to KAKAO_WEBHOOK_URL, for an AlimTalk vendor
 //              (NHN Cloud, Solapi, etc.) or an internal relay that owns the
@@ -20,18 +22,19 @@ function record(session, payload, status, error) {
 }
 
 export function kakaoEnabled() {
-  return config.kakao.provider === 'webhook' ? !!config.kakao.webhookUrl : true;
+  const p = config.kakao.provider;
+  return p === 'webhook' ? !!config.kakao.webhookUrl : p === 'mock';
 }
 
 export async function sendTrailerReady(session) {
-  if (!session.phone_enc) return 'skipped';
+  if (!session.phone_enc || !kakaoEnabled()) return 'skipped';
   const link = `${config.publicBaseUrl}/r/${session.result_token}`;
   const title = session.story?.title || '나의 신상품';
-  const director = session.director || 'MY BRAND';
+  const director = session.director || '고객';
   const payload = {
     template_code: config.kakao.templateCode,
-    variables: { brand: director, director, title, link },
-    text: `[Seedance Commerce Lab]\n${director} 브랜드의 신상품 <${title}> 광고 영상이 완성되었습니다!\n\n아래 버튼을 눌러 키비주얼과 광고 영상을 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
+    variables: { name: director, director, title, link },
+    text: `[Seedance Commerce Lab]\n${director} 님이 기획한 광고 <${title}> 영상이 완성되었습니다!\n\n아래 버튼을 눌러 키비주얼과 광고 영상을 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
     buttons: [{ type: 'WL', name: '내 광고 보러가기', url_mobile: link, url_pc: link }],
   };
 

@@ -1,19 +1,38 @@
 {
   "event": {
-    "name": "SEEDANCE COMMERCE LAB",
+    "name": "SEEDANCE@SEOUL COMMERCE LAB",
     "city": "SEOUL",
     "year": "2026",
-    "presents": "SEEDANCE COMMERCE LAB PRESENTS"
+    "credits": [
+      { "label": "제작", "value": "SEEDANCE 2.5 Flash" },
+      { "label": "제공", "value": "BytePlus Korea" },
+      { "label": "캠페인", "value": "Seedance@Seoul 2026" }
+    ],
+    "sponsor": "Sponsored by BytePlus"
   },
   "copy": {
-    "heroTitle": "여섯 개의 우연,\n한 편의 광고.",
-    "heroSub": "광고 무드를 고르고 키워드를 뽑으면, AI가 나만의 브랜드 광고 키비주얼과 숏폼 광고 영상을 만들어 드려요.",
-    "posterNotice": "Seed가 발급한 SEED NO.로 Seedream이 당신의 광고 키비주얼을 촬영합니다.",
-    "videoNotice": "Seedance가 키비주얼을 움직이는 숏폼 광고로 만듭니다. 평균 3~5분 걸려요. 자리를 떠나도 카카오톡으로 결과를 보내드립니다.",
-    "consentPrivacy": "수집 항목: 휴대폰 번호 · 브랜드 이름\n이용 목적: 체험 결과(키비주얼·광고 영상) 카카오톡 전달, 결과 재조회, 이벤트 참여 확인\n보관 기간: 행사 종료 후 30일 이내 파기\n동의를 거부할 수 있으나, 이 경우 체험 결과를 전달받을 수 없습니다.",
+    "heroTitle": "여섯 개의 키워드,\n한 편의 광고.",
+    "heroSub": "광고 무드를 고르고 키워드를 뽑으면, AI가 나만의 광고 키비주얼과 숏폼 광고 영상을 만들어 드려요.",
+    "posterNotice": "Seedream이 당신의 광고 키비주얼을 촬영합니다. 완성된 키비주얼과 광고 영상은 기획자 이름과 함께 부스 스크린에 자동으로 송출돼요.",
+    "videoNotice": "Seedance가 키비주얼을 숏폼 광고 영상으로 만듭니다.",
+    "consentPrivacy": "수집 항목: 휴대폰 번호 · 이름\n이용 목적: 체험 결과(키비주얼·광고 영상) 재조회, 부스 스크린 송출(이름), 이벤트 참여 확인\n보관 기간: 행사 종료 후 30일 이내 파기\n동의를 거부할 수 있으나, 이 경우 체험에 참여할 수 없습니다.",
     "consentMarketing": "BytePlus · Seedance 신제품 소식과 이벤트 안내를 카카오톡/문자로 받아봅니다."
   },
-  "bannedWords": ["씨발", "시발", "병신", "좆", "개새", "니미", "fuck", "shit", "bitch", "sex", "섹스", "자살", "살인마"],
+  "bannedWords": [
+    "씨발",
+    "시발",
+    "병신",
+    "좆",
+    "개새",
+    "니미",
+    "fuck",
+    "shit",
+    "bitch",
+    "sex",
+    "섹스",
+    "자살",
+    "살인마"
+  ],
   "genres": [
     {
       "id": "luxury", "ko": "럭셔리", "en": "LUXURY", "desc": "조용히 빛나는 한 컷",
@@ -105,7 +124,9 @@
       ]
     },
     {
-      "id": "when", "ko": "언제", "en": "WHEN",
+      "id": "when",
+      "ko": "언제",
+      "en": "WHEN",
       "keywords": [
         { "ko": "블랙프라이데이 자정", "en": "at the stroke of midnight on Black Friday" },
         { "ko": "첫눈 오는 주말", "en": "on a weekend when the first snow falls" },
@@ -120,7 +141,9 @@
       ]
     },
     {
-      "id": "where", "ko": "어디서", "en": "WHERE",
+      "id": "where",
+      "ko": "어디서",
+      "en": "WHERE",
       "keywords": [
         { "ko": "성수동 팝업스토어에서", "en": "inside a trendy pop-up store in Seongsu-dong, Seoul" },
         { "ko": "한강 피크닉 매트 위에서", "en": "on a picnic mat by the Han River" },
@@ -135,7 +158,9 @@
       ]
     },
     {
-      "id": "what", "ko": "무엇을", "en": "WHAT",
+      "id": "what",
+      "ko": "무엇을",
+      "en": "WHAT",
       "keywords": [
         { "ko": "제로 슈거 탄산수", "en": "a sleek can of zero-sugar sparkling water", "n": "스파클링" },
         { "ko": "비건 글로우 세럼", "en": "a glass dropper bottle of vegan glow serum", "n": "세럼" },
@@ -150,7 +175,9 @@
       ]
     },
     {
-      "id": "how", "ko": "어떻게", "en": "HOW",
+      "id": "how",
+      "ko": "어떻게",
+      "en": "HOW",
       "keywords": [
         { "ko": "언박싱 ASMR로", "en": "presented as a satisfying ASMR unboxing" },
         { "ko": "슬로모션 물방울과 함께", "en": "with slow-motion water droplets splashing around it" },

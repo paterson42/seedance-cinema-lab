@@ -56,24 +56,43 @@ export const config = {
     baseUrl: env('ARK_BASE_URL', 'https://ark.ap-southeast.bytepluses.com/api/v3').replace(/\/$/, ''),
     llmModel: env('SEED_LLM_MODEL', 'seed-1-6-250615'),
     llmEnabled: bool('SEED_LLM_ENABLED', true),
+    // After this the story falls back to the built-in template.
+    llmTimeoutSec: num('SEED_LLM_TIMEOUT_SEC', 30),
     imageModel: env('SEEDREAM_MODEL', 'seedream-4-0-250828'),
-    imageSize: env('SEEDREAM_SIZE', '1280x1920'),
+    // The booth screens are portrait 9:16 panels. The trailer follows the poster's aspect
+    // (Seedance rejects --ratio for first-frame video), so this size locks both to 9:16.
+    imageSize: env('SEEDREAM_SIZE', '1080x1920'),
     imageSendSeed: bool('SEEDREAM_SEND_SEED', true),
     videoModel: env('SEEDANCE_MODEL', 'seedance-1-0-pro-250528'),
     videoResolution: env('SEEDANCE_RESOLUTION', '720p'),
     videoDuration: num('SEEDANCE_DURATION', 10),
     videoSendSeed: bool('SEEDANCE_SEND_SEED', true),
+    // Seedance 2.x adds an AI soundtrack by default; it can trip the copyright filter and the
+    // booth screens play muted anyway, so it is off unless asked for.
+    videoAudio: bool('SEEDANCE_AUDIO', false),
   },
   queue: {
     posterConcurrency: num('POSTER_CONCURRENCY', 6),
     videoMaxInflight: num('VIDEO_MAX_INFLIGHT', 10),
     videoPollSec: num('VIDEO_POLL_SEC', 8),
-    videoEtaSec: num('VIDEO_ETA_SEC', 240),
+    // Starting estimates for the countdowns; replaced by the median of real runs once a few finish.
+    posterEtaSec: num('POSTER_ETA_SEC', 60),
+    videoEtaSec: num('VIDEO_ETA_SEC', 90),
     posterMaxPerSession: num('POSTER_MAX_PER_SESSION', 3),
     videoMaxPerSession: num('VIDEO_MAX_PER_SESSION', 2),
   },
+  // Per phone number per day (Seoul time), across all of that number's sessions. Failures do not count.
+  limits: {
+    phoneDailyVideos: num('PHONE_DAILY_VIDEOS', 3),
+    phoneDailyPosters: num('PHONE_DAILY_POSTERS', 10),
+    phoneDailyStories: num('PHONE_DAILY_STORIES', 30),
+    // Experiences per person (a session that made a poster). 0 = unlimited. Staff can grant +1 in /admin.
+    phoneMaxFlows: num('PHONE_MAX_FLOWS', 2),
+    // Staff test numbers (comma separated): no list / experience / daily / per-session limits.
+    testPhones: env('TEST_PHONES', '00000000000').split(',').map((p) => p.replace(/\D/g, '')).filter(Boolean),
+  },
   kakao: {
-    provider: env('KAKAO_PROVIDER', 'mock'),
+    provider: env('KAKAO_PROVIDER', 'off'),
     webhookUrl: env('KAKAO_WEBHOOK_URL'),
     webhookToken: env('KAKAO_WEBHOOK_TOKEN'),
     templateCode: env('KAKAO_TEMPLATE_CODE', 'SCM_AD_READY'),

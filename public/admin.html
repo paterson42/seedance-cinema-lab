@@ -38,13 +38,19 @@
     pre { white-space:pre-wrap; margin:0; font-size:12px; }
     .shots { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
     .shot { border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#0e0e10; }
-    .shot img { display:block; width:100%; aspect-ratio:2/3; object-fit:cover; }
+    .shot img { display:block; width:100%; aspect-ratio:9/16; object-fit:cover; }
     .shot .b { padding:10px; display:grid; gap:6px; font-size:12px; }
     .shot .b b { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .shot .row { display:flex; justify-content:space-between; align-items:center; gap:6px; }
     .shot button { padding:5px 9px; font-size:11.5px; }
     .shot button.off { background:#2a2a2e; color:var(--text); }
     .s-live { color:var(--accent); } .s-hidden { color:var(--bad); } .s-pending { color:#ffc04d; }
+    .al-top { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; }
+    .al-state { font-weight:700; } .al-state.on { color:var(--accent); } .al-state.off { color:var(--muted); }
+    button.ghost { background:#2a2a2e; color:var(--text); } button.danger { background:transparent; color:var(--bad); border:1px solid rgba(255,107,90,.5); }
+    #alText { min-height:140px; }
+    .al-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+    .al-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
   </style>
 </head>
 <body>
@@ -64,6 +70,37 @@
     </header>
     <main>
       <div class="grid" id="stats"></div>
+      <div class="card" id="alCard">
+        <h2>사전 등록 명단 · 1인 체험 횟수</h2>
+        <div class="al-top">
+          <span>명단 제한: <span class="al-state" id="alState">-</span></span>
+          <button id="alToggle" class="ghost">-</button>
+          <span class="muted" id="alCount"></span>
+        </div>
+        <p class="muted" id="alNote" style="margin-top:0"></p>
+        <div class="al-cols">
+          <div>
+            <b>번호 올리기</b>
+            <p class="muted" style="margin:4px 0 8px">엑셀의 전화번호 열을 복사해 붙여넣거나 CSV/TXT 파일을 선택하세요. 한 줄에 여러 칸이 있어도 번호만 골라냅니다. 서버에는 번호 원문이 아니라 암호화된 값과 가린 번호(010-****-1234)만 저장돼요.</p>
+            <textarea id="alText" spellcheck="false" placeholder="010-1234-5678&#10;01098765432&#10;홍길동, 010 2222 3333"></textarea>
+            <div class="al-row">
+              <input type="file" id="alFile" accept=".csv,.txt,text/csv,text/plain">
+              <button id="alAdd">추가</button>
+              <button id="alReplace" class="ghost">이 명단으로 전체 교체</button>
+              <button id="alClear" class="danger">명단 전체 삭제</button>
+            </div>
+            <p id="alMsg" class="muted"></p>
+          </div>
+          <div>
+            <b>번호 확인 · 횟수 추가</b>
+            <p class="muted" style="margin:4px 0 8px">현장 문의용: 명단 등록 여부와 사용한 체험 횟수를 확인하고, 필요하면 1회를 더 줄 수 있어요.</p>
+            <div class="al-row" style="margin-top:0"><input id="alPhone" placeholder="010-0000-0000" inputmode="numeric"><button id="alCheck" class="ghost">확인</button><button id="alGrant" class="ghost">체험 +1회</button></div>
+            <p id="alStatus"></p>
+            <p class="muted" style="margin:14px 0 4px">최근 등록된 번호</p>
+            <div id="alRecent" class="muted" style="font:12px ui-monospace, Menlo, monospace; line-height:1.7"></div>
+          </div>
+        </div>
+      </div>
       <div class="card"><h2>퍼널 (세션 수 기준)</h2><div class="funnel" id="funnel"></div></div>
       <div class="card">
         <h2>대형 스크린 — 제출된 키비주얼 · 광고 영상</h2>
@@ -145,8 +182,68 @@ async function loadContent() {
   if (r.ok) $('#content').value = JSON.stringify(await r.json(), null, 2);
 }
 
+async function loadAllowlist() {
+  const r = await req('/api/admin/allowlist');
+  if (!r.ok) return;
+  const d = await r.json();
+  $('#alState').textContent = d.enabled ? '켜짐 — 명단에 있는 번호만 체험' : '꺼짐 — 누구나 체험';
+  $('#alState').className = 'al-state ' + (d.enabled ? 'on' : 'off');
+  $('#alToggle').textContent = d.enabled ? '명단 제한 끄기' : '명단 제한 켜기';
+  $('#alToggle').dataset.to = d.enabled ? '0' : '1';
+  $('#alCount').textContent = `등록 번호 ${d.count}개`;
+  $('#alNote').textContent = `1인 체험 횟수: ${d.maxFlows || '제한 없음'}${d.maxFlows ? '회 (키비주얼을 만든 체험 1회 = 1회, 같은 체험 안에서 다시 만들기는 추가로 세지 않음, 실패는 제외)' : ''} · PHONE_MAX_FLOWS`;
+  $('#alRecent').innerHTML = d.recent.length ? d.recent.map((x) => `${esc(x.phone_masked)}${x.extra_flows ? ` <span class="ok">+${x.extra_flows}회</span>` : ''} <span>· ${t(x.added_at)}</span>`).join('<br>') : '없음';
+}
+async function alPost(body) {
+  const r = await req('/api/admin/allowlist', { method: 'POST', body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || '실패');
+  return d;
+}
+$('#alToggle').onclick = async () => {
+  const on = $('#alToggle').dataset.to === '1';
+  if (!confirm(on ? '명단 제한을 켤까요? 명단에 없는 번호는 체험을 시작할 수 없어요.' : '명단 제한을 끌까요? 누구나 체험할 수 있게 돼요.')) return;
+  try { await alPost({ action: 'toggle', enabled: on }); } catch (e) { alert(e.message); }
+  loadAllowlist();
+};
+$('#alFile').onchange = async (e) => {
+  const f = e.target.files[0];
+  if (f) $('#alText').value = await f.text();
+};
+async function alUpload(mode) {
+  const text = $('#alText').value;
+  if (!text.trim()) return ($('#alMsg').textContent = '번호를 붙여넣거나 파일을 선택하세요.');
+  if (mode === 'replace' && !confirm('지금 명단을 이 번호들로 전체 교체할까요? 여기에 없는 번호는 명단에서 빠져요.')) return;
+  try {
+    const d = await alPost({ action: 'upload', text, mode });
+    $('#alMsg').innerHTML = `<span class="ok">${d.parsed}개 번호 인식 · 명단 ${d.before} → ${d.after}개</span>`
+      + (d.invalidCount ? `<br><span class="bad">번호로 읽지 못한 줄 ${d.invalidCount}개:</span> ${d.invalid.map(esc).join(' / ')}` : '');
+    $('#alText').value = ''; $('#alFile').value = '';
+  } catch (e) { $('#alMsg').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  loadAllowlist();
+}
+$('#alAdd').onclick = () => alUpload('add');
+$('#alReplace').onclick = () => alUpload('replace');
+$('#alClear').onclick = async () => {
+  if (!confirm('명단을 전부 삭제하고 명단 제한을 끌까요? 되돌릴 수 없어요.')) return;
+  try { await alPost({ action: 'clear' }); $('#alMsg').textContent = '명단을 삭제하고 제한을 껐어요.'; } catch (e) { alert(e.message); }
+  loadAllowlist();
+};
+async function alCheck(action) {
+  if (action === 'grant' && !confirm('이 번호에 체험 1회를 더 줄까요?')) return;
+  try {
+    const d = await alPost({ action, phone: $('#alPhone').value });
+    if (d.test) { $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · <span class="ok">테스트 번호 — 명단·횟수·하루 한도 없이 생성 가능</span> · 사용한 체험 ${d.flowsUsed}회`; return loadAllowlist(); }
+    $('#alStatus').innerHTML = `<b>${esc(d.masked)}</b> · 명단 ${d.listed ? '<span class="ok">등록됨</span>' : '<span class="bad">없음</span>'}`
+      + ` · 체험 ${d.flowsUsed} / ${d.flowsMax}회${d.extraFlows ? ` (추가 ${d.extraFlows}회 포함)` : ''} · 오늘 남은 광고 영상 ${d.trailersLeftToday}편`;
+  } catch (e) { $('#alStatus').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  loadAllowlist();
+}
+$('#alCheck').onclick = () => alCheck('check');
+$('#alGrant').onclick = () => alCheck('grant');
+
 function showLogin() { $('#dash').hidden = true; $('#login').hidden = false; }
-$('#go').onclick = () => { token = $('#tok').value.trim(); load().then(loadContent).then(loadScreen); };
+$('#go').onclick = () => { token = $('#tok').value.trim(); load().then(loadContent).then(loadScreen).then(loadAllowlist); };
 $('#save').onclick = async () => {
   let body;
   try { body = JSON.parse($('#content').value); } catch (e) { $('#saveMsg').textContent = 'JSON 형식 오류: ' + e.message; return; }
@@ -154,7 +251,7 @@ $('#save').onclick = async () => {
   const d = await r.json();
   $('#saveMsg').textContent = r.ok ? '저장 완료 ✓' : d.error;
 };
-if (token) load().then(loadContent).then(loadScreen); else showLogin();
+if (token) load().then(loadContent).then(loadScreen).then(loadAllowlist); else showLogin();
 setInterval(() => { if (!$('#dash').hidden) { load(); loadScreen(); } }, 10000);
 </script>
 </body>

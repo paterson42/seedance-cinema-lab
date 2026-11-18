@@ -3,7 +3,7 @@
 Seedance Seoul 행사 체험 부스를 위한 모바일 우선 체험 사이트의 **이커머스·광고 버전**입니다.
 Cinema Lab(`main` 브랜치)과 같은 흐름·같은 서버 구조를 쓰고, 컨셉만 "영화 포스터/트레일러"에서 "브랜드 광고 키비주얼/숏폼 광고 영상"으로 바꿨습니다.
 
-**QR 진입 → 전화번호 입력 → 광고 무드 선택 → 육하원칙 키워드 뽑기 → Seed 광고 카피·프롬프트 → Seedream 키비주얼(2:3) → Seedance 숏폼 광고 영상(비동기) → 카카오톡 결과 알림 / 재접속 조회 / 공유**
+**QR 진입 → 전화번호 입력 → 광고 무드 선택 → 육하원칙 키워드 뽑기 → Seed 광고 카피·프롬프트 → Seedream 키비주얼(9:16) → Seedance 숏폼 광고 영상(비동기) → 결과 링크(카카오톡 ‘나와의 채팅’ 저장) / 재접속 조회 / 공유**
 
 ### Cinema Lab → Commerce Lab 대응표
 
@@ -13,15 +13,21 @@ Cinema Lab(`main` 브랜치)과 같은 흐름·같은 서버 구조를 쓰고, �
 |---|---|---|
 | `genre` | 영화 장르 8종 | 광고 무드 8종 (럭셔리 · 빅세일 · 숏폼 · 미니멀 · 라이프스타일 · 뉴트로 · 프레시 · 블록버스터) |
 | `categories` (who/when/where/what/how/why) | 누가·언제·어디서·무엇을·어떻게·왜 | 타깃 고객 · 시즌/모먼트 · 촬영 장소 · **상품** · 연출 방식 · 구매 포인트(USP) |
-| `director` | 감독 이름 | 브랜드 이름 (키비주얼 상단 로고 자리) |
+| `director` | 감독 이름 | 방문객 이름 — 키비주얼 상단 크레딧 `기획: ○○○`, 영상 스크린의 `@○○○` |
 | `story.title` / `tagline` / `logline` / `synopsis` | 제목 / 태그라인 / 로그라인 / 시놉시스 | 상품명 / 헤드라인 카피 / 캠페인 컨셉 / 상세페이지 카피 |
-| `poster` | 영화 포스터 | 광고 키비주얼 (브랜드 · 헤드라인 · 가격 · 할인 스티커 · CTA 버튼 합성) |
+| `poster` | 영화 포스터 | 광고 키비주얼 9:16 (크레딧 블록 · 헤드라인 · 상품명 · 가격 · 특가 스티커 · 구매 버튼 · `광고 ID` · `Sponsored by BytePlus` 합성, 키워드는 넣지 않음) |
 | `video` / `trailer` | 트레일러 | 숏폼 광고 영상 |
-| ticket (결과 탭) | 영화 티켓 | 상품 카드 (가격 · 할인율 · 상품 번호) |
-| `/screen/poster` | 로비 포스터 월 | 신상 광고 월 (NEW ARRIVALS) |
-| `/screen/trailer` | 예고편 상영관 | 광고 쇼케이스 (CH.01, 셔터 · 차양 · SHOP NOW 엔드 카드) |
+| ticket (결과 탭) | 영화 티켓 | 상품 카드 (가격 · 할인율 · 무드 · 광고 ID) |
+| seed | SEED NO. (main 에서는 숨김) | `광고 ID` 로 표시 |
+| 단계 전환 | 클래퍼보드 | 배송 조회 카드 (주문 접수 → … → 배송 완료, `주문 완료!` 도장) |
+| `/screen/poster` | 포스터 스크린 | 키비주얼 스크린 (‘신상 출시’ 간판 · 가격표) |
+| `/screen/trailer` | 예고편 스크린 | 숏폼 피드형 광고 영상 스크린 (오른쪽 액션 레일 · 떠오르는 하트 · `@이름` 캡션 · 위로 넘기는 전환) |
 
-> 가격·할인율은 SEED NO.에서 계산한 **가상의 숫자**입니다(`offer()` — `public/app.js`, `public/screen/screen.js`). 상품도 모두 가상이며, 프롬프트는 실제 브랜드·로고·가격표가 이미지에 들어가지 않도록 지시합니다.
+> 화면 문구는 가능한 한 한국어로 씁니다(제품명 Seed · Seedream · Seedance, `Sponsored by BytePlus` 제외). 키비주얼 크레딧(제작 / 제공 / 캠페인)과 스폰서 문구는 `config/content.json` 의 `event.credits`, `event.sponsor` 에서 바꿉니다.
+>
+> 영상 스크린 왼쪽 위 로고 자리는 `public/brand/tiktok-logo.svg`(또는 `.png`) 파일이 있으면 표시됩니다. 공식 로고 파일을 넣어 주세요(`public/brand/README.md`).
+>
+> 가격·할인율은 광고 ID(seed)에서 계산한 **가상의 숫자**입니다(`offer()` — `public/app.js`, `public/screen/screen.js`). 상품도 모두 가상이며, 프롬프트는 실제 브랜드·로고·가격표가 이미지에 들어가지 않도록 지시합니다.
 
 - 외부 패키지 없음 (Node.js 22.13+ 내장 `node:sqlite`, `fetch`만 사용) → `npm install` 불필요
 - `ARK_API_KEY`가 없으면 **데모(MOCK) 모드**로 전체 흐름이 그대로 돌아갑니다 (ffmpeg가 있으면 데모 키비주얼/영상도 실제 파일로 생성)
@@ -41,8 +47,8 @@ npm start                 # http://localhost:3000
 | `/?booth=1` | 부스 태블릿 모드 — 완료 화면에서 "다음 셀러", 2분 무조작 시 자동 초기화 (`?booth=0`으로 해제) |
 | `/r/<token>` | 결과 페이지 (카카오톡 링크 / 공유 링크, 기본 14일 유효) |
 | `/admin` | 운영자 대시보드 — 부팅 로그에 출력되는 토큰 또는 `.env`의 `ADMIN_TOKEN` |
-| `/screen/poster` | 현장 대형 스크린 ① 신상 광고 월 (쇼윈도 라이트박스 + 가격표 + 새 광고 NEW DROP 소개) |
-| `/screen/trailer` | 현장 대형 스크린 ② 광고 쇼케이스 (셔터 · 광고 안내 카드 · 광고 영상 · SHOP NOW 엔드 카드) |
+| `/screen/poster` | 부스 왼쪽 세로 스크린 ① 키비주얼 (9:16 전체 화면으로 한 장씩 + 새 광고 신상 출시 소개 + QR 안내) |
+| `/screen/trailer` | 부스 오른쪽 세로 스크린 ② 광고 영상 (광고 영상 안내 카드 · 9:16 광고 영상 · 엔드 카드) |
 
 ## 2. 실제 API 연결 (LIVE 모드)
 
@@ -63,8 +69,8 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 | 연동 | 호출 | 구현 위치 |
 |---|---|---|
 | Seed LLM | `POST /chat/completions` (JSON 출력) | `server/providers/ark.js` `chatJSON` |
-| Seedream | `POST /images/generations` (`size` 2:3, `response_format=b64_json`, `seed`) | `generateImage` |
-| Seedance | `POST /contents/generations/tasks` (키비주얼 원본 이미지 + 프롬프트) → `GET /contents/generations/tasks/{id}` 폴링 | `submitVideo` / `getVideoTask` |
+| Seedream | `POST /images/generations` (`size` 9:16 · 1080x1920, `response_format=b64_json`, `seed`) | `generateImage` |
+| Seedance | `POST /contents/generations/tasks` (9:16 키비주얼 원본 이미지 + 프롬프트 → 영상도 9:16) → `GET /contents/generations/tasks/{id}` 폴링 | `submitVideo` / `getVideoTask` |
 | 카카오톡 | 알림톡 대행사/사내 발송 서버로 webhook POST | `server/providers/kakao.js` |
 
 생성된 이미지/영상은 provider URL이 만료되기 전에 서버 `data/media/`로 내려받아 같은 출처로 서빙합니다 (재접속·카톡 링크·다운로드가 계속 동작하도록).
@@ -73,7 +79,8 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 
 알림톡은 **채널 개설 + 템플릿 심사 + 발신 프로필**이 먼저 필요합니다. 그래서 발송 자체는 어댑터로 분리했습니다.
 
-- `KAKAO_PROVIDER=mock` (기본): 실제 발송 없이 `/admin` 의 "카카오톡 발송 기록"에 메시지 전문과 링크가 남습니다.
+- `KAKAO_PROVIDER=off` (기본): 알림톡을 보내지 않습니다. 대신 광고 영상 대기·결과 화면의 **"카카오톡 ‘나와의 채팅’에 저장"** 버튼으로 방문객이 직접 결과 링크를 자기 카카오톡에 저장합니다 (휴대폰 공유 시트, `KAKAO_JS_KEY` 가 있으면 카카오 SDK). 휴대폰 번호는 결과 재조회용으로만 쓰입니다.
+- `KAKAO_PROVIDER=mock`: 실제 발송 없이 `/admin` 의 "카카오톡 발송 기록"에 메시지 전문과 링크가 남습니다.
 - `KAKAO_PROVIDER=webhook`: 광고 영상이 완성되면 `KAKAO_WEBHOOK_URL`로 아래 JSON을 POST 합니다. 대행사(NHN Cloud, Solapi 등) API 형식에 맞춰 얇은 중계만 붙이면 됩니다.
 
 ```json
@@ -91,11 +98,17 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 
 ## 3-1. 현장 대형 스크린
 
-- 방문객이 키비주얼 화면 / 결과 화면의 **"현장 대형 스크린에 광고 내보내기"** 카드에서 키비주얼 · 광고 영상을 각각 제출 (카카오톡 결과 링크에서도 가능)
-- 대형 스크린 PC에서 `/screen/poster`, `/screen/trailer` 를 열고 화면 클릭(또는 F 키) → 전체 화면. 6초마다 새 제출을 가져오고, 새 광고가 먼저 소개/송출됩니다
+- 키비주얼 · 광고 영상은 완성되면 **자동으로** 부스 스크린에 걸립니다 (방문객이 고르지 않음). 키비주얼은 휴대폰이 카피를 얹은 버전을 올리는 순간 걸리고, 그 업로드가 20초 안에 오지 않으면 원본 키비주얼로 걸립니다. 휴대폰에는 상태(곧 자동으로 걸려요 / 송출 중)만 보여요
+- 대형 스크린 PC에서 `/screen/poster`, `/screen/trailer` 를 열고 화면 클릭(또는 F 키) → 전체 화면. 두 화면 모두 세로 9:16 기준(가로 모니터에서는 가운데 세로로 표시), QR 안내 화살표는 `?qr=left|right` 로 바꿀 수 있어요. 6초마다 새 제출을 가져오고, 새 광고가 먼저 소개/송출됩니다
 - 노출 관리: `/admin` 의 "대형 스크린"에서 광고별 숨기기/다시 송출 (숨기면 송출 중이던 것도 즉시 내려감)
 - `SCREEN_AUTO_APPROVE=0` 이면 운영자가 승인해야 송출, `SCREEN_KEY=xxx` 를 지정하면 스크린 주소에 `?key=xxx` 필요
-- 키비주얼을 다시 만들거나 영상을 다시 생성하면 이전 제출은 내려가고 다시 제출해야 합니다
+- 키비주얼을 다시 만들거나 영상을 다시 생성하면 이전 것은 내려가고, 새로 완성된 것이 자동으로 다시 걸립니다
+- **사전 등록 명단**: `/admin` 의 "사전 등록 명단"에서 번호를 붙여넣기/CSV·TXT 파일로 올리고 "명단 제한"을 켜면, 명단에 있는 번호만 입장·생성할 수 있어요 (번호 원문은 저장하지 않고 해시와 가린 번호만 저장). 엑셀에서 앞자리 0이 빠진 번호, +82 형식도 인식합니다
+- **1인 체험 횟수**: 번호당 2회 (`PHONE_MAX_FLOWS`). 키비주얼을 만든 체험 1회 = 1회로 세고, 같은 체험 안에서 다시 만들기·실패는 세지 않아요. 명단 제한을 꺼도 적용되고, `/admin` 에서 번호별로 +1회를 줄 수 있어요
+- **테스트 번호** `TEST_PHONES` (기본 `00000000000`): 명단·체험 횟수·하루 한도·체험당 한도 없이 생성할 수 있어요. 번호는 서버 설정에만 있고 페이지 코드에는 들어가지 않아요
+- 개인정보는 체험 결과 재조회용으로만 받고, 마케팅 수신 동의는 받지 않아요
+- 휴대폰 번호당 하루(서울 시간) 한도: 광고 영상 3편, 키비주얼 10장, 광고 카피 30회 (`PHONE_DAILY_*`). "처음부터 다시"로 새로 시작해도 합산되고, 실패한 생성은 세지 않습니다
+- 한 방문객은 한 번에 하나만 생성합니다. 키비주얼·광고 영상을 만드는 중에 같은 버튼을 다시 누르면 진행 중인 작업을 그대로 보여 주고, 광고 무드·광고 카피·키비주얼 재생성 등 다른 요청은 `409 BUSY` 로 막혀 대기 화면으로 돌아갑니다 (뒤로 가기도 대기 화면으로)
 
 ## 4. 동시 접속·네트워크 대응
 
@@ -161,7 +174,7 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 | GET | `/api/result/:token` | 결과 페이지 데이터 |
 | POST | `/api/lookup` | 번호 + 브랜드 이름으로 결과 조회 |
 | POST | `/api/event` | 클라이언트 이벤트 로깅 |
-| POST | `/api/screen/submit` | 키비주얼(`poster`)/광고 영상(`trailer`) 대형 스크린 제출 (`kind`, 쿠키 또는 `token`) |
+| POST | `/api/screen/submit` | (예전 수동 제출용, 지금은 자동 송출) 키비주얼/광고 영상 대형 스크린 제출 (`kind`, 쿠키 또는 `token`) |
 | GET | `/api/screen/feed?kind=poster\|trailer` | 대형 스크린용 송출 목록 |
 
 ## 9. 행사 운영 체크리스트

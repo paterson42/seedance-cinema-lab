@@ -70,7 +70,7 @@ async function download(url, timeoutMs = 120000) {
 // ───────────────────────── Seed LLM ─────────────────────────
 export async function chatJSON(system, user) {
   const r = await ark('/chat/completions', {
-    timeoutMs: 15000,
+    timeoutMs: config.ark.llmTimeoutSec * 1000,
     attempts: 1,
     body: {
       model: config.ark.llmModel,
@@ -105,7 +105,26 @@ export async function generateImage({ prompt, seed, genreId }) {
   const d = r?.data?.[0];
   if (!d) throw new ProviderError(`no image in response: ${JSON.stringify(r?.error || r).slice(0, 200)}`, { userMessage: friendly(r?.error?.code) });
   const buffer = d.b64_json ? Buffer.from(d.b64_json, 'base64') : await download(d.url);
-  return { buffer, ext: sniffExt(buffer) };
+  return toJpeg(buffer, sniffExt(buffer));
+}
+
+// Seedream 5.5 returns ~3 MB PNGs. Visitors' phones download the raw poster to add the title and
+// the screens may show it, so store a high-quality JPEG instead (about a fifth of the size).
+// Without ffmpeg, or if conversion fails, the original is kept.
+async function toJpeg(buffer, ext) {
+  if (ext === 'jpg' || !(await hasFfmpeg())) return { buffer, ext };
+  const tmp = path.join(MEDIA_DIR, `_conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+  try {
+    fs.writeFileSync(`${tmp}.${ext}`, buffer);
+    await run('ffmpeg', ['-y', '-v', 'error', '-i', `${tmp}.${ext}`, '-q:v', '2', '-pix_fmt', 'yuvj420p', `${tmp}.jpg`], 30000);
+    return { buffer: fs.readFileSync(`${tmp}.jpg`), ext: 'jpg' };
+  } catch (e) {
+    console.warn(`[poster] JPEG conversion failed, keeping ${ext}:`, e.message);
+    return { buffer, ext };
+  } finally {
+    fs.rmSync(`${tmp}.${ext}`, { force: true });
+    fs.rmSync(`${tmp}.jpg`, { force: true });
+  }
 }
 
 // ───────────────────────── Seedance ─────────────────────────
@@ -114,6 +133,7 @@ export async function submitVideo({ prompt, imageFile, seed }) {
   const buf = fs.readFileSync(path.join(MEDIA_DIR, imageFile));
   const ext = sniffExt(buf);
   const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  // No --ratio: for first-frame video Seedance follows the image, which is already 9:16.
   const flags = [
     `--resolution ${config.ark.videoResolution}`,
     `--duration ${config.ark.videoDuration}`,
@@ -125,6 +145,7 @@ export async function submitVideo({ prompt, imageFile, seed }) {
     timeoutMs: 60000,
     body: {
       model: config.ark.videoModel,
+      generate_audio: config.ark.videoAudio,
       content: [
         { type: 'text', text: `${prompt} ${flags.join(' ')}` },
         { type: 'image_url', image_url: { url: `data:${mime};base64,${buf.toString('base64')}` } },
@@ -178,7 +199,7 @@ async function mockImage({ seed, genreId }) {
   const out = path.join(MEDIA_DIR, `_mock_${seed}_${Date.now()}.jpg`);
   if (await hasFfmpeg()) {
     // Studio backdrop + spotlight, a podium, and a product silhouette (bottle / can / box by seed).
-    const W = 800, H = 1200;
+    const W = 720, H = 1280;
     const [ar, ag, ab] = rgb(accent), [dr, dg, db] = rgb(dark);
     const cx = W / 2, gy = H * 0.3;
     const shape = seed % 3;
@@ -209,13 +230,13 @@ async function mockImage({ seed, genreId }) {
     return { buffer, ext: 'jpg' };
   }
   // No ffmpeg: a simple SVG key-visual background (product on a podium).
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
-<defs><radialGradient id="g" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="${accent}"/><stop offset=".6" stop-color="${dark}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
-<rect width="800" height="1200" fill="url(#g)"/>
-<ellipse cx="400" cy="1002" rx="250" ry="46" fill="#000" opacity=".55"/><rect x="150" y="912" width="500" height="90" fill="#000" opacity=".55"/>
-<ellipse cx="400" cy="912" rx="250" ry="46" fill="#fff" opacity=".5"/>
-<rect x="${325 - (seed % 3) * 30}" y="560" width="${150 + (seed % 3) * 60}" height="352" rx="14" fill="#eeeee6"/>
-<rect x="${325 - (seed % 3) * 30}" y="670" width="${150 + (seed % 3) * 60}" height="130" fill="${accent}"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+<defs><radialGradient id="g" cx="50%" cy="32%" r="80%"><stop offset="0" stop-color="${accent}"/><stop offset=".55" stop-color="${dark}"/><stop offset="1" stop-color="#000"/></radialGradient></defs>
+<rect width="720" height="1280" fill="url(#g)"/>
+<ellipse cx="360" cy="806" rx="250" ry="46" fill="#000" opacity=".55"/><rect x="110" y="716" width="500" height="90" fill="#000" opacity=".55"/>
+<ellipse cx="360" cy="716" rx="250" ry="46" fill="#fff" opacity=".5"/>
+<rect x="${285 - (seed % 3) * 30}" y="364" width="${150 + (seed % 3) * 60}" height="352" rx="14" fill="#eeeee6"/>
+<rect x="${285 - (seed % 3) * 30}" y="474" width="${150 + (seed % 3) * 60}" height="130" fill="${accent}"/></svg>`;
   return { buffer: Buffer.from(svg), ext: 'svg' };
 }
 
@@ -232,7 +253,7 @@ async function mockSubmitVideo({ imageFile }) {
     const fps = 24, secs = 6, frames = fps * secs;
     run('ffmpeg', [
       '-y', '-v', 'error', '-loop', '1', '-i', src,
-      '-vf', `scale=1440:2160,zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on*0.4':d=${frames}:s=720x1080:fps=${fps},fade=t=in:st=0:d=0.6,fade=t=out:st=${secs - 0.6}:d=0.6`,
+      '-vf', `scale=1440:2560,zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on*0.4':d=${frames}:s=720x1280:fps=${fps},fade=t=in:st=0:d=0.6,fade=t=out:st=${secs - 0.6}:d=0.6`,
       '-t', String(secs), '-c:v', 'libx264', '-crf', '24', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out,
     ], 120000).then(() => (task.file = out), (e) => (task.error = e.message.slice(0, 200)));
   }
