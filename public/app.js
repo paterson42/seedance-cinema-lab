@@ -40,7 +40,6 @@ const S = {
   pollId: 0,
   posterData: null, // composed poster dataURL
   posterFor: null,  // raw url the composition was made from
-  takes: {},        // clapperboard TAKE count per step
   booth: false,
 };
 
@@ -114,58 +113,76 @@ function handleError(e, fallbackView) {
 // ───────────────────────── routing ─────────────────────────
 const STEP_OF = { landing: 1, lookup: 1, genre: 2, cast: 3, story: 4, poster: 5, trailer: 6, waiting: 6, done: 6 };
 
-// Ad-production names for each step (shown on the clapperboard and step labels).
+// Ad-production names for each step, plus the order-tracking stop shown on the
+// step-transition card (`ship`). `action` steps get the "주문 완료!" stamp.
 const SCENES = {
-  genre: { n: 1, ko: '브리프', en: 'BRIEF' },
-  cast: { n: 2, ko: '컨셉', en: 'CONCEPT' },
-  story: { n: 3, ko: '카피', en: 'COPY' },
-  poster: { n: 4, ko: '촬영', en: 'SHOOTING', action: true },
-  trailer: { n: 5, ko: '편집', en: 'EDITING' },
-  waiting: { n: 5, ko: '편집', en: 'EDITING', action: true },
-  done: { n: 6, ko: '온에어', en: 'ON AIR' },
+  genre: { n: 1, ko: '브리프', en: 'BRIEF', ship: '주문 접수' },
+  cast: { n: 2, ko: '컨셉', en: 'CONCEPT', ship: '상품 준비' },
+  story: { n: 3, ko: '카피', en: 'COPY', ship: '포장' },
+  poster: { n: 4, ko: '촬영', en: 'SHOOTING', ship: '출고', action: true },
+  trailer: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중' },
+  waiting: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중', action: true },
+  done: { n: 6, ko: '온에어', en: 'ON AIR', ship: '배송 완료' },
 };
+const STOPS = ['접수', '준비', '포장', '출고', '배송', '완료'];
 const ORDER = ['landing', 'lookup', 'genre', 'cast', 'story', 'poster', 'trailer', 'waiting', 'done'];
 const sceneLabel = (view) => { const sc = SCENES[view]; return `STEP ${pad(sc.n, 2)} / ${sc.en} · ${sc.ko}`; };
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}.${pad(d.getMonth() + 1, 2)}.${pad(d.getDate(), 2)}`; };
 let slateTimer = 0;
-async function clapperboard(view) {
+// Order-tracking transition: the parcel moves from the previous stop to this step's stop.
+async function trackingCard(view) {
   const sc = SCENES[view];
   if (!sc || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  S.takes[view] = (S.takes[view] || 0) + 1;
   const el = $('#slate');
-  $('#slScene').textContent = pad(sc.n, 2);
-  $('#slTake').textContent = S.takes[view];
-  $('#slTitle').textContent = `${sc.ko} · ${sc.en}`;
+  const last = STOPS.length - 1;
+  $('#slScene').textContent = `STEP ${pad(sc.n, 2)} / ${pad(STOPS.length, 2)}`;
+  $('#slTitle').textContent = sc.ship;
+  $('#slSub').textContent = `${sc.en} · ${sc.ko}`;
   $('#slDir').textContent = (S.session?.director || S.director || 'MY BRAND').toUpperCase();
   $('#slDate').textContent = today();
+  $('#slStops').innerHTML = STOPS.map((t, i) => `<span class="${i === sc.n - 1 ? 'now' : i < sc.n - 1 ? 'done' : ''}">${t}</span>`).join('');
+  el.style.setProperty('--from', `${(Math.max(0, sc.n - 2) / last) * 100}%`);
+  el.style.setProperty('--to', `${((sc.n - 1) / last) * 100}%`);
   const my = ++slateTimer;
   el.classList.remove('show', 'clap', 'action');
   el.hidden = false;
   void el.offsetWidth;
   el.classList.add('show');
-  await sleep(420);
+  await sleep(360);
   if (my !== slateTimer) return;
-  el.classList.add('clap');
+  el.classList.add('clap'); // parcel travels to the new stop
+  await sleep(430);
+  if (my !== slateTimer) return;
   navigator.vibrate?.(15);
-  if (sc.action) { await sleep(160); el.classList.add('action'); }
-  await sleep(sc.action ? 720 : 480);
+  if (sc.action) el.classList.add('action');
+  await sleep(sc.action ? 760 : 420);
   if (my !== slateTimer) return;
   el.classList.remove('show');
   await sleep(260);
   if (my === slateTimer) { el.hidden = true; el.classList.remove('clap', 'action'); }
 }
 
+// Where the header's "이전" button leads from each screen (no entry = no button).
+const BACK_OF = { lookup: 'landing', genre: 'landing', cast: 'genre', story: 'cast', poster: 'story', trailer: 'poster', done: 'poster' };
+function goBack() {
+  const to = BACK_OF[S.view];
+  if (!to || $('#topBack').hidden) return;
+  if (S.view === 'poster' && ['queued', 'running'].includes(S.session?.poster?.status)) return toast('키비주얼을 만드는 중이에요. 완성되면 돌아갈 수 있어요');
+  go(to);
+}
+
 function go(view, { push = true, slate } = {}) {
   S.pollId++; // cancels any running poll loop
   const prev = S.view;
-  // Clap on forward moves (and when explicitly asked), never on back/restore.
+  // Show the tracking card on forward moves (and when explicitly asked), never on back/restore.
   const forward = prev && ORDER.indexOf(view) > ORDER.indexOf(prev);
-  if (slate ?? forward) clapperboard(view);
+  if (slate ?? forward) trackingCard(view);
   S.view = view;
   const step = STEP_OF[view];
   $('#stepCount').textContent = step ? `${pad(step, 2)} / 06` : '';
   $('#progressBar').style.width = step ? `${(step / 6) * 100}%` : '0';
+  $('#topBack').hidden = !BACK_OF[view] || (view === 'genre' && !!S.session?.story);
   if (push && location.pathname === '/' && history.state?.view !== view) history.pushState({ view }, '', '/');
   (VIEWS[view] || VIEWS.landing)();
   window.scrollTo({ top: 0 });
@@ -196,6 +213,7 @@ document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-action="home"]');
   if (a) { e.preventDefault(); if (location.pathname !== '/') location.href = '/'; else resume(); }
 });
+$('#topBack').onclick = goBack;
 
 const render = (html) => { app.innerHTML = `<section class="view">${html}</section>`; return app.firstElementChild; };
 
@@ -282,7 +300,6 @@ VIEWS.landing = () => {
 
 VIEWS.lookup = () => {
   const el = render(`
-    <button class="back" data-back>← 돌아가기</button>
     <p class="eyebrow">MY CAMPAIGN</p>
     <h2 class="h2">내 결과 다시 보기</h2>
     <p class="lead">체험할 때 입력한 휴대폰 번호와 브랜드 이름으로 키비주얼과 광고 영상을 다시 찾아드려요.</p>
@@ -293,7 +310,6 @@ VIEWS.lookup = () => {
     </form>
     <div class="result-list" id="lookupList"></div>
   `);
-  $('[data-back]', el).onclick = () => history.back();
   $('#lookupForm', el).onsubmit = async (e) => {
     e.preventDefault();
     try {
@@ -343,7 +359,6 @@ VIEWS.cast = () => {
   S.director ||= S.session.director || '';
   const genre = S.content.genres.find((g) => g.id === S.session.genre);
   const el = render(`
-    <button class="back" data-back>← 광고 무드 다시 고르기</button>
     <div class="cast-head"><p class="scene">${sceneLabel('cast')}</p><span class="tag">${esc(genre?.ko || '')}</span></div>
     <h2 class="h2">우연으로 <em>광고 컨셉</em>을 뽑으세요</h2>
     <p class="lead">버튼 하나로 키워드 6개를 뽑고, 마음에 들지 않는 카드만 <b style="color:var(--accent)">↻</b> 다시 뽑아보세요.</p>
@@ -362,7 +377,6 @@ VIEWS.cast = () => {
     </label>
     <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 광고 카피 쓰기 ${ic('arrow')}</button></div>
   `);
-  $('[data-back]', el).onclick = () => go('genre');
 
   const card = (id) => $(`.kcard[data-cat="${id}"]`, el);
   const paint = (id) => {
@@ -404,8 +418,14 @@ VIEWS.cast = () => {
     if (!$('#director').value.trim()) $('#director').focus({ preventScroll: true });
   };
   $('#director', el).oninput = (e) => { S.director = e.target.value; ready(); };
-  $('#castNext', el).onclick = () => makeStory();
+  $('#castNext', el).onclick = () => {
+    // Coming back here and moving on without changing anything keeps the existing copy.
+    if (S.session.story && S.storyKey === storyKey($('#director').value.trim())) return go('story');
+    makeStory();
+  };
 };
+
+const storyKey = (director) => JSON.stringify([S.session?.genre, S.cast, director]);
 
 async function makeStory() {
   const director = $('#director')?.value.trim() || S.director || S.session.director;
@@ -416,10 +436,11 @@ async function makeStory() {
         <div class="loading-msg">Seed가 SEED NO.를 발급하고<br>당신의 광고 카피를 쓰는 중…</div>
         <div class="loading-sub">MOOD + 6 KEYWORDS → COPY & PROMPT</div>
       </div>
-      <div class="film-strip"></div>
+      <div class="belt"><i></i></div>
     </div>`);
   try {
     await api('/api/story', { method: 'POST', body: { keywords: S.cast, director } });
+    S.storyKey = storyKey(director);
     go('story');
   } catch (e) {
     if (e.code === 'NO_DIRECTOR' || e.code === 'BANNED') { toast(e.message); return go('cast'); }
@@ -431,10 +452,10 @@ VIEWS.story = () => {
   const s = S.session;
   const st = s.story;
   const tags = Object.values(s.keywords || {}).map((k) => `<span class="tag">${esc(k.ko)}</span>`).join('');
+  const hasKV = s.poster.status === 'done' && S.kvSeed === s.seed; // a key visual already exists for this copy
   const el = render(`
-    <button class="back" data-back>← 키워드 다시 뽑기</button>
     <p class="scene">${sceneLabel('story')}</p>
-    <div class="seed-chip"><i></i>SEED NO.${pad(s.seed)}</div>
+    <div class="seed-chip">SEED NO.${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
     <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(212,255,58,.4)">${esc(st.genre.ko)}</span><span class="tag">BRAND · ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} · -${offer(s.seed).off}%</span></div>
@@ -448,15 +469,15 @@ VIEWS.story = () => {
     <div class="story-meta" style="margin-top:14px">${tags}</div>
     <div class="cta-bar">
       <div class="notice"><span class="ico">✦</span><span>${esc(S.content.copy.posterNotice)}</span></div>
-      <button class="btn btn-primary btn-block" id="makePoster">키비주얼 만들기 ${ic('sparkle')}</button>
+      <button class="btn btn-primary btn-block" id="makePoster">${hasKV ? `만든 키비주얼 보기 ${ic('arrow')}` : `키비주얼 만들기 ${ic('sparkle')}`}</button>
       <p style="text-align:center;margin:8px 0 0"><button class="linkish" id="rewrite">같은 키워드로 다시 쓰기</button></p>
     </div>
   `);
-  $('[data-back]', el).onclick = () => go('cast');
   $('#promptBox', el).addEventListener('toggle', (e) => e.target.open && track('prompt_opened'));
   $('[data-copy]', el).onclick = async () => { await copyText(s.posterPrompt); toast('프롬프트를 복사했어요'); track('prompt_copied'); };
   $('#rewrite', el).onclick = () => { S.director = s.director; makeStory(); };
   $('#makePoster', el).onclick = async () => {
+    if (hasKV) return go('poster');
     $('#makePoster').disabled = true;
     try { await api('/api/poster', { method: 'POST' }); go('poster'); }
     catch (e) { $('#makePoster').disabled = false; handleError(e); }
@@ -490,9 +511,9 @@ VIEWS.poster = () => {
       <div>
         <div class="countdown" id="cd" style="--p:0%"><b id="cdNum">30</b></div>
         <div class="loading-msg" id="lmsg">${POSTER_MSGS[0]}</div>
-        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 2:3 KEY ART</div>
+        <div class="loading-sub" id="lsub">“${esc(s.story.title)}” · 2:3 KEY VISUAL</div>
       </div>
-      <div class="film-strip"></div>
+      <div class="belt"><i></i></div>
     </div></div>
   `);
   const myPoll = S.pollId;
@@ -532,6 +553,7 @@ async function getComposedPoster(info, rawUrl, finalUrl) {
 const infoFromSession = (s) => ({ title: s.story.title, tagline: s.story.tagline, director: s.director, seed: s.seed, genre: s.story.genre, keywords: s.keywords });
 
 async function renderPosterDone() {
+  S.kvSeed = S.session.seed;
   const s = S.session;
   const el = render(`
     <p class="scene">${sceneLabel('poster')}</p>
@@ -543,7 +565,7 @@ async function renderPosterDone() {
     <div class="btn-row"><button class="btn" id="save">${ic('download')}키비주얼 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
     <div class="cta-bar">
-      <button class="btn btn-primary btn-block" id="toTrailer">이 광고가 움직인다면? ${ic('arrow')}</button>
+      <button class="btn btn-primary btn-block" id="toTrailer">${s.video.status === 'done' ? '완성된 광고 영상 보기' : '이 광고가 움직인다면?'} ${ic('arrow')}</button>
       ${s.poster.remaining > 0 ? `<p style="text-align:center;margin:8px 0 0"><button class="linkish" id="regen">키비주얼 다시 만들기 (${s.poster.remaining}회 남음)</button></p>` : ''}
     </div>
   `);
@@ -555,7 +577,7 @@ async function renderPosterDone() {
   const fname = `seedance-commerce-${pad(s.seed)}.jpg`;
   $('#save', el).onclick = () => { download(src.startsWith('data:') ? src : `${src}?dl=1`, fname); track('poster_saved'); toast('키비주얼을 저장했어요'); };
   $('#share', el).onclick = () => { shareFile(src, fname, `${s.story.title} — ${s.director}`, absUrl(s.resultUrl)); track('poster_shared'); };
-  $('#toTrailer', el).onclick = () => go('trailer');
+  $('#toTrailer', el).onclick = () => go(s.video.status === 'done' ? 'done' : 'trailer');
   $('#regen', el)?.addEventListener('click', async () => {
     try { await api('/api/poster', { method: 'POST' }); S.posterData = null; go('poster', { slate: true }); } catch (e) { handleError(e); }
   });
@@ -566,7 +588,6 @@ VIEWS.trailer = () => {
   const k = S.boot.kakao;
   const failed = s.video.status === 'failed';
   const el = render(`
-    <button class="back" data-back>← 키비주얼로 돌아가기</button>
     <div class="trailer-head">
       <img src="${esc(S.posterData || s.poster.finalUrl || s.poster.url)}" alt="">
       <div><p class="scene" style="margin:0">${sceneLabel('trailer')}</p><p class="big-q">이 광고가<br><em style="color:var(--accent);font-style:normal">움직인다면?</em></p></div>
@@ -582,7 +603,6 @@ VIEWS.trailer = () => {
       <button class="btn btn-primary btn-block" id="makeVideo">${failed ? '다시 시도하기' : '영상 생성하기'} ${ic('play')}</button>
     </div>
   `);
-  $('[data-back]', el).onclick = () => go('poster');
   $('[data-copy]', el).onclick = async () => { await copyText(s.videoPrompt); toast('프롬프트를 복사했어요'); track('prompt_copied', { kind: 'video' }); };
   $('#makeVideo', el).onclick = async () => {
     $('#makeVideo').disabled = true;
@@ -596,7 +616,7 @@ const SCREEN_ROWS = {
   poster: { tag: 'AD WALL', name: '신상 광고 월', cta: '광고 걸기', ok: '광고 월에 키비주얼이 걸렸어요!' },
   trailer: { tag: 'CH.01', name: '광고 쇼케이스', cta: '송출하기', ok: '광고 쇼케이스 대기열에 올렸어요!' },
 };
-const screenState = (st) => (st === 'live' ? '<span class="sc-state live"><i></i>송출 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
+const screenState = (st) => (st === 'live' ? '<span class="sc-state live">송출 중</span>' : '<span class="sc-state">운영진 확인 중</span>');
 function screenCard(state = {}, { poster = false, trailer = false } = {}) {
   const rows = Object.entries({ poster, trailer }).filter(([, on]) => on).map(([kind]) => {
     const st = state?.[kind];
@@ -770,9 +790,10 @@ async function renderResult(r) {
 async function restart() {
   track('restart');
   S.cast = {};
-  S.takes = {};
   S.posterData = null;
   S.posterFor = null;
+  S.kvSeed = null;
+  S.storyKey = null;
   if (!S.booth) S.director = '';
   try {
     await api('/api/session', { method: 'POST', body: { keepPhone: !S.booth, entry: S.booth ? 'booth' : 'qr' } });

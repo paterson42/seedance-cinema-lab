@@ -98,12 +98,10 @@
     .bar .screen-no { font-family: var(--display); font-size: calc(var(--u) * 3.6); letter-spacing: .06em; color: var(--ink); line-height: 1; }
     .bar .now, .bar .next { display: flex; align-items: center; gap: calc(var(--u) * 1.2); white-space: nowrap; overflow: hidden; min-width: 0; }
     .bar .now b, .bar .next b { font-family: var(--sans); letter-spacing: 0; color: var(--ink); font-size: calc(var(--u) * 2); overflow: hidden; text-overflow: ellipsis; }
-    .bar .now i { width: calc(var(--u) * 1); height: calc(var(--u) * 1); border-radius: 50%; background: #e0261b; box-shadow: 0 0 10px #e0261b; animation: blink 1.4s infinite; flex: none; }
     .bar .next { flex: 1; }
     .bar .q { margin-left: auto; white-space: nowrap; }
     .bar .q b { color: var(--accent); font-size: calc(var(--u) * 2.2); }
     .bar .clock { font-family: var(--display); font-size: calc(var(--u) * 3.2); color: var(--ink); letter-spacing: .04em; }
-    @keyframes blink { 50% { opacity: .2; } }
 
     @media (orientation: portrait) {
       .stage { padding: calc(var(--u) * 8) calc(var(--u) * 3) calc(var(--u) * 2); }
@@ -151,7 +149,7 @@
     </section>
     <footer class="bar">
       <span class="screen-no">CH.01</span>
-      <span class="now"><i></i>ON AIR <b id="nowT">—</b></span>
+      <span class="now">ON AIR <b id="nowT">—</b></span>
       <span class="next">UP NEXT <b id="nextT">—</b></span>
       <span class="q">송출 대기 <b id="qn">0</b>편</span>
       <span class="clock" id="clock">--:--</span>

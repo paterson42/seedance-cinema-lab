@@ -16,9 +16,12 @@
 <body>
   <div class="grain" aria-hidden="true"></div>
   <header class="top">
-    <a class="brand" href="/" data-action="home" aria-label="처음으로">
-      <span class="brand-mark">Seedance</span><span class="brand-dot"></span><span class="brand-sub">@ SEOUL</span>
-    </a>
+    <div class="top-left">
+      <button class="top-back" id="topBack" type="button" hidden aria-label="이전 단계로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>이전</button>
+      <a class="brand" href="/" data-action="home" aria-label="처음으로">
+        <span class="brand-mark">Seedance</span><span class="brand-sub">@ SEOUL</span>
+      </a>
+    </div>
     <div class="top-right">
       <span class="mode-badge" id="modeBadge" hidden>DEMO MODE</span>
       <span class="step-count" id="stepCount"></span>
@@ -37,22 +40,18 @@
     <span>Powered by Seed · Seedream · Seedance — BytePlus ModelArk</span>
   </footer>
 
+  <!-- Step transition: an order-tracking card that advances one stop per step -->
   <div class="slate-wrap" id="slate" hidden aria-hidden="true">
-    <div class="slate">
-      <div class="slate-stick"><i></i></div>
-      <div class="slate-bar"><i></i></div>
-      <div class="slate-body">
-        <div class="slate-prod">SEEDANCE COMMERCE LAB</div>
-        <div class="slate-grid">
-          <div><small>SCENE</small><b id="slScene">01</b></div>
-          <div><small>TAKE</small><b id="slTake">1</b></div>
-          <div><small>ROLL</small><b>A01</b></div>
-        </div>
-        <div class="slate-row"><small>STEP</small><b id="slTitle"></b></div>
-        <div class="slate-row"><small>BRAND</small><b id="slDir">MY BRAND</b></div>
-        <div class="slate-foot"><span id="slDate"></span><span>SEOUL 2026</span></div>
+    <div class="track-card">
+      <div class="tc-head"><span>SEEDANCE COMMERCE LAB</span><span>배송 조회</span></div>
+      <div class="tc-now"><small id="slScene">STEP 01</small><b id="slTitle"></b><span id="slSub"></span></div>
+      <div class="tc-line">
+        <i class="tc-fill"></i>
+        <span class="tc-parcel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8M7.5 5.5l9 5"/></svg></span>
       </div>
-      <div class="slate-action">ACTION!</div>
+      <div class="tc-stops" id="slStops"></div>
+      <div class="tc-foot"><span>BRAND <b id="slDir">MY BRAND</b></span><span id="slDate"></span></div>
+      <div class="slate-action">주문 완료!</div>
     </div>
   </div>
 

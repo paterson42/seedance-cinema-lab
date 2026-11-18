@@ -70,13 +70,15 @@ function videoPrompt({ genre, kw }) {
     'The ad key visual comes alive as an 8-second vertical short-form commercial shot.',
     `${cap(kw.what.en)} stays the hero of the shot, ${kw.how.en}, with ${kw.who.en}, ${kw.where.en}, ${kw.when.en}.`,
     `Camera and motion: ${genre.motion}.`,
-    'Keep the same product, model, palette and composition as the key visual. Smooth, coherent, polished commercial motion. No text, captions or logos on screen.',
+    `Smooth, coherent, polished commercial motion. ${VIDEO_GUARD}`,
   ].join(' ');
 }
 
 function videoPromptKo({ genre, kw }) {
   return `키비주얼 속 ${subj(kw.what.ko)} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 무드의 카메라 워크로 8초 내외의 숏폼 광고를 만듭니다.`;
 }
+
+const VIDEO_GUARD = 'Keep the same product, palette and composition as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
 
 const LLM_SYSTEM = `You are a sharp, playful Korean advertising copywriter working at an AI e-commerce ad booth.
 The visitor's brand is launching one fictional product. Return ONLY a JSON object with keys:
@@ -114,7 +116,8 @@ Brand name: ${director}. Random seed: ${seed}.`;
           source: 'seed-llm',
         };
         pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}.`;
-        vPrompt = out.video_prompt.trim();
+        // The model-written prompt often omits these guards; without them Seedance can burn captions into the video.
+        vPrompt = `${out.video_prompt.trim()} ${VIDEO_GUARD}`;
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);
