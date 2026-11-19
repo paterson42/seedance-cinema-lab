@@ -821,6 +821,93 @@ const RENDER_MSGS = ['키비주얼 속 상품에 숨을 불어넣는 중', '카�
 // Live progress for a trailer being made (waiting view and the shared result page).
 // Seedance gives no progress, so: linear to 90% at the learned estimate, then creeping towards 99%,
 // with a blinking status, rotating messages and the remaining time, so it never looks frozen.
+// ───────────────────────── video player ─────────────────────────
+// Our own controls instead of the browser's: tap to play or pause, a thin scrub line, the time and
+// a full-screen button. The clips have no sound, so there is no volume control.
+const VP_ICON = {
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>',
+  full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></svg>',
+};
+const playerMarkup = (src, poster) => `<video src="${esc(src)}" playsinline autoplay muted loop preload="auto" poster="${esc(poster)}"></video>
+  <div class="vp">
+    <button class="vp-big" type="button" aria-label="재생">${VP_ICON.play}</button>
+    <div class="vp-bar">
+      <button class="vp-play" type="button" aria-label="일시정지">${VP_ICON.pause}</button>
+      <div class="vp-track" role="slider" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i></i><b></b></div>
+      <span class="vp-time">0:00 / 0:00</span>
+      <button class="vp-full" type="button" aria-label="전체 화면">${VP_ICON.full}</button>
+    </div>
+  </div>`;
+const vpClock = (t) => { const n = Math.max(0, Math.floor(t || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
+function vpSync(video) {
+  const vp = video.parentElement?.querySelector('.vp');
+  if (!vp) return;
+  const d = video.duration || 0, pct = d ? (video.currentTime / d) * 100 : 0;
+  vp.style.setProperty('--t', `${pct}%`);
+  vp.classList.toggle('paused', video.paused);
+  vp.querySelector('.vp-time').textContent = `${vpClock(video.currentTime)} / ${vpClock(d)}`;
+  vp.querySelector('.vp-track').setAttribute('aria-valuenow', String(Math.round(pct)));
+  const pb = vp.querySelector('.vp-play');
+  pb.innerHTML = video.paused ? VP_ICON.play : VP_ICON.pause;
+  pb.setAttribute('aria-label', video.paused ? '재생' : '일시정지');
+}
+// While the clip plays, the bar steps aside after a moment so it does not sit on the ad; it is back on pause or on a pointer move.
+const vpTimers = new WeakMap();
+function vpWake(video) {
+  const vp = video.parentElement?.querySelector('.vp');
+  if (!vp) return;
+  vp.classList.remove('idle');
+  clearTimeout(vpTimers.get(vp));
+  if (!video.paused) vpTimers.set(vp, setTimeout(() => { if (!video.paused && !vp.querySelector('[data-drag]')) vp.classList.add('idle'); }, 2500));
+}
+const vpVideo = (node) => node.closest?.('.video-stage, .poster-stage')?.querySelector('video');
+const vpToggle = (v) => (v.paused ? v.play().catch(() => {}) : v.pause());
+// Media events do not bubble, so they are caught on the way down; one set of listeners serves every player.
+for (const ev of ['timeupdate', 'play', 'pause', 'loadedmetadata', 'durationchange', 'seeked']) {
+  document.addEventListener(ev, (e) => { if (!(e.target instanceof HTMLVideoElement)) return; vpSync(e.target); if (ev === 'play' || ev === 'pause' || ev === 'seeked') vpWake(e.target); }, true);
+}
+document.addEventListener('click', (e) => {
+  const v = vpVideo(e.target);
+  if (!v || !v.parentElement.querySelector('.vp')) return;
+  if (e.target.closest('.vp-full')) {
+    const box = v.parentElement;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (box.requestFullscreen) box.requestFullscreen().catch(() => {});
+    else v.webkitEnterFullscreen?.(); // iPhone: only the video itself can go full screen
+    return;
+  }
+  if (e.target.closest('.vp-track')) return; // scrubbing is handled below
+  if (e.target.closest('.vp-play, .vp-big') || e.target === v || e.target.classList.contains('vp')) vpToggle(v);
+});
+function vpSeek(e, track) {
+  const v = vpVideo(track);
+  if (!v || !v.duration) return;
+  const r = track.getBoundingClientRect();
+  v.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * v.duration;
+  vpSync(v);
+}
+document.addEventListener('pointerdown', (e) => {
+  const track = e.target.closest?.('.vp-track');
+  if (!track) return;
+  track.setPointerCapture?.(e.pointerId);
+  track.dataset.drag = '1';
+  vpSeek(e, track);
+});
+document.addEventListener('pointermove', (e) => {
+  const t = e.target.closest?.('.vp-track');
+  if (t?.dataset.drag) vpSeek(e, t);
+  const v = e.target.closest?.('.vp') && vpVideo(e.target);
+  if (v) vpWake(v);
+});
+for (const ev of ['pointerup', 'pointercancel']) document.addEventListener(ev, (e) => { const t = e.target.closest?.('.vp-track'); if (t) delete t.dataset.drag; });
+document.addEventListener('keydown', (e) => {
+  const track = e.target.closest?.('.vp-track');
+  const v = track && vpVideo(track);
+  if (!v || !v.duration || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  v.currentTime = Math.min(v.duration, Math.max(0, v.currentTime + (e.key === 'ArrowRight' ? 1 : -1)));
+});
+
 // The still key visual twice: a dim, colourless copy underneath and the finished-looking one on top,
 // revealed up to the progress line.
 const waitImages = (src) => `<img class="wait-base" src="${esc(src)}" alt=""><img class="wait-done" src="${esc(src)}" alt=""><i class="wait-line"></i>`;
@@ -909,7 +996,7 @@ async function renderResult(r) {
     </div>
     <div class="poster-wrap"><div class="video-stage" id="vstage">
       ${r.videoUrl
-        ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(r.posterFinal || r.posterRaw)}"></video>`
+        ? playerMarkup(r.videoUrl, r.posterFinal || r.posterRaw)
         : `<img class="kenburns" src="${esc(r.posterFinal || r.posterRaw)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`}
     </div>
     <div class="poster-caption"><span>광고 ID ${pad(r.info.seed)}</span><span>기획 ${esc(r.info.director)}</span></div></div>
@@ -940,7 +1027,7 @@ async function renderResult(r) {
       actions.innerHTML = `<div class="btn-row"><button class="btn" data-a="psave">${ic('download')}키비주얼 저장</button><button class="btn" data-a="pshare">${ic('share')}키비주얼 공유</button></div>`;
     } else {
       stage.innerHTML = r.videoUrl
-        ? `<video src="${esc(r.videoUrl)}" playsinline autoplay muted loop controls preload="auto" poster="${esc(posterSrc)}"></video>`
+        ? playerMarkup(r.videoUrl, posterSrc)
         : `<img class="kenburns" src="${esc(posterSrc)}" alt=""><span class="play-badge">DEMO PREVIEW</span>`;
       actions.innerHTML = `
         ${r.videoUrl ? `<div class="btn-row"><button class="btn" data-a="vsave">${ic('download')}영상 저장</button><button class="btn" data-a="vshare">${ic('share')}영상 공유</button></div>` : ''}

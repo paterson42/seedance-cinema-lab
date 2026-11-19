@@ -439,3 +439,24 @@ mark.kw { background: none; color: var(--accent); font-weight: 700; }
 .wait-card .bar { display: none; }
 .wait-card .wait-row { margin-top: 6px; align-items: baseline; }
 .wait-row #wTime { flex: none; white-space: nowrap; }
+
+/* ── video player controls (our own, in place of the browser's) ── */
+.vp { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; --t: 0%; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.vp button { appearance: none; border: 0; background: none; color: #fff; padding: 0; cursor: pointer; display: grid; place-items: center; }
+.vp svg { width: 22px; height: 22px; display: block; }
+.vp-big { position: absolute; left: 50%; top: 50%; width: 68px; height: 68px; margin: -34px 0 0 -34px; border-radius: 50%; background: rgba(0,0,0,.45) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transform: scale(.9); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
+.vp-big svg { width: 30px; height: 30px; margin-left: 3px; }
+.vp.paused .vp-big { opacity: 1; transform: none; pointer-events: auto; }
+.vp-bar { display: grid; grid-template-columns: 36px 1fr auto 36px; align-items: center; gap: 8px; padding: 26px 10px 10px; background: linear-gradient(to top, rgba(0,0,0,.72), transparent); cursor: default; }
+.vp-bar { transition: opacity .3s ease; }
+.vp.idle .vp-bar { opacity: 0; pointer-events: none; }
+.vp-bar button { width: 36px; height: 36px; border-radius: 50%; }
+.vp-bar button:active { background: rgba(255,255,255,.14); }
+.vp-track { position: relative; height: 24px; cursor: pointer; touch-action: none; outline: none; }
+.vp-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 99px; background: rgba(255,255,255,.28); }
+.vp-track i { position: absolute; left: 0; top: 50%; height: 3px; margin-top: -1.5px; width: var(--t); border-radius: 99px; background: var(--accent); }
+.vp-track b { position: absolute; left: var(--t); top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.5); transition: transform .12s ease; }
+.vp-track[data-drag] b, .vp-track:focus-visible b { transform: scale(1.35); }
+.vp-time { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.9); white-space: nowrap; }
+.video-stage:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; border: 0; border-radius: 0; }
+.video-stage:fullscreen video { object-fit: contain; }
