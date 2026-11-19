@@ -465,3 +465,6 @@ mark.kw { background: none; color: var(--accent); font-weight: 700; }
 .video-stage:not(:fullscreen) .vp-bar > :not(.vp-full) { display: none; }
 .video-stage:not(:fullscreen) .vp-full { background: rgba(0,0,0,.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .video-stage:not(:fullscreen) .vp-full svg { width: 18px; height: 18px; }
+/* No visible scroll bars anywhere; everything still scrolls by touch, wheel and keyboard. */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
