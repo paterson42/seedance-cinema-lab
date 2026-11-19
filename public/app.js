@@ -134,8 +134,8 @@ const SCENES = {
   cast: { n: 2, ko: '컨셉', en: 'CONCEPT', ship: '상품 준비' },
   story: { n: 3, ko: '문구', en: 'COPY', ship: '포장' },
   poster: { n: 4, ko: '촬영', en: 'SHOOTING', ship: '출고', action: true },
-  trailer: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중' },
-  waiting: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중', action: true },
+  trailer: { n: 5, ko: '영상', en: 'VIDEO', ship: '배송 중' },
+  waiting: { n: 5, ko: '영상', en: 'VIDEO', ship: '배송 중', action: true },
   done: { n: 6, ko: '온에어', en: 'ON AIR', ship: '배송 완료' },
 };
 const STOPS = ['접수', '준비', '포장', '출고', '배송', '완료'];
@@ -912,7 +912,7 @@ document.addEventListener('keydown', (e) => {
 // revealed up to the progress line.
 const waitImages = (src) => `<img class="wait-base" src="${esc(src)}" alt=""><img class="wait-done" src="${esc(src)}" alt=""><i class="wait-line"></i>`;
 const progressMarkup = (msg = RENDER_MSGS[0]) => `<div class="wait-overlay">
-    <span class="wait-status" id="wStatus">영상 편집 중</span>
+    <span class="wait-status" id="wStatus">영상 생성 중</span>
     <div class="bar"><i id="wBar"></i></div>
     <div class="wait-row"><span id="wMsg">${msg}</span><span id="wTime"></span></div>
   </div>`;
@@ -926,7 +926,7 @@ function trailerProgress(el, get, alive) {
       const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
       $('#wBar', el).style.width = `${pct}%`;
       $('#wTime', el).textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
-      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중` : '영상 편집 중';
+      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중` : '영상 생성 중';
       // The key visual fills with colour from left to right as the edit progresses (see .wait-card in styles.css).
       $('#wBar', el).closest('.wait-card')?.style.setProperty('--p', `${pct}%`);
       if (Math.floor(sec) % 6 === 0) $('#wMsg', el).textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
@@ -941,7 +941,7 @@ VIEWS.waiting = () => {
   const link = absUrl(s.resultUrl);
   const el = render(`
     <p class="scene">${sceneLabel('waiting')}</p>
-    <h2 class="h2">광고 영상 <em>편집 중</em></h2>
+    <h2 class="h2">광고 영상 <em>생성 중</em></h2>
     <div class="poster-wrap"><div class="poster-stage wait-card">
       ${waitImages(poster)}
       ${progressMarkup()}
@@ -1088,7 +1088,7 @@ async function showResultPage(tok) {
       <p class="scene">곧 송출</p>
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
-      <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup('광고 영상 편집 중…') : ''}</div>
+      <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup('광고 영상 생성 중…') : ''}</div>
       <div class="poster-caption"><span>광고 ID ${pad(r.seed)}</span><span>기획 ${esc(r.director)}</span></div></div>
       ${making
         ? `<div class="notice"><span class="ico">⏱</span><span>광고 영상을 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
