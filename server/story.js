@@ -82,10 +82,12 @@ const SECS = () => config.ark.videoDuration;
 // sees (the app highlights each span in that keyword's colour); the tags are stripped before a
 // prompt goes to Seedream / Seedance.
 const SLOTS = ['who', 'when', 'where', 'what', 'how', 'why'];
-const TAG = /<(\/?)(who|when|where|what|how|why)>/g;
+const TAG = /<(\/?)(who|when|where|what|how|why|mood)>/g;
 export const stripMarks = (t) => String(t || '').replace(TAG, '');
 const tag = (slot, text) => `<${slot}>${text}</${slot}>`;
-const marked = (t) => new Set([...String(t || '').matchAll(/<(who|when|where|what|how|why)>\s*\S/g)].map((m) => m[1]));
+// "minimalist product launch visual, seamless…" -> the lead phrase is what names the mood
+const moodStyle = (genre) => { const [lead, ...rest] = String(genre.style).split(', '); return [tag('mood', lead), ...rest].join(', '); };
+const marked = (t) => new Set([...String(t || '').matchAll(/<(who|when|where|what|how|why|mood)>\s*\S/g)].map((m) => m[1]));
 
 // Keeps only well-formed, non-nested spans so the page can never show a stray tag.
 export function tidyMarks(text) {
@@ -108,7 +110,7 @@ export function tidyMarks(text) {
   }
   out += src.slice(last);
   if (open) dropOpen();
-  return out.replace(/<(who|when|where|what|how|why)>\s*<\/\1>/g, '');
+  return out.replace(/<(who|when|where|what|how|why|mood)>\s*<\/\1>/g, '');
 }
 
 // Sentences that put a missing keyword back into a prompt, so all six are always there.
@@ -153,7 +155,7 @@ function posterPrompt({ genre, kw }) {
     `${tag('who', cap(kw.who.en))} is clearly visible in the foreground beside the product, instantly recognisable as exactly that kind of person from wardrobe, props and action.`,
     `Setting: ${tag('where', kw.where.en)}, ${tag('when', kw.when.en)}.`,
     `Creative concept: ${tag('how', kw.how.en)}. One visual cue in the scene suggests ${tag('why', kw.why.en)}.`,
-    `Style: ${genre.style}.`,
+    `Style: ${moodStyle(genre)}.`,
     'Premium product photography, desirable and tactile, strong focal point, rich depth, art-directed lighting.',
     POSTER_REALISM,
     'Keep the top edge and the lower third darker and uncluttered for headline and call-to-action placement. No text, no letters, no words, no logos, no brand names, no price tags, no watermark.',
@@ -179,14 +181,14 @@ const LLM_SYSTEM = () => `You are a sharp, playful Korean advertising copywriter
 The visitor picked SIX keywords for one fictional product launch: who (target customer), when, where, what (the product), how (creative treatment), why (the reason to buy).
 All six are the visitor's own choices and every one of them must be clearly and specifically reflected in EVERY text you write. Never drop one, never water one down into something vaguer (a "developer working late" must stay recognisably a developer working late, not "a tired person" or a "tech" look), and never let the ad mood replace a keyword: the mood only sets styling such as lighting, palette and camera.
 
-KEYWORD TAGS (required): wherever a text reflects a keyword, wrap exactly those words in that keyword's tag: <who>…</who>, <when>…</when>, <where>…</where>, <what>…</what>, <how>…</how>, <why>…</why>. Each of "logline", "synopsis", "poster_prompt" and "video_prompt" must contain all six tags at least once. Tag only the words that carry the keyword, do not nest tags, and use no other markup.
+KEYWORD TAGS (required): wherever a text reflects a keyword, wrap exactly those words in that keyword's tag: <who>…</who>, <when>…</when>, <where>…</where>, <what>…</what>, <how>…</how>, <why>…</why>. Words that express the ad mood get <mood>…</mood>. Each of "logline", "synopsis", "poster_prompt" and "video_prompt" must contain all six keyword tags at least once. Tag EVERY mention, not only the first: if the product, the person, the place or the treatment comes up again later in the same text (for example "the hoodie" after "an oversized zip-up hoodie"), tag it again. Tag only the few words that carry the keyword (short phrases, never a whole sentence), do not nest tags, and use no other markup.
 
 Return ONLY a JSON object with keys:
 "title" (Korean product name, 2-10 characters, catchy and brandable, no quotes, no tags, must not be a real existing brand or product name),
 "tagline" (Korean ad headline, one sentence, max 30 characters, no tags),
 "logline" (Korean, 1-2 sentences describing the campaign concept; use each of the six Korean keywords word for word, tagged),
 "synopsis" (Korean product-page copy, 3-4 sentences, persuasive but with no medical, health or guaranteed-result claims; names the target customer explicitly and reflects all six keywords, tagged),
-"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot. It must show: the <what> product as the clear hero with clean unbranded packaging; the <who> person clearly visible in the foreground or midground next to or using the product, never a blurred background figure, and identifiable as exactly that kind of person through age, wardrobe, props and action; the real <where> location recognisable in frame; the <when> moment through light, weather and details; the <how> treatment as the central visual idea; and one concrete visual cue for <why> (never as written text). Also give the lighting setup, lens and framing, and color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot. It must show: the <what> product as the clear hero with clean unbranded packaging; the <who> person clearly visible in the foreground or midground next to or using the product, never a blurred background figure, and unmistakably that exact kind of person: spell out the concrete giveaways in wardrobe, props and action (a developer working late is at an open laptop with lines of code on the screen, a company lanyard and a paper coffee cup beside them, not just "a tired man"). Never express the person as a general look or style of the ad (no "tech-ad style" standing in for a developer); the real <where> location recognisable in frame; the <when> moment through light, weather and details; the <how> treatment as the central visual idea; and one concrete visual cue for <why> (never as written text). Also give the lighting setup, lens and framing, and color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
 "video_prompt" (English prompt, 2-4 sentences, describing how this exact key visual comes alive as a ${config.ark.videoDuration}-second vertical short-form commercial shot: one clear camera move, what the <what> product and the <who> person physically do, the <how> treatment in motion, the <where> and <when> staying visible, and a closing beat that hints at <why>, plus small natural details like light changes, steam or droplets. Keep motion believable and grounded. No on-screen text).
 KOREAN WORDING: write the way Korean shoppers and Korean shopping apps actually talk. Use the everyday Korean name for things, not a literal transliteration of the English: 후드집업 or 후드티 (not 후디), 러닝화 (not 러닝 스니커즈), 향수 (not 퍼퓸), 돗자리 (not 피크닉 매트), 접사 (not 매크로 샷), 원테이크 (not 롱숏). When you repeat a picked keyword, keep its Korean wording exactly as given. No translated-sounding sentences.
 Content must be family-friendly. Never mention real brands, celebrities or trademarks.`;
@@ -225,7 +227,7 @@ Random seed: ${seed}.`;
           director,
           source: 'seed-llm',
         };
-        pPrompt = `${withAll(out.poster_prompt, kw, POSTER_FIX, 'Keep the top edge')} Style: ${genre.style}. ${POSTER_REALISM}`;
+        pPrompt = `${withAll(out.poster_prompt, kw, POSTER_FIX, 'Keep the top edge')} Style: ${moodStyle(genre)}. ${POSTER_REALISM}`;
         // The model-written prompt often omits the no-caption guard; without it Seedance can burn captions into the video.
         vPrompt = `${withAll(out.video_prompt, kw, VIDEO_FIX)} Camera and motion: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
       }

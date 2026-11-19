@@ -417,9 +417,8 @@ img, video { display: block; max-width: 100%; }
 @media (min-width: 760px) { .sheet-wrap { align-items: center; } }
 
 /* picked keywords and where they are reflected in the generated texts */
-/* one colour for all six: the signature accent */
-mark.kw { --kw: var(--accent); }
-mark.kw { background: color-mix(in srgb, var(--kw) 12%, transparent); color: var(--kw); border-radius: 4px; padding: 1px 3px; font-weight: 600; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* words that reflect the picked mood or keywords: bold, in the accent colour, no box */
+mark.kw { background: none; color: var(--accent); font-weight: 700; }
 
 /* plain label/value rows (mood, ad ID, picked keywords) and the one-line mood note */
 .spec { margin: 0 0 22px; border-top: 1px solid var(--line); }

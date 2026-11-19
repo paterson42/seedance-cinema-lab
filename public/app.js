@@ -22,8 +22,8 @@ const herePath = () => (BASE && location.pathname.startsWith(BASE) ? location.pa
 // Generated texts carry <who>…</who>-style tags around the words that reflect each picked keyword.
 // markKw turns them into coloured highlights; plainKw drops them (older ads have no tags at all).
 const KW_SLOTS = ['who', 'when', 'where', 'what', 'how', 'why'];
-const markKw = (t) => esc(t).replace(/&lt;(\/?)(who|when|where|what|how|why)&gt;/g, (_, c, k) => (c ? '</mark>' : `<mark class="kw kw-${k}">`));
-const plainKw = (t) => String(t ?? '').replace(/<\/?(who|when|where|what|how|why)>/g, '');
+const markKw = (t) => esc(t).replace(/&lt;(\/?)(who|when|where|what|how|why|mood)&gt;/g, (_, c, k) => (c ? '</mark>' : `<mark class="kw kw-${k}">`));
+const plainKw = (t) => String(t ?? '').replace(/<\/?(who|when|where|what|how|why|mood)>/g, '');
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // ───────────────────────── icons ─────────────────────────
@@ -593,10 +593,10 @@ async function makeStory() {
 VIEWS.story = () => {
   const s = S.session;
   const st = s.story;
-  // Plain label/value rows instead of chips: mood, ad ID, then the six picked keywords.
+  // Plain label/value rows instead of chips: mood, then the six picked keywords.
   const catKo = Object.fromEntries((S.content.categories || []).map((c) => [c.id, c.ko]));
   const row = (k, v) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`;
-  const spec = row('무드', st.genre.ko) + row('광고 ID', pad(s.seed))
+  const spec = row('무드', st.genre.ko)
     + KW_SLOTS.filter((k) => s.keywords?.[k]).map((k) => row(catKo[k] || '', s.keywords[k].ko)).join('');
   const hasKV = s.poster.status === 'done' && S.kvSeed === s.seed; // a key visual already exists for this copy
   const el = render(`
