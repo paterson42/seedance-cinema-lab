@@ -28,7 +28,7 @@ export function kakaoEnabled() {
 
 export async function sendTrailerReady(session) {
   if (!session.phone_enc || !kakaoEnabled()) return 'skipped';
-  const link = `${config.publicBaseUrl}/r/${session.result_token}`;
+  const link = `${config.publicBaseUrl}${config.basePath}/r/${session.result_token}`;
   const title = session.story?.title || '나의 신상품';
   const director = session.director || '고객';
   const payload = {

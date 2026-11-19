@@ -14,6 +14,7 @@ import {
 import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
 import { etaSec } from './eta.js';
+import { BASE, withBase, insideBase, rebased, rebaseText } from './basepath.js';
 
 // ───────────── tiny HTTP toolkit ─────────────
 const MIME = {
@@ -55,7 +56,7 @@ function cookies(req) {
 
 const SECURE = config.publicBaseUrl.startsWith('https');
 function sessionCookie(id) {
-  return `scm_sid=${id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
+  return `scm_sid=${id}; Path=${BASE || '/'}; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
 }
 
 const routes = [];
@@ -79,7 +80,7 @@ setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (!v.so
 const ip = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
 
 // ───────────── view models ─────────────
-const media = (f) => (f ? `/media/${f}` : null);
+const media = (f) => (f ? withBase(`/media/${f}`) : null);
 // What the visitor sees about their big-screen submission (an operator hiding it reads as "pending").
 const screenState = (v) => (v === 'hidden' ? 'pending' : v || null);
 const screenView = (s) => ({ poster: screenState(s.screen_poster), trailer: screenState(s.screen_video) });
@@ -121,7 +122,7 @@ function sessionView(s) {
       remaining: isTestSession(s) ? 99 : Math.min(dailyLeft(s, 'video'), Math.max(0, config.queue.videoMaxPerSession - (s.video_count || 0))),
     },
     flows: flowInfo(s),
-    resultUrl: s.result_token ? `/r/${s.result_token}` : null,
+    resultUrl: s.result_token ? withBase(`/r/${s.result_token}`) : null,
     kakaoStatus: s.kakao_status,
     screen: screenView(s),
   };
@@ -521,6 +522,13 @@ function serveFile(req, res, file, { cache = 'no-cache', download } = {}) {
   try { stat = fs.statSync(file); } catch { return false; }
   if (!stat.isFile()) return false;
   const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+  const text = rebased(file); // pages, scripts and styles get the BASE_PATH prefix on their links
+  if (text != null) {
+    const buf = Buffer.from(text);
+    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': cache, 'Content-Length': buf.length });
+    res.end(req.method === 'HEAD' ? undefined : buf);
+    return true;
+  }
   const headers = { 'Content-Type': type, 'Cache-Control': cache, 'Accept-Ranges': 'bytes' };
   if (download) headers['Content-Disposition'] = `attachment; filename="${download}"`;
   const range = req.headers.range && /bytes=(\d*)-(\d*)/.exec(req.headers.range);
@@ -544,7 +552,7 @@ function serveFile(req, res, file, { cache = 'no-cache', download } = {}) {
 }
 
 function serveIndex(res, meta) {
-  let html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  let html = rebaseText(fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8'), true);
   if (meta) {
     const esc = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
     html = html.replace('<!--OG-->', [
@@ -559,7 +567,9 @@ function serveIndex(res, meta) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  const p = decodeURIComponent(url.pathname);
+  const at = insideBase(decodeURIComponent(url.pathname), url.search);
+  if (at.redirect) { res.writeHead(302, { Location: at.redirect }); return res.end(); }
+  const p = at.path;
   try {
     if (p.startsWith('/api/')) {
       for (const r of routes) {
@@ -582,6 +592,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/admin') return serveFile(req, res, path.join(PUBLIC_DIR, 'admin.html'));
     if (p === '/screen' || p === '/screen/') return serveFile(req, res, path.join(PUBLIC_DIR, 'screen', 'index.html'));
     if (p === '/screen/poster' || p === '/screen/trailer') return serveFile(req, res, path.join(PUBLIC_DIR, 'screen', `${p.slice(8)}.html`));
+    if (p === '/poster' || p === '/trailer') return serveFile(req, res, path.join(PUBLIC_DIR, 'screen', `${p.slice(1)}.html`)); // short screen addresses
     if (p.startsWith('/r/')) {
       const s = getSessionByToken(p.slice(3));
       return serveIndex(res, s?.story ? {
@@ -603,8 +614,8 @@ const server = http.createServer(async (req, res) => {
 
 startJobs();
 server.listen(config.port, () => {
-  console.log(`\n🛍️  Seedance Seoul Commerce Lab  →  http://localhost:${config.port}`);
+  console.log(`\n🛍️  Seedance Seoul Commerce Lab  →  http://localhost:${config.port}${BASE}/`);
   console.log(`   mode: ${config.mock ? 'MOCK (데모 — ARK_API_KEY 미설정)' : 'LIVE'}   kakao: ${config.kakao.provider}`);
-  console.log(`   admin: http://localhost:${config.port}/admin?token=${config.adminToken}`);
-  console.log(`   screens: http://localhost:${config.port}/screen/poster   /screen/trailer\n`);
+  console.log(`   admin: http://localhost:${config.port}${BASE}/admin?token=${config.adminToken}`);
+  console.log(`   screens: http://localhost:${config.port}${BASE}/poster   ${BASE}/trailer\n`);
 });

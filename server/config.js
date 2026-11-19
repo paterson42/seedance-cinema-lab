@@ -46,6 +46,8 @@ const arkKey = env('ARK_API_KEY');
 
 export const config = {
   port,
+  // Path prefix when several demos share one domain, e.g. /ad. Empty = the domain root.
+  basePath: (() => { const b = env('BASE_PATH', '').trim().replace(/^\/*|\/*$/g, ''); return b ? `/${b}` : ''; })(),
   publicBaseUrl: env('PUBLIC_BASE_URL', `http://localhost:${port}`).replace(/\/$/, ''),
   publicBaseUrlSet: !!env('PUBLIC_BASE_URL'),
   appSecret: env('APP_SECRET') || persistentSecret('.secret', 32),

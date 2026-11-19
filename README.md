@@ -187,3 +187,20 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 5. 부스 태블릿은 `/?booth=1` 로 한 번 접속해 두기
 6. 대형 스크린 PC 2대에서 `/screen/poster`, `/screen/trailer` 전체 화면 (절전 모드 해제)
 7. Cinema Lab 데모와 같은 호스트에서 함께 돌릴 때는 포트만 다르게 주면 됩니다 (`PORT=3001`). 세션 쿠키 이름이 달라(`scm_sid`) 브라우저 세션이 섞이지 않고, 체크아웃 폴더가 다르면 `data/`(DB/미디어)도 따로 쌓입니다
+
+## 한 도메인에 Cinema와 Commerce 함께 올리기
+
+`BASE_PATH`를 주면 앱 전체가 그 경로 아래에서 동작합니다. 링크, API, 미디어, 결과 링크, 쿠키까지 모두 그 경로를 따릅니다.
+
+| 주소 | 화면 |
+|---|---|
+| `https://도메인/ad/` | 방문객 사이트 (QR) |
+| `https://도메인/ad/poster` | 키비주얼 스크린 (`/ad/screen/poster`도 동일) |
+| `https://도메인/ad/trailer` | 광고 영상 스크린 (`/ad/screen/trailer`도 동일) |
+| `https://도메인/ad/admin?token=…` | 운영자 화면 |
+
+- `.env`: `BASE_PATH=/ad`, `PORT=3001`, `PUBLIC_BASE_URL=https://도메인` (경로 없이 도메인까지만)
+- 서버: Cinema가 이미 올라간 서버에서 `bash deploy/setup-ad.sh <도메인>` → Commerce가 `/ad/`에 추가되고 Cinema는 그대로 루트에서 동작
+- Cinema도 `/cinema/`로 옮기려면 Cinema 앱에 같은 `BASE_PATH` 지원이 들어간 뒤 그쪽 `.env`에 `BASE_PATH=/cinema`를 넣고 스크립트를 다시 실행합니다. 이후 루트 주소(기존 QR, `/screen/poster`)는 `/cinema/…`로 자동 이동합니다
+- 로컬에서 확인: `BASE_PATH=/ad npm start` → `http://localhost:3000/ad/`
+- 두 앱은 프록시가 경로를 떼지 않고 그대로 넘겨주는 구성을 전제로 합니다 (Caddy `handle`, `handle_path` 아님)
