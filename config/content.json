@@ -66,7 +66,7 @@
       "palette": ["#9fd0ff", "#070d14"],
       "style": "minimalist product launch visual, seamless gradient backdrop, cool blue-grey palette, precise softbox lighting, crisp edges, floating product, generous clean negative space",
       "motion": "smooth slow rotation of the product on a seamless backdrop, a clean light band gliding across its surface, subtle parallax, calm and precise",
-      "titles": ["{n} 제로", "{n} 원", "퓨어 {n}", "{n} 프로"],
+      "titles": ["{n} 제로", "더 {n}", "퓨어 {n}", "{n} 프로"],
       "taglines": ["필요한 것만 남겼습니다.", "덜어낼수록 선명해진다.", "설명서가 필요 없는 디자인."],
       "tail": "기능은 숨기고 경험만 남겼습니다. 꺼내는 순간부터 쓰는 순간까지, 군더더기가 없습니다."
     },
@@ -114,10 +114,10 @@
         { "ko": "퇴근길 직장인", "en": "a tired office worker heading home after work" },
         { "ko": "새벽 러닝 크루", "en": "a group of early-morning runners" },
         { "ko": "자취 1년 차 대학생", "en": "a college student living alone for the first time" },
-        { "ko": "강아지와 산책하는 보호자", "en": "a dog owner out on a walk with their dog" },
+        { "ko": "강아지와 산책 나온 반려인", "en": "a dog owner out on a walk with their dog" },
         { "ko": "캠핑에 진심인 아빠", "en": "a dad who is obsessed with camping" },
         { "ko": "유행에 민감한 Z세대", "en": "a trend-savvy Gen Z shopper" },
-        { "ko": "신혼집을 꾸미는 부부", "en": "a newlywed couple decorating their first home" },
+        { "ko": "신혼집을 꾸미는 신혼부부", "en": "a newlywed couple decorating their first home" },
         { "ko": "야근 중인 개발자", "en": "a software developer working late at night" },
         { "ko": "손주 선물을 고르는 할머니", "en": "a grandmother picking out a gift for her grandchild" },
         { "ko": "첫 월급을 받은 신입사원", "en": "a new hire who has just received their first paycheck" }
@@ -133,10 +133,10 @@
         { "ko": "월급날 저녁", "en": "on payday evening" },
         { "ko": "한여름 열대야", "en": "on a sweltering midsummer night" },
         { "ko": "크리스마스 이브", "en": "on Christmas Eve" },
-        { "ko": "벚꽃이 피는 봄날", "en": "on a spring day with cherry blossoms in full bloom" },
+        { "ko": "벚꽃 피는 봄날", "en": "on a spring day with cherry blossoms in full bloom" },
         { "ko": "월요일 아침 7시", "en": "at 7 a.m. on a Monday" },
         { "ko": "연말 세일 마지막 날", "en": "on the last day of the year-end sale" },
-        { "ko": "새벽 배송이 도착한 아침", "en": "on the morning a dawn delivery arrives at the door" },
+        { "ko": "새벽배송이 도착한 아침", "en": "on the morning a dawn delivery arrives at the door" },
         { "ko": "불금 퇴근 직후", "en": "right after work on a Friday night" }
       ]
     },
@@ -146,7 +146,7 @@
       "en": "WHERE",
       "keywords": [
         { "ko": "성수동 팝업스토어에서", "en": "inside a trendy pop-up store in Seongsu-dong, Seoul" },
-        { "ko": "한강 피크닉 매트 위에서", "en": "on a picnic mat by the Han River" },
+        { "ko": "한강 돗자리 위에서", "en": "on a picnic mat spread out by the Han River" },
         { "ko": "네온사인 가득한 을지로 골목에서", "en": "in a neon-lit back alley in Euljiro, Seoul" },
         { "ko": "햇살 드는 원룸 창가에서", "en": "by a sunlit studio-apartment window" },
         { "ko": "제주 바닷가 캠핑장에서", "en": "at a seaside campsite on Jeju Island" },
@@ -162,16 +162,16 @@
       "ko": "무엇을",
       "en": "WHAT",
       "keywords": [
-        { "ko": "제로 슈거 탄산수", "en": "a sleek can of zero-sugar sparkling water", "n": "스파클링", "price": 1500 },
+        { "ko": "레몬 탄산수", "en": "a sleek can of lemon sparkling water", "n": "탄산수", "price": 1500 },
         { "ko": "비건 글로우 세럼", "en": "a glass dropper bottle of vegan glow serum", "n": "세럼", "price": 35000 },
-        { "ko": "한정판 러닝 스니커즈", "en": "a pair of limited-edition running sneakers", "n": "스니커즈", "price": 189000 },
-        { "ko": "매운 볶음 컵라면", "en": "a cup of spicy stir-fried instant noodles", "n": "라면", "price": 2200 },
-        { "ko": "무선 노이즈캔슬링 헤드폰", "en": "a pair of wireless noise-cancelling headphones", "n": "헤드폰", "price": 329000 },
-        { "ko": "반려견 수제 간식", "en": "a pouch of handmade dog treats", "n": "간식", "price": 6900 },
-        { "ko": "캠핑용 미니 랜턴", "en": "a compact camping lantern", "n": "랜턴", "price": 39000 },
-        { "ko": "시그니처 니치 향수", "en": "a sculptural bottle of niche perfume", "n": "퍼퓸", "price": 290000 },
-        { "ko": "온도 유지 스마트 텀블러", "en": "a temperature-keeping smart tumbler", "n": "텀블러", "price": 45000 },
-        { "ko": "오버핏 후드 집업", "en": "an oversized zip-up hoodie", "n": "후디", "price": 79000 }
+        { "ko": "한정판 러닝화", "en": "a pair of limited-edition running shoes", "n": "러닝화", "price": 189000 },
+        { "ko": "매운 볶음면", "en": "a cup of spicy stir-fried instant noodles", "n": "볶음면", "price": 2200 },
+        { "ko": "노이즈 캔슬링 헤드폰", "en": "a pair of wireless noise-cancelling headphones", "n": "헤드폰", "price": 329000 },
+        { "ko": "강아지 수제 간식", "en": "a pouch of handmade dog treats", "n": "간식", "price": 6900 },
+        { "ko": "미니 캠핑 랜턴", "en": "a compact camping lantern", "n": "랜턴", "price": 39000 },
+        { "ko": "니치 향수", "en": "a sculptural bottle of niche perfume", "n": "향수", "price": 290000 },
+        { "ko": "보온보냉 텀블러", "en": "an insulated stainless-steel tumbler that keeps drinks hot or cold", "n": "텀블러", "price": 45000 },
+        { "ko": "오버핏 후드집업", "en": "an oversized zip-up hoodie", "n": "후드집업", "price": 79000 }
       ]
     },
     {
@@ -182,28 +182,28 @@
         { "ko": "언박싱 ASMR로", "en": "presented as a satisfying ASMR unboxing" },
         { "ko": "슬로모션 물방울과 함께", "en": "with slow-motion water droplets splashing around it" },
         { "ko": "15초 댄스 챌린지로", "en": "presented as a 15-second dance challenge" },
-        { "ko": "비포 & 애프터 비교로", "en": "presented as a dramatic before-and-after comparison" },
-        { "ko": "초근접 매크로 샷으로", "en": "captured in an extreme close-up macro shot" },
+        { "ko": "비포 애프터 비교로", "en": "presented as a dramatic before-and-after comparison" },
+        { "ko": "초근접 접사 촬영으로", "en": "captured in an extreme close-up macro shot" },
         { "ko": "공중에 떠오르는 연출로", "en": "with the product levitating in mid-air" },
         { "ko": "한 편의 뮤직비디오처럼", "en": "styled like a glossy music video" },
-        { "ko": "라이브 커머스 생방송처럼", "en": "styled like a lively live-commerce broadcast" },
+        { "ko": "라이브 방송처럼 생생하게", "en": "styled like a lively live-commerce broadcast" },
         { "ko": "귀여운 마스코트와 함께", "en": "alongside a cute original mascot character" },
-        { "ko": "원테이크 롱숏으로", "en": "captured in a single continuous long take" }
+        { "ko": "끊김 없는 원테이크로", "en": "captured in a single continuous long take" }
       ]
     },
     {
       "id": "why", "ko": "왜 사야 할까", "en": "WHY",
       "keywords": [
         { "ko": "오늘만 1+1", "en": "the thrill of a one-day-only buy-one-get-one-free deal" },
-        { "ko": "자정 전 주문 시 새벽 도착", "en": "the convenience of next-dawn delivery" },
+        { "ko": "자정 전 주문하면 새벽 도착", "en": "the convenience of next-dawn delivery" },
         { "ko": "선착순 100명 한정", "en": "the exclusivity of a first-100-customers limited offer" },
         { "ko": "한 번 쓰면 못 돌아가는 편안함", "en": "a comfort you can never go back from" },
         { "ko": "지구를 생각한 친환경 패키지", "en": "eco-friendly packaging that cares for the planet" },
         { "ko": "첫 구매 반값 쿠폰", "en": "the excitement of a half-price coupon for first-time buyers" },
         { "ko": "하루 커피 한 잔 값", "en": "everyday affordability, no more than a cup of coffee a day" },
-        { "ko": "선물 포장 무료", "en": "the joy of gifting, with free gift wrapping" },
+        { "ko": "무료 선물 포장", "en": "the joy of gifting, with free gift wrapping" },
         { "ko": "30일 무료 체험", "en": "the confidence of a 30-day free trial" },
-        { "ko": "품절 대란 끝 재입고", "en": "the buzz of a sold-out favorite finally back in stock" }
+        { "ko": "품절 대란템 재입고", "en": "the buzz of a sold-out favorite finally back in stock" }
       ]
     }
   ]
