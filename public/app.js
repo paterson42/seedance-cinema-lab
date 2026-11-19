@@ -542,11 +542,12 @@ VIEWS.cast = () => {
   };
 };
 
-// Seconds to count down from while Seed writes the copy: last real duration here, else a typical 12s.
+// Seconds to count down from while Seed writes the copy: last real duration here, else a typical 25s
+// (the copy brief covers all six keywords in four texts, so it takes about that long).
 function storyEta() {
   let v = 0;
   try { v = Number(localStorage.getItem('scm_story_sec')); } catch {}
-  return v >= 3 && v <= 40 ? v : 12;
+  return v >= 3 && v <= 90 ? v : 25;
 }
 const storyKey = (director) => JSON.stringify([S.session?.genre, S.cast, director]);
 

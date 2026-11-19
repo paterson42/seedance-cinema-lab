@@ -59,7 +59,7 @@ export const config = {
     llmModel: env('SEED_LLM_MODEL', 'seed-1-6-250615'),
     llmEnabled: bool('SEED_LLM_ENABLED', true),
     // After this the story falls back to the built-in template.
-    llmTimeoutSec: num('SEED_LLM_TIMEOUT_SEC', 30),
+    llmTimeoutSec: num('SEED_LLM_TIMEOUT_SEC', 60),
     imageModel: env('SEEDREAM_MODEL', 'seedream-4-0-250828'),
     // The booth screens are portrait 9:16 panels. The trailer follows the poster's aspect
     // (Seedance rejects --ratio for first-frame video), so this size locks both to 9:16.
