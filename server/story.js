@@ -73,7 +73,7 @@ function templateStory({ genre, kw, director, seed }) {
 // real commercial shoot, not a glossy AI render.
 const POSTER_REALISM = 'Photographed like a real commercial advertising shoot: professional camera and real lenses, true-to-life product materials and surface texture, natural skin texture on any person, practical motivated lighting, natural color, believable proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration.';
 const VIDEO_REALISM = 'Live-action commercial footage: real camera movement with natural motion blur, realistic physics and weight, the product, faces and hands stay consistent with the key visual without morphing.';
-const VIDEO_GUARD = 'Keep the same product, palette and composition as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
+const VIDEO_GUARD = 'Keep the same product, people, wardrobe and palette as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
 const SECS = () => config.ark.videoDuration;
 
 // ───────────── keyword marks ─────────────
@@ -162,12 +162,33 @@ function posterPrompt({ genre, kw }) {
   ].join(' ');
 }
 
-function videoPrompt({ genre, kw }) {
+// Camera plan for the ad, picked per visitor (by seed) from the mood's signature moves: one move
+// to open on, a different one to close on. Without it every clip was the same slow push-in.
+function cameraPlan(genre, seed) {
+  const moves = Array.isArray(genre.camera) ? genre.camera : [];
+  if (!moves.length) return null;
+  const r = rng(Math.imul((seed ^ 0x9e3779b9) >>> 0, 2654435761) >>> 0); // mix so nearby seeds differ
+  r(); r();
+  const a = Math.floor(r() * moves.length);
+  let b = Math.floor(r() * moves.length);
+  if (moves.length > 1 && b === a) b = (a + 1) % moves.length;
+  return { open: moves[a], close: moves.length > 1 ? moves[b] : moves[a] };
+}
+const END = () => SECS();
+const cameraText = (plan) => (plan
+  ? `Shot plan, one continuous take in three beats. Beat 1, the hook (0 to 3 seconds): the camera opens with ${plan.open} and there is visible motion in the very first second. Beat 2 (3 to ${END() - 3} seconds): the product is picked up, used and shown off. Beat 3, the payoff (last 3 seconds): the camera moves into ${plan.close} and settles on a clean, steady hero frame with the product centred, sharp and fully visible. The camera keeps moving until that final frame: energetic, deliberate, smooth, never a static shot or a single slow zoom.`
+  : 'The camera keeps moving through the whole shot: energetic, deliberate, smooth, never a static shot or a single slow zoom.');
+
+function videoPrompt({ genre, kw, plan }) {
+  const open = plan ? `the camera opens with ${plan.open}` : 'the camera is already moving';
+  const close = plan ? `the camera moves into ${plan.close} and settles` : 'the camera settles';
   return [
-    `The ad key visual comes alive as a ${SECS()}-second vertical short-form commercial shot.`,
-    `${tag('what', cap(kw.what.en))} stays the hero of the shot, ${tag('how', kw.how.en)}, with ${tag('who', kw.who.en)} reacting to it, ${tag('where', kw.where.en)}, ${tag('when', kw.when.en)}.`,
-    `A closing beat hints at ${tag('why', kw.why.en)}.`,
-    `Camera and motion: ${genre.motion}.`,
+    `The ad key visual comes alive as an energetic ${SECS()}-second vertical short-form commercial, one continuous take in three beats.`,
+    `Beat 1, the hook (0 to 3 seconds): ${open}; ${tag('what', kw.what.en)} is in motion from the very first frame, ${tag('how', kw.how.en)}.`,
+    `Beat 2, the product in use (3 to ${END() - 3} seconds): ${tag('who', kw.who.en)} reaches for the product, picks it up and uses it in the way that shows what it is, reacting with clear, natural delight, ${tag('where', kw.where.en)}, ${tag('when', kw.when.en)}; the surroundings move too (people, light, weather).`,
+    `Beat 3, the payoff (${END() - 3} to ${END()} seconds): ${close} on a clean, steady hero frame with the product centred and sharp, while one last gesture or detail hints at ${tag('why', kw.why.en)}.`,
+    `Action and atmosphere: ${genre.motion}.`,
+    'The camera keeps moving through all three beats: energetic, deliberate, smooth, never a static shot or a single slow zoom.',
     VIDEO_REALISM,
     VIDEO_GUARD,
   ].join(' ');
@@ -189,7 +210,7 @@ Return ONLY a JSON object with keys:
 "logline" (Korean, 1-2 sentences describing the campaign concept; use each of the six Korean keywords word for word, tagged),
 "synopsis" (Korean product-page copy, 3-4 sentences, persuasive but with no medical, health or guaranteed-result claims; names the target customer explicitly and reflects all six keywords, tagged),
 "poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot. It must show: the <what> product as the clear hero with clean unbranded packaging; the <who> person clearly visible in the foreground or midground next to or using the product, never a blurred background figure, and unmistakably that exact kind of person: spell out the concrete giveaways in wardrobe, props and action (a developer working late is at an open laptop with lines of code on the screen, a company lanyard and a paper coffee cup beside them, not just "a tired man"). Never express the person as a general look or style of the ad (no "tech-ad style" standing in for a developer); the real <where> location recognisable in frame; the <when> moment through light, weather and details; the <how> treatment as the central visual idea; and one concrete visual cue for <why> (never as written text). Also give the lighting setup, lens and framing, and color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
-"video_prompt" (English prompt, 2-4 sentences, describing how this exact key visual comes alive as a ${config.ark.videoDuration}-second vertical short-form commercial shot: one clear camera move, what the <what> product and the <who> person physically do, the <how> treatment in motion, the <where> and <when> staying visible, and a closing beat that hints at <why>, plus small natural details like light changes, steam or droplets. Keep motion believable and grounded. No on-screen text).
+"video_prompt" (English prompt, 5-7 sentences, describing how this exact key visual comes alive as an energetic ${config.ark.videoDuration}-second vertical short-form commercial in one continuous take. Write it as three beats with their timings and build them around the given camera plan: Beat 1, the hook (0 to 3 seconds), opens on the plan's first camera move with something already in motion in the very first second and the <how> treatment in full swing; Beat 2 (the middle seconds) has the <who> person physically doing things with the <what> product, using active verbs (reaches, grabs, unzips, pulls on, sips, twists open, holds up to the lens) and reacting, while the <where> and <when> surroundings move too (passers-by, traffic, snow, light changes, steam, droplets); Beat 3, the payoff (last 3 seconds), moves into the plan's closing camera move and settles on a clean, steady hero frame with the product centred and sharp, with one last gesture or detail that hints at <why>. Say in every beat what the camera does, what the product does and what the person does. Never describe a static shot or a single slow zoom. Motion stays physically believable. No on-screen text).
 KOREAN WORDING: write the way Korean shoppers and Korean shopping apps actually talk. Use the everyday Korean name for things, not a literal transliteration of the English: 후드집업 or 후드티 (not 후디), 러닝화 (not 러닝 스니커즈), 향수 (not 퍼퓸), 돗자리 (not 피크닉 매트), 접사 (not 매크로 샷), 원테이크 (not 롱숏). When you repeat a picked keyword, keep its Korean wording exactly as given. No translated-sounding sentences.
 Content must be family-friendly. Never mention real brands, celebrities or trademarks.`;
 
@@ -200,7 +221,8 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
   const base = templateStory({ genre, kw, director, seed });
   let story = { ...base, source: 'template' };
   let pPrompt = posterPrompt({ genre, kw });
-  let vPrompt = videoPrompt({ genre, kw });
+  const plan = cameraPlan(genre, seed);
+  let vPrompt = videoPrompt({ genre, kw, plan });
 
   if (!config.mock && config.ark.llmEnabled) {
     try {
@@ -213,10 +235,11 @@ ${line('where', 'place')}
 ${line('what', 'product')}
 ${line('how', 'creative treatment')}
 ${line('why', 'reason to buy')}
-Random seed: ${seed}.`;
+Random seed: ${seed}.${plan ? `
+Camera plan for the video: open with ${plan.open}, close with ${plan.close}.` : ''}`;
       const out = await chatJSON(LLM_SYSTEM(), user);
       const ok = (s, max) => typeof s === 'string' && s.trim() && stripMarks(s).length <= max;
-      if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2400) && ok(out.video_prompt, 1500)) {
+      if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2400) && ok(out.video_prompt, 2600)) {
         // The concept line must carry all six keywords; if the model skipped one, the template line (which always has them) is used.
         const logline = tidyMarks(out.logline.trim());
         story = {
@@ -229,7 +252,7 @@ Random seed: ${seed}.`;
         };
         pPrompt = `${withAll(out.poster_prompt, kw, POSTER_FIX, 'Keep the top edge')} Style: ${moodStyle(genre)}. ${POSTER_REALISM}`;
         // The model-written prompt often omits the no-caption guard; without it Seedance can burn captions into the video.
-        vPrompt = `${withAll(out.video_prompt, kw, VIDEO_FIX)} Camera and motion: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
+        vPrompt = `${withAll(out.video_prompt, kw, VIDEO_FIX)} ${cameraText(plan)} Action and atmosphere: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);

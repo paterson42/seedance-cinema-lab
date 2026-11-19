@@ -821,8 +821,11 @@ const RENDER_MSGS = ['키비주얼 속 상품에 숨을 불어넣는 중', '카�
 // Live progress for a trailer being made (waiting view and the shared result page).
 // Seedance gives no progress, so: linear to 90% at the learned estimate, then creeping towards 99%,
 // with a blinking status, rotating messages and the remaining time, so it never looks frozen.
+// The still key visual twice: a dim, colourless copy underneath and the finished-looking one on top,
+// revealed up to the progress line.
+const waitImages = (src) => `<img class="wait-base" src="${esc(src)}" alt=""><img class="wait-done" src="${esc(src)}" alt=""><i class="wait-line"></i>`;
 const progressMarkup = (msg = RENDER_MSGS[0]) => `<div class="wait-overlay">
-    <span class="status-dot" id="wStatus">RENDERING</span>
+    <span class="wait-status" id="wStatus">영상 편집 중</span>
     <div class="bar"><i id="wBar"></i></div>
     <div class="wait-row"><span id="wMsg">${msg}</span><span id="wTime"></span></div>
   </div>`;
@@ -836,7 +839,9 @@ function trailerProgress(el, get, alive) {
       const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
       $('#wBar', el).style.width = `${pct}%`;
       $('#wTime', el).textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
-      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중` : 'RENDERING';
+      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중` : '영상 편집 중';
+      // The key visual fills with colour from left to right as the edit progresses (see .wait-card in styles.css).
+      $('#wBar', el).closest('.wait-card')?.style.setProperty('--p', `${pct}%`);
       if (Math.floor(sec) % 6 === 0) $('#wMsg', el).textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
       await sleep(1000);
     }
@@ -851,7 +856,7 @@ VIEWS.waiting = () => {
     <p class="scene">${sceneLabel('waiting')}</p>
     <h2 class="h2">광고 영상 <em>편집 중</em></h2>
     <div class="poster-wrap"><div class="poster-stage wait-card">
-      <img class="kenburns" src="${esc(poster)}" alt="">
+      ${waitImages(poster)}
       ${progressMarkup()}
     </div></div>
     ${kakaoCard(S.boot.kakao.enabled, `완성되면 ${esc(s.phoneMasked)} 번호로 카카오톡을 보내드려요`, `약 ${fmtDur(s.video.etaSec)} 걸려요. 자리를 떠나도 괜찮아요. 부스를 둘러보고 오세요!`, `약 ${fmtDur(s.video.etaSec)} 걸려요. 자리를 떠나도 괜찮아요. 완성되면 같은 링크에서 바로 볼 수 있어요`)}
@@ -1005,7 +1010,7 @@ async function showResultPage(tok) {
       <p style="text-align:center;margin-top:18px"><a class="linkish" href="/">나도 만들어보기</a></p>`);
     const src = await getComposedPoster(info, r.posterUrl, r.posterFinalUrl);
     $('#stage .boot', el)?.remove();
-    $('#stage', el).insertAdjacentHTML('afterbegin', `<img class="${making ? 'kenburns' : 'reveal'}" src="${esc(src)}" alt="">`);
+    $('#stage', el).insertAdjacentHTML('afterbegin', making ? waitImages(src) : `<img class="reveal" src="${esc(src)}" alt="">`);
     $('#psave', el).onclick = () => download(src.startsWith('data:') ? src : `${src}?dl=1`, `seedance-commerce-${pad(r.seed)}.jpg`);
     $('#pshare', el).onclick = () => shareFile(src, `seedance-commerce-${pad(r.seed)}.jpg`, r.title, location.href);
     if (making) {

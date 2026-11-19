@@ -38,7 +38,8 @@
       "id": "luxury", "ko": "럭셔리", "en": "LUXURY", "desc": "조용히 빛나는 고급스러움",
       "palette": ["#e8c98a", "#14100a"],
       "style": "high-end luxury brand campaign, dark moody studio, champagne-gold rim light, polished marble and silk, elegant negative space, glossy reflections, editorial fashion-magazine finish",
-      "motion": "slow elegant orbit around the product, light sweeping across glossy surfaces, silk fabric drifting, shallow depth of field, refined and unhurried",
+      "motion": "light sweeps across glossy surfaces, silk fabric drifts, the person handles the product slowly and deliberately, refined and unhurried",
+      "camera": ["a slow macro glide along the product's surface with a rack focus", "an elegant 180-degree arc around the product", "a smooth push-in through soft foreground bokeh", "a slow tilt-up from the base of the product to its top as light sweeps across it", "a slow descending crane move that settles on the product", "a parallax dolly slide past foreground elements"],
       "titles": ["메종 {n}", "{n} 느와르", "르 {n}", "{n} 리저브"],
       "taglines": ["조용히, 그러나 분명하게.", "취향은 설명하지 않는다.", "당신이 고른 것이 곧 당신이다."],
       "tail": "과한 설명은 덜어내고 질감과 빛만 남겼습니다. 한 번 손에 쥐면, 이전으로 돌아가기 어렵습니다."
@@ -47,7 +48,8 @@
       "id": "sale", "ko": "빅세일", "en": "MEGA SALE", "desc": "지금 놓치면 품절",
       "palette": ["#ff3b4e", "#1a0508"],
       "style": "bold high-energy sale campaign, vivid red and white palette, bursting confetti and ribbons, dynamic diagonal composition, punchy studio flash, larger-than-life product scale",
-      "motion": "fast punchy zoom-in on the product, confetti and ribbons exploding into frame, quick energetic camera shake, the product bounces into its hero pose",
+      "motion": "confetti and ribbons burst into frame, the person reacts with open excitement and grabs the product, the product bounces into its hero pose",
+      "camera": ["a crash zoom into the product", "a whip pan that lands on the product", "a fast push-in with a speed ramp", "a snappy dolly zoom on the product", "a quick half-orbit with a speed ramp", "a handheld punch-in"],
       "titles": ["{n} 대란", "반값 {n}", "{n} 타임딜", "미친 {n}데이"],
       "taglines": ["고민은 배송만 늦출 뿐.", "지금 아니면, 품절입니다.", "장바구니에 넣는 순간 이미 이득."],
       "tail": "카운트다운은 이미 시작됐습니다. 수량이 사라지기 전에, 망설임보다 손이 먼저 움직이게 됩니다."
@@ -56,7 +58,8 @@
       "id": "shortform", "ko": "숏폼", "en": "SHORT-FORM", "desc": "3초 안에 시선을 사로잡는",
       "palette": ["#ff5cf0", "#170a1a"],
       "style": "viral vertical short-form video aesthetic, saturated neon pink and cyan, playful selfie-style framing, ring-light glow, candid energetic pose, trendy street-style look",
-      "motion": "snappy whip pan and quick jump-cut energy, the subject reacts with a big surprised smile, handheld phone-camera feel, bouncy rhythm",
+      "motion": "the person reacts with a big surprised smile and shows the product to the lens, bouncy rhythm, phone-camera energy",
+      "camera": ["a handheld whip pan that lands on the product", "a snap zoom on the beat", "a fast point-of-view push-in toward the product", "a quick low-angle tracking move", "two rhythmic punch-ins in a row", "a fast orbit around the person holding the product"],
       "titles": ["요즘 {n}", "{n} 챌린지", "갓생 {n}", "#오늘의{n}"],
       "taglines": ["3초만 보세요. 어차피 끝까지 봅니다.", "알고리즘이 먼저 알아본 그 아이템.", "좋아요보다 먼저 눌리는 구매 버튼."],
       "tail": "스크롤을 멈추게 만드는 건 결국 진짜 반응입니다. 따라 하고 싶어지는 순간, 이미 내 피드의 주인공이 됩니다."
@@ -65,7 +68,8 @@
       "id": "minimal", "ko": "미니멀", "en": "MINIMAL", "desc": "덜어낼수록 선명해지는",
       "palette": ["#9fd0ff", "#070d14"],
       "style": "minimalist product launch visual, seamless gradient backdrop, cool blue-grey palette, precise softbox lighting, crisp edges, floating product, generous clean negative space",
-      "motion": "smooth slow rotation of the product on a seamless backdrop, a clean light band gliding across its surface, subtle parallax, calm and precise",
+      "motion": "the product turns on a seamless backdrop while a clean band of light glides across it, the person makes one precise gesture with it, calm and exact",
+      "camera": ["a slow, precise turntable orbit", "a clean linear dolly-in", "a smooth lateral slider move", "a top-down view rotating slowly", "a gentle vertical boom up", "a rack focus from the edge of the product to its front"],
       "titles": ["{n} 제로", "더 {n}", "퓨어 {n}", "{n} 프로"],
       "taglines": ["필요한 것만 남겼습니다.", "덜어낼수록 선명해진다.", "설명서가 필요 없는 디자인."],
       "tail": "기능은 숨기고 경험만 남겼습니다. 꺼내는 순간부터 쓰는 순간까지, 군더더기가 없습니다."
@@ -74,7 +78,8 @@
       "id": "lifestyle", "ko": "라이프스타일", "en": "LIFESTYLE", "desc": "일상 속 한 장면처럼",
       "palette": ["#ffb37a", "#1a0f08"],
       "style": "warm lifestyle brand photography, soft natural window light, cozy earthy tones, candid everyday moment, analog film look, gentle 35mm grain, authentic and relaxed",
-      "motion": "gentle handheld camera, warm sunlight shifting across the scene, a natural relaxed gesture with the product, steam or dust motes floating in the light",
+      "motion": "warm sunlight shifts across the scene, the person uses the product in a natural, relaxed way, steam or dust motes float in the light",
+      "camera": ["a handheld follow of a hand reaching for the product", "a gentle over-the-shoulder push-in", "a slow pan from the person to the product", "a soft tracking move at table height", "a rack focus from the person to the product", "a slow pull-back that reveals the whole scene"],
       "titles": ["오늘의 {n}", "느린 {n}", "{n}, 매일", "우리 집 {n}"],
       "taglines": ["특별하지 않아서 매일 손이 가는.", "좋은 하루는 사소한 것에서 시작된다.", "오늘도 나를 위한 작은 선택."],
       "tail": "거창한 변화 대신 매일의 작은 순간을 바꿉니다. 어느새 일상에서 빠지면 허전한 물건이 됩니다."
@@ -83,7 +88,8 @@
       "id": "retro", "ko": "뉴트로", "en": "NEWTRO", "desc": "촌스러워서 더 힙한",
       "palette": ["#ffd23f", "#1a1405"],
       "style": "retro 1980s Korean print-advertisement aesthetic, bold primary colors, halftone print texture, sunburst background, kitschy cheerful pose, vintage studio flash",
-      "motion": "playful retro zoom with a slight VHS wobble, a sunburst background slowly rotating, a cheerful exaggerated thumbs-up, stop-motion-like bounce",
+      "motion": "a sunburst backdrop slowly rotates, the person gives a cheerful exaggerated thumbs-up with the product, slight VHS wobble and stop-motion-like bounce",
+      "camera": ["a quick 70s-style zoom-lens crash-in", "a playful whip pan", "a slow zoom-out that reveals the scene", "a wobbly handheld camcorder move with a snap zoom", "a dolly-in with a slight roll", "a low-angle push-in"],
       "titles": ["{n} 상회", "원조 {n}", "{n} 본점", "돌아온 {n}"],
       "taglines": ["그때 그 맛, 그때 그 멋.", "촌스러운 게 제일 힙하다.", "엄마도 알고 나도 아는 바로 그것."],
       "tail": "어디서 본 듯 익숙한데, 볼수록 새롭습니다. 유행은 돌고 돌아 결국 여기로 돌아옵니다."
@@ -92,7 +98,8 @@
       "id": "fresh", "ko": "프레시", "en": "FRESH", "desc": "화면 가득 터지는 싱그러움",
       "palette": ["#5ee6a8", "#04140d"],
       "style": "crisp fresh commercial photography, splashing water and flying ingredients frozen in mid-air, bright mint and citrus palette, dewy droplets, high-speed flash, ultra sharp detail",
-      "motion": "slow-motion splash bursting around the product, droplets flying toward the lens, fresh ingredients tumbling through the air, bright sparkling highlights",
+      "motion": "a slow-motion splash bursts around the product, droplets fly toward the lens, fresh ingredients tumble through the air, the person reacts to the freshness",
+      "camera": ["a high-speed macro move through flying droplets with a speed ramp", "a top-down drop-in toward the product", "a fast push through a splash", "an orbit around the product through fine spray", "a low skim across a wet surface toward the product", "a quick pull-back reveal"],
       "titles": ["{n} 프레시", "톡톡 {n}", "생생 {n}", "아침 {n}"],
       "taglines": ["첫 순간의 싱그러움 그대로.", "눈으로 먼저 시원해진다.", "오늘의 컨디션을 바꾸는 한 번."],
       "tail": "보기만 해도 감각이 깨어납니다. 가장 신선한 순간을 그대로 담아 문 앞까지 보내드립니다."
@@ -101,7 +108,8 @@
       "id": "blockbuster", "ko": "블록버스터", "en": "EPIC", "desc": "10초에 담은 대작",
       "palette": ["#8b7bff", "#07061a"],
       "style": "epic cinematic blockbuster commercial, monumental scale, dramatic volumetric light beams, teal and violet color grading, heroic low-angle product shot, lens flares, ultra detailed",
-      "motion": "sweeping crane shot revealing the product at monumental scale, volumetric light beams shifting, particles drifting past the lens, a dramatic slow push-in",
+      "motion": "volumetric light beams shift, particles drift past the lens, the person strides toward the product, which is revealed at monumental scale",
+      "camera": ["an FPV fly-through that ends on the product", "a sweeping crane-down reveal", "a dramatic low-angle push-in", "a 360-degree orbit with a speed ramp", "a dolly zoom on the product", "a slow-motion tilt-up as the product rises"],
       "titles": ["{n}: 더 비기닝", "{n} 유니버스", "라스트 {n}", "프로젝트 {n}"],
       "taglines": ["광고가 아니라, 사건입니다.", "세상이 기다려온 단 하나의 등장.", "모든 것은 이 한 컷을 위해 존재했다."],
       "tail": "평범한 일상이 한 편의 대작으로 바뀝니다. 엔딩 크레딧이 올라가기 전에, 이미 장바구니는 채워져 있습니다."
