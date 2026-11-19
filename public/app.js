@@ -592,7 +592,7 @@ async function makeStory() {
 VIEWS.story = () => {
   const s = S.session;
   const st = s.story;
-  // The six picked keywords, each in its own colour: the same colours mark where they show up in the texts below.
+  // The six picked keywords; the same accent colour marks where they show up in the texts below.
   const catKo = Object.fromEntries((S.content.categories || []).map((c) => [c.id, c.ko]));
   const tags = KW_SLOTS.filter((k) => s.keywords?.[k]).map((k) => `<span class="kw-chip kw-${k}"><i>${esc(catKo[k] || '')}</i>${esc(s.keywords[k].ko)}</span>`).join('');
   const hasKV = s.poster.status === 'done' && S.kvSeed === s.seed; // a key visual already exists for this copy
@@ -603,7 +603,7 @@ VIEWS.story = () => {
     <p class="story-tagline">“${esc(st.tagline)}”</p>
     <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offerOf({ offer: st.offer, seed: s.seed }).price)} (-${offerOf({ offer: st.offer, seed: s.seed }).off}%)</span></div>
     <div class="kw-legend">${tags}</div>
-    <p class="small kw-note">색으로 표시된 부분이 내가 뽑은 키워드가 반영된 곳이에요.</p>
+    <p class="small kw-note">보라색으로 표시된 부분이 내가 뽑은 키워드가 반영된 곳이에요.</p>
     <p class="story-body">${markKw(st.logline)}</p>
     <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${markKw(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>

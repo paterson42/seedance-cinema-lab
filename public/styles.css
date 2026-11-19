@@ -417,10 +417,10 @@ img, video { display: block; max-width: 100%; }
 @media (min-width: 760px) { .sheet-wrap { align-items: center; } }
 
 /* picked keywords and where they are reflected in the generated texts */
-.kw-who { --kw: #ff9e7a; } .kw-when { --kw: #ffd166; } .kw-where { --kw: #7ad7a8; }
-.kw-what { --kw: #b9a2ff; } .kw-how { --kw: #7cc4ff; } .kw-why { --kw: #ff8fc7; }
-mark.kw { background: color-mix(in srgb, var(--kw) 16%, transparent); color: var(--kw); border-radius: 4px; padding: 1px 3px; font-weight: 600; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+/* one colour for all six: the signature accent */
+mark.kw, .kw-chip { --kw: var(--accent); }
+mark.kw { background: color-mix(in srgb, var(--kw) 12%, transparent); color: var(--kw); border-radius: 4px; padding: 1px 3px; font-weight: 600; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .kw-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-.kw-chip { display: inline-flex; align-items: baseline; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--kw); border: 1px solid color-mix(in srgb, var(--kw) 45%, transparent); border-radius: 99px; padding: 4px 10px; }
+.kw-chip { display: inline-flex; align-items: baseline; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--kw); border: 1px solid color-mix(in srgb, var(--kw) 30%, transparent); border-radius: 99px; padding: 4px 10px; }
 .kw-chip i { font-style: normal; font-weight: 500; font-size: 11px; color: var(--muted); }
 .kw-note { margin: 0 0 14px; }
