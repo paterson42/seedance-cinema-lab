@@ -125,7 +125,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const t = (ms) => ms ? new Date(ms).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
 const req = (path, opts = {}) => fetch(path, { ...opts, headers: { 'x-admin-token': token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
-const NAMES = { session_start: '진입(QR)', phone_ok: '번호 입력', genre_selected: '광고 무드 선택', story_built: '카피/프롬프트', poster_requested: '키비주얼 요청', poster_done: '키비주얼 완성', video_requested: '영상 요청', video_done: '영상 완성', kakao_sent: '카카오톡 발송', result_viewed: '결과 링크 열람' };
+const NAMES = { session_start: '진입(QR)', phone_ok: '번호 입력', genre_selected: '광고 무드 선택', story_built: '문구/프롬프트', poster_requested: '키비주얼 요청', poster_done: '키비주얼 완성', video_requested: '영상 요청', video_done: '영상 완성', kakao_sent: '카카오톡 발송', result_viewed: '결과 링크 열람' };
 const st = (s) => `<span class="${s === 'done' || s === 'sent' || s === 'mock_sent' ? 'ok' : s === 'failed' ? 'bad' : ''}">${esc(s || '-')}</span>`;
 
 async function load() {

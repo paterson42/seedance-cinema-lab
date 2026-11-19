@@ -3,7 +3,7 @@
 Seedance Seoul 행사 체험 부스를 위한 모바일 우선 체험 사이트의 **이커머스/광고 버전**입니다.
 Cinema Lab(`main` 브랜치)과 같은 흐름/같은 서버 구조를 쓰고, 컨셉만 "영화 포스터/트레일러"에서 "브랜드 광고 키비주얼/숏폼 광고 영상"으로 바꿨습니다.
 
-**QR 진입 → 전화번호 입력 → 광고 무드 선택 → 육하원칙 키워드 뽑기 → Seed 광고 카피/프롬프트 → Seedream 키비주얼(9:16) → Seedance 숏폼 광고 영상(비동기) → 결과 링크(카카오톡 ‘나와의 채팅’ 저장) / 재접속 조회 / 공유**
+**QR 진입 → 전화번호 입력 → 광고 무드 선택 → 육하원칙 키워드 뽑기 → Seed 광고 문구/프롬프트 → Seedream 키비주얼(9:16) → Seedance 숏폼 광고 영상(비동기) → 결과 링크(카카오톡 ‘나와의 채팅’ 저장) / 재접속 조회 / 공유**
 
 ### Cinema Lab → Commerce Lab 대응표
 
@@ -14,7 +14,7 @@ Cinema Lab(`main` 브랜치)과 같은 흐름/같은 서버 구조를 쓰고, �
 | `genre` | 영화 장르 8종 | 광고 무드 8종 (럭셔리, 빅세일, 숏폼, 미니멀, 라이프스타일, 뉴트로, 프레시, 블록버스터) |
 | `categories` (who/when/where/what/how/why) | 누가/언제/어디서/무엇을/어떻게/왜 | 타깃 고객, 시즌/모먼트, 촬영 장소, **상품**, 연출 방식, 구매 포인트(USP) |
 | `director` | 감독 이름 | 방문객 이름 — 키비주얼 상단 크레딧 `기획: ○○○`, 영상 스크린의 `@○○○` |
-| `story.title` / `tagline` / `logline` / `synopsis` | 제목 / 태그라인 / 로그라인 / 시놉시스 | 상품명 / 헤드라인 카피 / 캠페인 컨셉 / 상세페이지 카피 |
+| `story.title` / `tagline` / `logline` / `synopsis` | 제목 / 태그라인 / 로그라인 / 시놉시스 | 상품명 / 헤드라인 / 캠페인 컨셉 / 상품 소개글 |
 | `poster` | 영화 포스터 | 광고 키비주얼 9:16 (상단 `기획: ○○○`, 헤드라인, 상품명, 가격, 특가 스티커, 구매 버튼, `광고 ID`, `Sponsored by BytePlus` 합성, 키워드는 넣지 않음) |
 | `video` / `trailer` | 트레일러 | 숏폼 광고 영상 |
 | ticket (결과 탭) | 영화 티켓 | 할인 쿠폰 (할인율, 쿠폰가, 정가, 무드, 쿠폰 번호) |
@@ -58,7 +58,7 @@ npm start                 # http://localhost:3000
 ```
 ARK_API_KEY=xxxxxxxx
 ARK_BASE_URL=https://ark.ap-southeast.bytepluses.com/api/v3
-SEED_LLM_MODEL=seed-1-6-250615          # 상품명/카피/프롬프트 작성 (실패 시 템플릿으로 자동 대체)
+SEED_LLM_MODEL=seed-1-6-250615          # 상품명/문구/프롬프트 작성 (실패 시 템플릿으로 자동 대체)
 SEEDREAM_MODEL=seedream-4-0-250828      # 키비주얼
 SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 ```
@@ -99,7 +99,7 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 
 ## 3-1. 현장 대형 스크린
 
-- 키비주얼, 광고 영상은 완성되면 **자동으로** 부스 스크린에 걸립니다 (방문객이 고르지 않음). 키비주얼은 휴대폰이 카피를 얹은 버전을 올리는 순간 걸리고, 그 업로드가 20초 안에 오지 않으면 원본 키비주얼로 걸립니다. 휴대폰에는 상태(곧 자동으로 걸려요 / 송출 중)만 보여요
+- 키비주얼, 광고 영상은 완성되면 **자동으로** 부스 스크린에 걸립니다 (방문객이 고르지 않음). 키비주얼은 휴대폰이 문구를 얹은 버전을 올리는 순간 걸리고, 그 업로드가 20초 안에 오지 않으면 원본 키비주얼로 걸립니다. 휴대폰에는 상태(곧 자동으로 걸려요 / 송출 중)만 보여요
 - 대형 스크린 PC에서 `/screen/poster`, `/screen/trailer` 를 열고 화면 클릭(또는 F 키) → 전체 화면. 두 화면 모두 세로 9:16 기준(가로 모니터에서는 가운데 세로로 표시), QR 안내 화살표는 `?qr=left|right` 로 바꿀 수 있어요. 6초마다 새 제출을 가져오고, 새 광고가 먼저 소개/송출됩니다
 - 노출 관리: `/admin` 의 "대형 스크린"에서 광고별 숨기기/다시 송출 (숨기면 송출 중이던 것도 즉시 내려감)
 - `SCREEN_AUTO_APPROVE=0` 이면 운영자가 승인해야 송출, `SCREEN_KEY=xxx` 를 지정하면 스크린 주소에 `?key=xxx` 필요
@@ -108,8 +108,8 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 - **1인 체험 횟수**: 번호당 2회 (`PHONE_MAX_FLOWS`). 키비주얼을 만든 체험 1회 = 1회로 세고, 같은 체험 안에서 다시 만들기/실패는 세지 않아요. 명단 제한을 꺼도 적용되고, `/admin` 에서 번호별로 +1회를 줄 수 있어요
 - **테스트 번호** `TEST_PHONES` (기본 `00000000000`): 명단/체험 횟수/하루 한도/체험당 한도 없이 생성할 수 있어요. 번호는 서버 설정에만 있고 페이지 코드에는 들어가지 않아요
 - 개인정보는 체험 결과 재조회용으로만 받고, 마케팅 수신 동의는 받지 않아요
-- 휴대폰 번호당 하루(서울 시간) 한도: 광고 영상 3편, 키비주얼 10장, 광고 카피 30회 (`PHONE_DAILY_*`). "처음부터 다시"로 새로 시작해도 합산되고, 실패한 생성은 세지 않습니다
-- 한 방문객은 한 번에 하나만 생성합니다. 키비주얼/광고 영상을 만드는 중에 같은 버튼을 다시 누르면 진행 중인 작업을 그대로 보여 주고, 광고 무드/광고 카피/키비주얼 재생성 등 다른 요청은 `409 BUSY` 로 막혀 대기 화면으로 돌아갑니다 (뒤로 가기도 대기 화면으로)
+- 휴대폰 번호당 하루(서울 시간) 한도: 광고 영상 3편, 키비주얼 10장, 광고 문구 30회 (`PHONE_DAILY_*`). "처음부터 다시"로 새로 시작해도 합산되고, 실패한 생성은 세지 않습니다
+- 한 방문객은 한 번에 하나만 생성합니다. 키비주얼/광고 영상을 만드는 중에 같은 버튼을 다시 누르면 진행 중인 작업을 그대로 보여 주고, 광고 무드/광고 문구/키비주얼 재생성 등 다른 요청은 `409 BUSY` 로 막혀 대기 화면으로 돌아갑니다 (뒤로 가기도 대기 화면으로)
 
 ## 4. 동시 접속/네트워크 대응
 
@@ -132,7 +132,7 @@ SEEDANCE_MODEL=seedance-1-0-pro-250528  # 광고 영상 (image-to-video)
 
 광고 무드 8종(`genres`), 육하원칙 6 카테고리 × 10 키워드, 안내 문구는 `config/content.json` 에 있습니다. `/admin` 하단 편집기에서 바로 수정/저장할 수 있고(유효성 검사 + `.bak` 백업), 서버 재시작 없이 반영됩니다.
 
-- 광고 무드(`genres`): 키비주얼 스타일(`style`), 광고 영상 카메라 워크(`motion`), 상품명 패턴(`titles`, `{n}` 자리에 상품 명사), 헤드라인 카피(`taglines`), 상세페이지 카피 마무리 문장(`tail`), 무드 카드 그림은 `public/genres/<id>.svg`
+- 광고 무드(`genres`): 키비주얼 스타일(`style`), 광고 영상 카메라 워크(`motion`), 상품명 패턴(`titles`, `{n}` 자리에 상품 명사), 헤드라인(`taglines`), 상품 소개글 마무리 문장(`tail`), 무드 카드 그림은 `public/genres/<id>.svg`
 - 키워드: 화면용 한국어(`ko`) + 프롬프트용 영어(`en`), "무엇을"(상품) 키워드는 상품명용 명사(`n`) 필수. 템플릿 문장이 자연스럽도록 `who`/`what`/`why`는 명사구, `where`는 "~에서", `how`는 "~로/~처럼" 형태로 써 주세요
 
 ## 7. 이벤트 로깅
@@ -147,13 +147,13 @@ server/
   config.js           .env 로딩, 설정값
   db.js               SQLite 스키마 (sessions / events / kakao_outbox)
   jobs.js             키비주얼/영상 생성 큐, Seedance 폴링, 보관기간 정리
-  story.js            Seed LLM 광고 카피 + 템플릿 폴백, 이미지/영상 프롬프트 조립
+  story.js            Seed LLM 광고 문구 + 템플릿 폴백, 이미지/영상 프롬프트 조립
   privacy.js          전화번호 정규화/암호화/해시
   content.js          content.json 로딩/검증
   providers/ark.js    Seed, Seedream, Seedance 어댑터 (+ 데모 모드)
   providers/kakao.js  카카오톡 알림 어댑터 (mock / webhook)
 public/
-  index.html, styles.css, app.js   체험 SPA (키비주얼의 브랜드/카피/가격/CTA 오버레이는 canvas로 합성)
+  index.html, styles.css, app.js   체험 SPA (키비주얼의 브랜드/문구/가격/CTA 오버레이는 canvas로 합성)
   admin.html                       운영자 대시보드
 config/content.json   광고 무드, 키워드 풀, 안내 문구
 data/                 app.db, media/ (런타임 생성, git 제외)
@@ -167,7 +167,7 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 | POST | `/api/session` | 새 체험 세션 (`keepPhone`: 재체험 시 번호 유지) |
 | POST | `/api/session/phone` | 번호 검증/암호화/동의 저장 |
 | POST | `/api/session/genre` | 광고 무드 저장 |
-| POST | `/api/story` | 키워드 + 방문객 이름(`director`) → 광고 ID(seed) 발급, 광고 카피/프롬프트 생성 |
+| POST | `/api/story` | 키워드 + 방문객 이름(`director`) → 광고 ID(seed) 발급, 광고 문구/프롬프트 생성 |
 | POST | `/api/poster` | 키비주얼 생성 큐 등록 |
 | POST | `/api/poster/final` | 텍스트 합성된 최종 키비주얼 업로드 (결과 링크/OG 이미지용) |
 | POST | `/api/video` | 광고 영상 생성 큐 등록 |

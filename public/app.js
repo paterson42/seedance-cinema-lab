@@ -132,7 +132,7 @@ function handleError(e, fallbackView) {
 const SCENES = {
   genre: { n: 1, ko: '브리프', en: 'BRIEF', ship: '주문 접수' },
   cast: { n: 2, ko: '컨셉', en: 'CONCEPT', ship: '상품 준비' },
-  story: { n: 3, ko: '카피', en: 'COPY', ship: '포장' },
+  story: { n: 3, ko: '문구', en: 'COPY', ship: '포장' },
   poster: { n: 4, ko: '촬영', en: 'SHOOTING', ship: '출고', action: true },
   trailer: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중' },
   waiting: { n: 5, ko: '편집', en: 'EDITING', ship: '배송 중', action: true },
@@ -266,7 +266,7 @@ async function confirmRestart() {
   const hasVideo = videoBusy || s.video?.status === 'done';
   const lines = [
     S.booth ? '첫 화면으로 돌아가 새로 시작해요.' : '광고 무드 선택부터 새로 시작해요.',
-    `지금 고른 무드와 키워드${s.story ? ', 광고 카피' : ''}는 이 화면에서 사라져요.`,
+    `지금 고른 무드와 키워드${s.story ? ', 광고 문구' : ''}는 이 화면에서 사라져요.`,
   ];
   if (hasPoster) {
     lines.push(`이미 만든 키비주얼${hasVideo ? '과 광고 영상' : ''}은 <b>‘내 결과 다시 보기’</b>에서 휴대폰 번호와 이름으로 다시 찾을 수 있어요.${videoBusy ? ' 만들고 있는 광고 영상도 계속 완성돼요.' : ''}`);
@@ -333,7 +333,7 @@ VIEWS.landing = () => {
     <h1 class="h1">${title}</h1>
     <p class="lead">${esc(c.heroSub)}</p>
     <div class="hero-strip">
-      <div><b>01 SEED</b><span>광고 카피</span></div>
+      <div><b>01 SEED</b><span>광고 문구</span></div>
       <div><b>02 SEEDREAM</b><span>키비주얼</span></div>
       <div><b>03 SEEDANCE</b><span>광고 영상</span></div>
     </div>
@@ -492,7 +492,7 @@ VIEWS.cast = () => {
       <span>내 이름 (광고에 ‘기획 ○○○’으로 들어가요)</span>
       <input class="input" id="director" type="text" maxlength="12" placeholder="예) 홍길동" autocomplete="nickname" value="${esc(S.director)}">
     </label>
-    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 광고 카피 쓰기 ${ic('arrow')}</button></div>
+    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 광고 문구 쓰기 ${ic('arrow')}</button></div>
   `);
 
   const card = (id) => $(`.kcard[data-cat="${id}"]`, el);
@@ -557,8 +557,8 @@ async function makeStory() {
     <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh;width:100%">
       <div>
         <div class="countdown" id="scd" style="--p:0%"><b id="scdNum">${storyEta()}</b></div>
-        <div class="loading-msg" id="smsg">Seed가 <b>${esc(director)}</b> 님의<br>광고 카피를 쓰는 중…</div>
-        <div class="loading-sub">무드 + 키워드 6개 → 카피와 프롬프트</div>
+        <div class="loading-msg" id="smsg">Seed가 <b>${esc(director)}</b> 님의<br>광고 문구를 쓰는 중…</div>
+        <div class="loading-sub">무드 + 키워드 6개 → 광고 문구와 프롬프트</div>
       </div>
       <div class="belt"><i></i></div>
     </div>`, { restart: false });
@@ -605,7 +605,7 @@ VIEWS.story = () => {
     <p class="story-tagline">“${esc(st.tagline)}”</p>
     <p class="story-body story-lead">${markKw(st.logline)}</p>
     <dl class="spec">${spec}</dl>
-    <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${markKw(st.synopsis)}</p></div></details>
+    <details class="prompt-box"><summary>상품 소개글 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${markKw(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
       <div class="p-body"><pre>${markKw(st.prompts?.poster || s.posterPrompt)}</pre>
         <div class="p-meta"><span>SEEDREAM 9:16${st.source === 'seed-llm' ? ', Seed 작성' : ''}</span><button class="copy-btn" data-copy>복사</button></div>

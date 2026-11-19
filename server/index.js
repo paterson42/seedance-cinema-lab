@@ -263,7 +263,7 @@ route('POST', '/api/story', async (req, res) => {
 
 route('POST', '/api/poster', async (req, res) => {
   const s = requireSession(req);
-  if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 광고 카피를 만들어 주세요.');
+  if (!s.poster_prompt) fail(400, '먼저 키워드를 뽑아 광고 문구를 만들어 주세요.');
   if (POSTER_BUSY.includes(s.poster_status)) return json(res, 200, { session: sessionView(s) }); // already making it
   assertNotBusy(s); // a trailer is being made from the current poster
   assertMayGenerate(s, fail);
