@@ -126,7 +126,6 @@ function handleError(e, fallbackView) {
 }
 
 // ───────────────────────── routing ─────────────────────────
-const STEP_OF = { landing: 1, lookup: 1, genre: 2, cast: 3, story: 4, poster: 5, trailer: 6, waiting: 6, done: 6 };
 
 // Ad-production names for each step, plus the order-tracking stop shown on the
 // step-transition card (`ship`). `action` steps get the "주문 완료!" stamp.
@@ -141,7 +140,8 @@ const SCENES = {
 };
 const STOPS = ['접수', '준비', '포장', '출고', '배송', '완료'];
 const ORDER = ['landing', 'lookup', 'genre', 'cast', 'story', 'poster', 'trailer', 'waiting', 'done'];
-const sceneLabel = (view) => { const sc = SCENES[view]; return `${sc.n}단계 ${sc.ko}`; };
+// The step name lives in the top bar next to the counter (see go()), not as a label inside each page.
+const sceneLabel = () => '';
 
 const today = () => { const d = new Date(); return `${d.getFullYear()}.${pad(d.getMonth() + 1, 2)}.${pad(d.getDate(), 2)}`; };
 let slateTimer = 0;
@@ -205,8 +205,9 @@ function go(view, { push = true, slate } = {}) {
   const forward = prev && ORDER.indexOf(view) > ORDER.indexOf(prev);
   if (slate ?? forward) trackingCard(view);
   S.view = view;
-  const step = STEP_OF[view];
-  $('#stepCount').textContent = step ? `${pad(step, 2)} / 06` : '';
+  // One numbering everywhere: the six production steps (브리프 … 온에어). The start pages have no number.
+  const step = SCENES[view]?.n || 0;
+  $('#stepCount').innerHTML = step ? `<b>${esc(SCENES[view].ko)}</b>${pad(step, 2)} / 06` : '';
   $('#progressBar').style.width = step ? `${(step / 6) * 100}%` : '0';
   $('#topBack').hidden = !BACK_OF[view] || (view === 'genre' && !!S.session?.story);
   if (push && herePath() === '/' && history.state?.view !== view) history.pushState({ view }, '', `${BASE}/`);
@@ -475,7 +476,7 @@ VIEWS.cast = () => {
   S.director ||= S.session.director || '';
   const genre = S.content.genres.find((g) => g.id === S.session.genre);
   const el = render(`
-    <div class="cast-head"><p class="scene">${sceneLabel('cast')}</p><span class="tag">${esc(genre?.ko || '')}</span></div>
+    <p class="meta-line">무드 <b>${esc(genre?.ko || '')}</b></p>
     <h2 class="h2">랜덤 키워드로 <em>광고 컨셉</em>을<br>뽑아보세요</h2>
     <p class="lead">버튼 하나로 키워드 6개를 뽑고, 마음에 들지 않는 카드만 <b style="color:var(--accent)">↻</b> 다시 뽑아보세요.</p>
     <button class="btn draw-all" id="drawAll" type="button">⤨ 키워드 6개 한 번에 뽑기</button>
@@ -592,19 +593,17 @@ async function makeStory() {
 VIEWS.story = () => {
   const s = S.session;
   const st = s.story;
-  // The six picked keywords; the same accent colour marks where they show up in the texts below.
+  // Plain label/value rows instead of chips: mood, ad ID, then the six picked keywords.
   const catKo = Object.fromEntries((S.content.categories || []).map((c) => [c.id, c.ko]));
-  const tags = KW_SLOTS.filter((k) => s.keywords?.[k]).map((k) => `<span class="kw-chip kw-${k}"><i>${esc(catKo[k] || '')}</i>${esc(s.keywords[k].ko)}</span>`).join('');
+  const row = (k, v) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`;
+  const spec = row('무드', st.genre.ko) + row('광고 ID', pad(s.seed))
+    + KW_SLOTS.filter((k) => s.keywords?.[k]).map((k) => row(catKo[k] || '', s.keywords[k].ko)).join('');
   const hasKV = s.poster.status === 'done' && S.kvSeed === s.seed; // a key visual already exists for this copy
   const el = render(`
-    <p class="scene">${sceneLabel('story')}</p>
-    <div class="seed-chip">광고 ID ${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
-    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offerOf({ offer: st.offer, seed: s.seed }).price)} (-${offerOf({ offer: st.offer, seed: s.seed }).off}%)</span></div>
-    <div class="kw-legend">${tags}</div>
-    <p class="small kw-note">보라색으로 표시된 부분이 내가 뽑은 키워드가 반영된 곳이에요.</p>
-    <p class="story-body">${markKw(st.logline)}</p>
+    <p class="story-body story-lead">${markKw(st.logline)}</p>
+    <dl class="spec">${spec}</dl>
     <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${markKw(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
       <div class="p-body"><pre>${markKw(st.prompts?.poster || s.posterPrompt)}</pre>
