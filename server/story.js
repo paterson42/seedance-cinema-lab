@@ -22,6 +22,23 @@ function rng(seed) {
 }
 const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
 
+// Price tag for the ad. The list price comes from the product's "price" in content.json (a
+// believable shelf price for that kind of product); the seed only picks the discount.
+// Products without a price fall back to the old seed-only number.
+export function offerFor(seed, listPrice) {
+  const s = Number(seed) || 1;
+  const off = [15, 20, 25, 30, 35, 40, 50][s % 7];
+  const was = Number(listPrice);
+  if (!(was >= 100)) {
+    const price = (9 + (s % 90)) * 1000 + 900;
+    return { off, price, was: Math.round(price / (1 - off / 100) / 1000) * 1000 };
+  }
+  const p = was * (1 - off / 100);
+  // Shop-style endings: 27,900원 for five digits and up, 1,290원 below that.
+  const price = p >= 10000 ? Math.max(1000, Math.round(p / 1000) * 1000 - 100) : Math.max(90, Math.round(p / 100) * 100 - 10);
+  return { off, price, was };
+}
+
 export function resolveSelection(genreId, keywordIdx) {
   const c = getContent();
   const genre = c.genres.find((g) => g.id === genreId);
@@ -132,7 +149,7 @@ Random seed: ${seed}.`;
   }
 
   return {
-    story: { ...story, genre: { id: genre.id, ko: genre.ko, en: genre.en }, videoKo: videoPromptKo({ genre, kw }) },
+    story: { ...story, genre: { id: genre.id, ko: genre.ko, en: genre.en }, videoKo: videoPromptKo({ genre, kw }), offer: offerFor(seed, kw.what?.price) },
     keywords: Object.fromEntries(Object.entries(kw).map(([k, v]) => [k, { idx: v.idx, ko: v.ko }])),
     posterPrompt: pPrompt,
     videoPrompt: vPrompt,

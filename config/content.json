@@ -162,16 +162,16 @@
       "ko": "무엇을",
       "en": "WHAT",
       "keywords": [
-        { "ko": "제로 슈거 탄산수", "en": "a sleek can of zero-sugar sparkling water", "n": "스파클링" },
-        { "ko": "비건 글로우 세럼", "en": "a glass dropper bottle of vegan glow serum", "n": "세럼" },
-        { "ko": "한정판 러닝 스니커즈", "en": "a pair of limited-edition running sneakers", "n": "스니커즈" },
-        { "ko": "매운 볶음 컵라면", "en": "a cup of spicy stir-fried instant noodles", "n": "라면" },
-        { "ko": "무선 노이즈캔슬링 헤드폰", "en": "a pair of wireless noise-cancelling headphones", "n": "헤드폰" },
-        { "ko": "반려견 수제 간식", "en": "a pouch of handmade dog treats", "n": "간식" },
-        { "ko": "캠핑용 미니 랜턴", "en": "a compact camping lantern", "n": "랜턴" },
-        { "ko": "시그니처 니치 향수", "en": "a sculptural bottle of niche perfume", "n": "퍼퓸" },
-        { "ko": "온도 유지 스마트 텀블러", "en": "a temperature-keeping smart tumbler", "n": "텀블러" },
-        { "ko": "오버핏 후드 집업", "en": "an oversized zip-up hoodie", "n": "후디" }
+        { "ko": "제로 슈거 탄산수", "en": "a sleek can of zero-sugar sparkling water", "n": "스파클링", "price": 1500 },
+        { "ko": "비건 글로우 세럼", "en": "a glass dropper bottle of vegan glow serum", "n": "세럼", "price": 38000 },
+        { "ko": "한정판 러닝 스니커즈", "en": "a pair of limited-edition running sneakers", "n": "스니커즈", "price": 189000 },
+        { "ko": "매운 볶음 컵라면", "en": "a cup of spicy stir-fried instant noodles", "n": "라면", "price": 1800 },
+        { "ko": "무선 노이즈캔슬링 헤드폰", "en": "a pair of wireless noise-cancelling headphones", "n": "헤드폰", "price": 329000 },
+        { "ko": "반려견 수제 간식", "en": "a pouch of handmade dog treats", "n": "간식", "price": 12000 },
+        { "ko": "캠핑용 미니 랜턴", "en": "a compact camping lantern", "n": "랜턴", "price": 39000 },
+        { "ko": "시그니처 니치 향수", "en": "a sculptural bottle of niche perfume", "n": "퍼퓸", "price": 185000 },
+        { "ko": "온도 유지 스마트 텀블러", "en": "a temperature-keeping smart tumbler", "n": "텀블러", "price": 45000 },
+        { "ko": "오버핏 후드 집업", "en": "an oversized zip-up hoodie", "n": "후디", "price": 79000 }
       ]
     },
     {

@@ -14,6 +14,8 @@ function offer(seed) {
   const price = (9 + (s % 90)) * 1000 + 900;
   return { off, price, was: Math.round(price / (1 - off / 100) / 1000) * 1000 };
 }
+// Ads made since products got list prices carry their own price tag; older ones use the seed.
+const offerOf = (info) => info?.offer || offer(info?.seed);
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // ───────────────────────── icons ─────────────────────────
@@ -589,7 +591,7 @@ VIEWS.story = () => {
     <div class="seed-chip">광고 ID ${pad(s.seed)}</div>
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
-    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offer(s.seed).price)} (-${offer(s.seed).off}%)</span></div>
+    <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offerOf({ offer: st.offer, seed: s.seed }).price)} (-${offerOf({ offer: st.offer, seed: s.seed }).off}%)</span></div>
     <p class="story-body">${esc(st.logline)}</p>
     <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
@@ -684,7 +686,7 @@ async function getComposedPoster(info, rawUrl, finalUrl) {
   return S.posterData || finalUrl || rawUrl;
 }
 
-const infoFromSession = (s) => ({ title: s.story.title, tagline: s.story.tagline, director: s.director, seed: s.seed, genre: s.story.genre, keywords: s.keywords });
+const infoFromSession = (s) => ({ title: s.story.title, tagline: s.story.tagline, director: s.director, seed: s.seed, genre: s.story.genre, keywords: s.keywords, offer: s.story.offer });
 
 async function renderPosterDone() {
   S.kvSeed = S.session.seed;
@@ -932,7 +934,7 @@ async function renderResult(r) {
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director}, ${won(offer(r.info.seed).price)} (-${offer(r.info.seed).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance Commerce Lab`;
+  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director}, ${won(offerOf(r.info).price)} (-${offerOf(r.info).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance Commerce Lab`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -976,7 +978,7 @@ async function showResultPage(tok) {
   }
   track('result_viewed', { own: data.own });
   const r = data.result;
-  const info = { title: r.title, tagline: r.tagline, director: r.director, seed: r.seed, genre: r.genre, keywords: r.keywords };
+  const info = { title: r.title, tagline: r.tagline, director: r.director, seed: r.seed, genre: r.genre, keywords: r.keywords, offer: r.offer };
   if (r.videoStatus !== 'done') {
     const making = ['queued', 'submitting', 'running'].includes(r.videoStatus);
     const el = render(`
@@ -1084,7 +1086,7 @@ async function composePoster(src, info, { layer = false } = {}) {
   x.fillStyle = g; x.fillRect(0, H * 0.42, W, H * 0.58);
 
   const accent = '#b9a2ff', ink = '#120b24';
-  const o = offer(info.seed);
+  const o = offerOf(info);
   x.textAlign = 'center';
   x.textBaseline = 'alphabetic';
   // Top of the key visual: only 기획 (the visitor's name). The other credits live in the footer lines.
@@ -1254,7 +1256,7 @@ async function composeTicket(posterSrc, info) {
   x.textBaseline = 'alphabetic';
 
   // The offer: big discount, then what it is for and who planned it.
-  const o = offer(info.seed);
+  const o = offerOf(info);
   spaced(x, '할인 쿠폰', px, py + ph + 56, '700 28px "Pretendard Variable", "Noto Sans KR", sans-serif', 6, 'rgba(255,255,255,.7)');
   const yBig = py + ph + 200;
   x.font = '176px "Bebas Neue", "Pretendard Variable", sans-serif'; x.fillStyle = accent;

@@ -22,6 +22,7 @@ export function validateContent(c) {
     for (const k of cat.keywords || []) {
       if (!k.ko || !k.en) errs.push(`${cat.id}: ko/en 누락 키워드`);
       if (cat.id === 'what' && !k.n) errs.push(`what "${k.ko}": 제목용 명사(n) 누락`);
+      if (cat.id === 'what' && k.price != null && !(Number(k.price) >= 100)) errs.push(`what "${k.ko}": 정가(price)는 100원 이상의 숫자`);
     }
   }
   return errs;

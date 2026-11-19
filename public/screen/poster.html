@@ -191,7 +191,7 @@
       old.forEach((o) => { o.classList.add('out'); setTimeout(() => o.remove(), 1500); });
       glass.style.setProperty('--glow', it ? `rgba(${hexRgb(it.genre?.color)}, .4)` : 'rgba(255,240,210,.12)');
       $('#plate').innerHTML = it
-        ? `<b>〈${esc(it.title)}〉</b><span>기획 ${esc(it.director)} &nbsp;&nbsp; -${offer(it.seed).off}% ${won(offer(it.seed).price)}</span>`
+        ? `<b>〈${esc(it.title)}〉</b><span>기획 ${esc(it.director)} &nbsp;&nbsp; -${(it.offer || offer(it.seed)).off}% ${won((it.offer || offer(it.seed)).price)}</span>`
         : '<b>곧 공개</b><span>SEEDANCE COMMERCE LAB</span>';
       $('#slot .new-tag')?.remove();
       if (it && newIds.has(it.id)) $('#slot').insertAdjacentHTML('afterbegin', '<div class="new-tag">NEW</div>');
