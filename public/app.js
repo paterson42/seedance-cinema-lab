@@ -775,9 +775,9 @@ function refreshScreenCard(el, state = {}) {
 
 function kakaoCard(enabled, title, sub, saveSub = '광고 영상이 완성되면 같은 링크에서 바로 볼 수 있어요') {
   return enabled
-    ? `<div class="kakao-card"><span class="k-ico">TALK</span><div><b>${title}</b><span>${sub}</span></div></div>`
+    ? `<div class="kakao-card"><img class="k-ico" src="/brand/kakaotalk-logo.svg" alt="카카오톡"><div><b>${title}</b><span>${sub}</span></div></div>`
     : `<div class="kakao-save">
-        <div class="ks-head"><span class="k-ico">TALK</span><div><b>내 광고 링크를 카카오톡에 저장하세요</b><span>${saveSub}</span></div></div>
+        <div class="ks-head"><img class="k-ico" src="/brand/kakaotalk-logo.svg" alt="카카오톡"><div><b>내 광고 링크를 카카오톡에 저장하세요</b><span>${saveSub}</span></div></div>
         <button class="btn btn-block btn-kakao" data-ksave>${ic('share')}카카오톡 ‘나와의 채팅’에 저장</button>
         <p class="ks-tip">공유 목록에서 <b>카카오톡</b> → <b>나와의 채팅</b>을 선택하세요</p>
       </div>`;
@@ -898,7 +898,7 @@ async function renderResult(r) {
     <div class="actions" id="actions"></div>
     ${screenCard(r.screen, { poster: true, trailer: !!r.videoUrl })}
     ${r.own ? (k.enabled
-      ? `<div class="kakao-card${sent ? '' : ' off'}"><span class="k-ico">TALK</span><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} 번호로 보냈어요. 링크는 일정 기간 후 만료돼요`}</span></div></div>`
+      ? `<div class="kakao-card${sent ? '' : ' off'}"><img class="k-ico" src="/brand/kakaotalk-logo.svg" alt="카카오톡"><div><b>${sent ? '카카오톡으로 결과 링크를 보냈어요' : '카카오톡 발송 대기 중'}</b><span>${S.boot.mode === 'mock' || k.provider === 'mock' ? '데모 모드: 실제 발송 대신 운영자 화면에 기록돼요' : `${esc(S.session.phoneMasked)} 번호로 보냈어요. 링크는 일정 기간 후 만료돼요`}</span></div></div>`
       : kakaoCard(false, '', '', '언제든 다시 보고, 키비주얼과 영상을 저장할 수 있어요')) : ''}
     <div class="end-card">
       <div class="big">${r.own ? '이 광고의 첫 번째 고객은 당신입니다.' : '나도 나만의 광고를 만들어 볼까요?'}</div>

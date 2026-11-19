@@ -262,11 +262,10 @@ img, video { display: block; max-width: 100%; }
 .wait-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: #d0d0c8; }
 .status-dot { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--accent); }
 .kakao-card { display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 14px; background: #fee500; color: #191600; margin: 18px 0 12px; }
-.kakao-card .k-ico { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #191600; color: #fee500; display: grid; place-items: center; font-weight: 900; font-size: 13px; }
+.kakao-card .k-ico { flex: none; width: 40px; height: 40px; display: block; }
 .kakao-card b { display: block; font-size: 15px; }
 .kakao-card span { font-size: 13px; opacity: .8; }
 .kakao-card.off { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
-.kakao-card.off .k-ico { background: var(--line-strong); color: var(--text); }
 
 /* ── Done / result ───────────────────────── */
 .video-stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); aspect-ratio: 9 / 16; }
@@ -390,7 +389,7 @@ img, video { display: block; max-width: 100%; }
 /* Save-my-link-to-KakaoTalk card (used when AlimTalk is off) */
 .kakao-save { margin: 18px 0 12px; padding: 16px; border-radius: 14px; background: var(--panel-2); border: 1px solid rgba(254, 229, 0, .35); }
 .kakao-save .ks-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
-.kakao-save .k-ico { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #fee500; color: #191600; display: grid; place-items: center; font-weight: 900; font-size: 13px; }
+.kakao-save .k-ico { flex: none; width: 40px; height: 40px; display: block; }
 .kakao-save b { display: block; font-size: 15px; }
 .kakao-save .ks-head span { font-size: 13px; color: var(--muted); }
 .btn.btn-kakao { background: #fee500; color: #191600; border: 0; font-weight: 800; }

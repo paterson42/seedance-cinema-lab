@@ -32,3 +32,7 @@ the layout then needs the bottom-navigation assets as well.
 ## BytePlus 마크
 
 `byteplus-icon-white.png`, `byteplus-icon-black.png`은 제공받은 공식 파일입니다. 키비주얼 하단 스폰서 문구 앞에는 흰색 버전이 들어갑니다. 검정 버전은 밝은 배경용으로 보관만 하고 있습니다.
+
+## 카카오톡 로고
+
+`kakaotalk-logo.svg`는 Wikimedia Commons의 `File:KakaoTalk_logo.svg` 원본 그대로입니다 (Kakao Corp., 퍼블릭 도메인 표기, 상표권은 별도). 색이나 모양을 바꾸지 않고 사용합니다.
