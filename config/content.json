@@ -64,7 +64,7 @@
     {
       "id": "minimal", "ko": "미니멀", "en": "MINIMAL", "desc": "덜어낼수록 선명해지는",
       "palette": ["#9fd0ff", "#070d14"],
-      "style": "minimalist tech product launch visual, seamless gradient backdrop, cool blue-grey palette, precise softbox lighting, crisp edges, floating product, generous clean negative space",
+      "style": "minimalist product launch visual, seamless gradient backdrop, cool blue-grey palette, precise softbox lighting, crisp edges, floating product, generous clean negative space",
       "motion": "smooth slow rotation of the product on a seamless backdrop, a clean light band gliding across its surface, subtle parallax, calm and precise",
       "titles": ["{n} 제로", "{n} 원", "퓨어 {n}", "{n} 프로"],
       "taglines": ["필요한 것만 남겼습니다.", "덜어낼수록 선명해진다.", "설명서가 필요 없는 디자인."],

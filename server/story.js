@@ -64,7 +64,7 @@ function templateStory({ genre, kw, director, seed }) {
   const r = rng(seed);
   const title = pick(r, genre.titles).replace('{n}', kw.what.n);
   const tagline = pick(r, genre.taglines);
-  const logline = `${kw.when.ko}, ${kw.where.ko} ${kw.who.ko}에게 ${obj(kw.what.ko)} ${kw.how.ko} 선보인다. 구매 포인트는 단 하나 — ${kw.why.ko}.`;
+  const logline = `${tag('when', kw.when.ko)}, ${tag('where', kw.where.ko)} ${tag('who', kw.who.ko)}에게 ${tag('what', obj(kw.what.ko))} ${tag('how', kw.how.ko)} 선보인다. 구매 포인트는 단 하나 — ${tag('why', kw.why.ko)}.`;
   const synopsis = `${director} 님이 기획한 신상 〈${title}〉. ${logline} ${genre.tail}`;
   return { title, tagline, logline, synopsis, director };
 }
@@ -76,13 +76,83 @@ const VIDEO_REALISM = 'Live-action commercial footage: real camera movement with
 const VIDEO_GUARD = 'Keep the same product, palette and composition as the key visual. No on-screen text, captions, subtitles, titles, logos or watermarks in any language.';
 const SECS = () => config.ark.videoDuration;
 
+// ───────────── keyword marks ─────────────
+// Every generated text carries inline tags around the words that reflect one of the six picked
+// keywords: <who>…</who> <when> <where> <what> <how> <why>. The tagged text is what the visitor
+// sees (the app highlights each span in that keyword's colour); the tags are stripped before a
+// prompt goes to Seedream / Seedance.
+const SLOTS = ['who', 'when', 'where', 'what', 'how', 'why'];
+const TAG = /<(\/?)(who|when|where|what|how|why)>/g;
+export const stripMarks = (t) => String(t || '').replace(TAG, '');
+const tag = (slot, text) => `<${slot}>${text}</${slot}>`;
+const marked = (t) => new Set([...String(t || '').matchAll(/<(who|when|where|what|how|why)>\s*\S/g)].map((m) => m[1]));
+
+// Keeps only well-formed, non-nested spans so the page can never show a stray tag.
+export function tidyMarks(text) {
+  const src = String(text || '');
+  let out = '';
+  let last = 0;
+  let open = null; // { slot, at } where "at" is the position of its opening tag in out
+  const dropOpen = () => { out = out.slice(0, open.at) + out.slice(open.at + open.slot.length + 2); open = null; };
+  for (const m of src.matchAll(TAG)) {
+    out += src.slice(last, m.index);
+    last = m.index + m[0].length;
+    if (m[1] !== '/') {
+      if (open) dropOpen(); // a tag opened inside another: the outer one was never closed properly
+      open = { slot: m[2], at: out.length };
+      out += `<${m[2]}>`;
+    } else if (open && open.slot === m[2]) {
+      // a span that runs on for a whole paragraph is a tagging mistake, not a keyword
+      if (out.length - open.at > 220) dropOpen(); else { out += `</${m[2]}>`; open = null; }
+    }
+  }
+  out += src.slice(last);
+  if (open) dropOpen();
+  return out.replace(/<(who|when|where|what|how|why)>\s*<\/\1>/g, '');
+}
+
+// Sentences that put a missing keyword back into a prompt, so all six are always there.
+export const POSTER_FIX = {
+  what: (kw) => `Hero product: ${tag('what', kw.what.en)}, sharply detailed and clearly the focus of the frame.`,
+  who: (kw) => `${tag('who', cap(kw.who.en))} is clearly visible in the foreground beside the product and instantly recognisable as exactly that kind of person from wardrobe, props and action.`,
+  where: (kw) => `Location: ${tag('where', kw.where.en)}, recognisable in the frame.`,
+  when: (kw) => `Time: ${tag('when', kw.when.en)}, shown through light, weather and details.`,
+  how: (kw) => `Creative concept: ${tag('how', kw.how.en)}.`,
+  why: (kw) => `One visual cue in the scene suggests ${tag('why', kw.why.en)}.`,
+};
+const VIDEO_FIX = {
+  what: (kw) => `${tag('what', cap(kw.what.en))} stays the hero of the shot.`,
+  who: (kw) => `${tag('who', cap(kw.who.en))} stays in frame and reacts to the product.`,
+  where: (kw) => `The scene stays ${tag('where', kw.where.en)}.`,
+  when: (kw) => `It is ${tag('when', kw.when.en)}.`,
+  how: (kw) => `The action plays out ${tag('how', kw.how.en)}.`,
+  why: (kw) => `A closing beat hints at ${tag('why', kw.why.en)}.`,
+};
+const KO_FIX = {
+  who: (kw) => `${tag('who', kw.who.ko)}에게 꼭 맞는 선택입니다.`,
+  when: (kw) => `${tag('when', kw.when.ko)}에 만나 보세요.`,
+  where: (kw) => `${tag('where', kw.where.ko)} 만나 보세요.`,
+  what: (kw) => `${tag('what', kw.what.ko)}, 지금 만나 보세요.`,
+  how: (kw) => `${tag('how', kw.how.ko)} 담아냈습니다.`,
+  why: (kw) => `${tag('why', kw.why.ko)}.`,
+};
+export function withAll(text, kw, fixes, before = '') {
+  const t = tidyMarks(text).trim();
+  const have = marked(t);
+  const add = SLOTS.filter((sl) => !have.has(sl)).map((sl) => fixes[sl](kw));
+  if (!add.length) return t;
+  // Missing keywords go in before the fixed closing instruction when there is one.
+  const cut = before ? t.indexOf(before) : -1;
+  return cut > 0 ? `${t.slice(0, cut).trim()} ${add.join(' ')} ${t.slice(cut)}` : `${t} ${add.join(' ')}`;
+}
+
 function posterPrompt({ genre, kw }) {
   return [
     'Commercial advertising key visual for an e-commerce campaign, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), product centred with headroom.',
-    `Hero product: ${kw.what.en}, sharply detailed and clearly the focus of the frame, with clean unbranded packaging.`,
-    `Featuring ${kw.who.en}.`,
-    `Setting: ${kw.where.en}, ${kw.when.en}.`,
-    `Creative concept: ${kw.how.en}. The image should convey ${kw.why.en}.`,
+    `Hero product: ${tag('what', kw.what.en)}, sharply detailed and clearly the focus of the frame, with clean unbranded packaging.`,
+    `${tag('who', cap(kw.who.en))} is clearly visible in the foreground beside the product, instantly recognisable as exactly that kind of person from wardrobe, props and action.`,
+    `Setting: ${tag('where', kw.where.en)}, ${tag('when', kw.when.en)}.`,
+    `Creative concept: ${tag('how', kw.how.en)}. One visual cue in the scene suggests ${tag('why', kw.why.en)}.`,
     `Style: ${genre.style}.`,
     'Premium product photography, desirable and tactile, strong focal point, rich depth, art-directed lighting.',
     POSTER_REALISM,
@@ -93,7 +163,8 @@ function posterPrompt({ genre, kw }) {
 function videoPrompt({ genre, kw }) {
   return [
     `The ad key visual comes alive as a ${SECS()}-second vertical short-form commercial shot.`,
-    `${cap(kw.what.en)} stays the hero of the shot, ${kw.how.en}, with ${kw.who.en}, ${kw.where.en}, ${kw.when.en}.`,
+    `${tag('what', cap(kw.what.en))} stays the hero of the shot, ${tag('how', kw.how.en)}, with ${tag('who', kw.who.en)} reacting to it, ${tag('where', kw.where.en)}, ${tag('when', kw.when.en)}.`,
+    `A closing beat hints at ${tag('why', kw.why.en)}.`,
     `Camera and motion: ${genre.motion}.`,
     VIDEO_REALISM,
     VIDEO_GUARD,
@@ -101,17 +172,22 @@ function videoPrompt({ genre, kw }) {
 }
 
 function videoPromptKo({ genre, kw }) {
-  return `키비주얼 속 ${subj(kw.what.ko)} 움직이기 시작합니다. ${kw.where.ko} ${kw.how.ko} — ${genre.ko} 무드의 카메라 워크로 ${SECS()}초 숏폼 광고를 만듭니다.`;
+  return `키비주얼 속 ${tag('what', subj(kw.what.ko))} 움직이기 시작합니다. ${tag('where', kw.where.ko)} ${tag('who', obj(kw.who.ko))} 주인공으로, ${tag('how', kw.how.ko)} — ${genre.ko} 무드의 카메라 워크로 ${SECS()}초 숏폼 광고를 만듭니다.`;
 }
 
 const LLM_SYSTEM = () => `You are a sharp, playful Korean advertising copywriter working at an AI e-commerce ad booth.
-The visitor is launching one fictional product. Return ONLY a JSON object with keys:
-"title" (Korean product name, 2-10 characters, catchy and brandable, no quotes, must not be a real existing brand or product name),
-"tagline" (Korean ad headline, one sentence, max 30 characters),
-"logline" (Korean, 1-2 sentences describing the campaign concept, must naturally include all six keywords),
-"synopsis" (Korean product-page copy, 3-4 sentences, persuasive but with no medical, health or guaranteed-result claims),
-"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot: the product as the clear hero with clean unbranded packaging, the model if any (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
-"video_prompt" (English prompt, 1-3 sentences, describing how this exact key visual comes alive as a ${config.ark.videoDuration}-second vertical short-form commercial shot: one clear camera move, what the product and model physically do, small natural details like light changes, steam or droplets. Keep motion believable and grounded. No on-screen text).
+The visitor picked SIX keywords for one fictional product launch: who (target customer), when, where, what (the product), how (creative treatment), why (the reason to buy).
+All six are the visitor's own choices and every one of them must be clearly and specifically reflected in EVERY text you write. Never drop one, never water one down into something vaguer (a "developer working late" must stay recognisably a developer working late, not "a tired person" or a "tech" look), and never let the ad mood replace a keyword: the mood only sets styling such as lighting, palette and camera.
+
+KEYWORD TAGS (required): wherever a text reflects a keyword, wrap exactly those words in that keyword's tag: <who>…</who>, <when>…</when>, <where>…</where>, <what>…</what>, <how>…</how>, <why>…</why>. Each of "logline", "synopsis", "poster_prompt" and "video_prompt" must contain all six tags at least once. Tag only the words that carry the keyword, do not nest tags, and use no other markup.
+
+Return ONLY a JSON object with keys:
+"title" (Korean product name, 2-10 characters, catchy and brandable, no quotes, no tags, must not be a real existing brand or product name),
+"tagline" (Korean ad headline, one sentence, max 30 characters, no tags),
+"logline" (Korean, 1-2 sentences describing the campaign concept; use each of the six Korean keywords word for word, tagged),
+"synopsis" (Korean product-page copy, 3-4 sentences, persuasive but with no medical, health or guaranteed-result claims; names the target customer explicitly and reflects all six keywords, tagged),
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed advertising key visual (portrait kiosk screen), product centred with headroom. Write it like a commercial photographer's shot description of a real advertising shoot. It must show: the <what> product as the clear hero with clean unbranded packaging; the <who> person clearly visible in the foreground or midground next to or using the product, never a blurred background figure, and identifiable as exactly that kind of person through age, wardrobe, props and action; the real <where> location recognisable in frame; the <when> moment through light, weather and details; the <how> treatment as the central visual idea; and one concrete visual cue for <why> (never as written text). Also give the lighting setup, lens and framing, and color grading. MUST end with: "Keep the top edge and the lower third darker for headline and call-to-action placement. No text, no letters, no logos, no brand names, no price tags."),
+"video_prompt" (English prompt, 2-4 sentences, describing how this exact key visual comes alive as a ${config.ark.videoDuration}-second vertical short-form commercial shot: one clear camera move, what the <what> product and the <who> person physically do, the <how> treatment in motion, the <where> and <when> staying visible, and a closing beat that hints at <why>, plus small natural details like light changes, steam or droplets. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly. Never mention real brands, celebrities or trademarks.`;
 
 export async function buildStory({ genreId, keywordIdx, director, seed }) {
@@ -125,23 +201,32 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
 
   if (!config.mock && config.ark.llmEnabled) {
     try {
-      const user = `Ad mood: ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
-Keywords — 타깃 고객: ${kw.who.ko} / 시점: ${kw.when.ko} / 장소: ${kw.where.ko} / 상품: ${kw.what.ko} / 연출: ${kw.how.ko} / 구매 포인트: ${kw.why.ko}.
+      const line = (slot, label) => `<${slot}> ${label}: ${kw[slot].ko} (${kw[slot].en})`;
+      const user = `Ad mood (styling only): ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
+The six keywords, each with its meaning in English:
+${line('who', 'target customer')}
+${line('when', 'moment')}
+${line('where', 'place')}
+${line('what', 'product')}
+${line('how', 'creative treatment')}
+${line('why', 'reason to buy')}
 Random seed: ${seed}.`;
       const out = await chatJSON(LLM_SYSTEM(), user);
-      const ok = (s, max) => typeof s === 'string' && s.trim() && s.length <= max;
-      if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2000) && ok(out.video_prompt, 1200)) {
+      const ok = (s, max) => typeof s === 'string' && s.trim() && stripMarks(s).length <= max;
+      if (ok(out.title, 24) && ok(out.tagline, 80) && ok(out.logline, 300) && ok(out.poster_prompt, 2400) && ok(out.video_prompt, 1500)) {
+        // The concept line must carry all six keywords; if the model skipped one, the template line (which always has them) is used.
+        const logline = tidyMarks(out.logline.trim());
         story = {
-          title: out.title.trim().replace(/^["'《<]+|["'》>]+$/g, ''),
-          tagline: out.tagline.trim(),
-          logline: out.logline.trim(),
-          synopsis: ok(out.synopsis, 900) ? out.synopsis.trim() : base.synopsis,
+          title: stripMarks(out.title).trim().replace(/^["'《<]+|["'》>]+$/g, ''),
+          tagline: stripMarks(out.tagline).trim(),
+          logline: marked(logline).size === SLOTS.length ? logline : base.logline,
+          synopsis: ok(out.synopsis, 900) ? withAll(out.synopsis, kw, KO_FIX) : base.synopsis,
           director,
           source: 'seed-llm',
         };
-        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_REALISM}`;
+        pPrompt = `${withAll(out.poster_prompt, kw, POSTER_FIX, 'Keep the top edge')} Style: ${genre.style}. ${POSTER_REALISM}`;
         // The model-written prompt often omits the no-caption guard; without it Seedance can burn captions into the video.
-        vPrompt = `${out.video_prompt.trim()} Camera and motion: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
+        vPrompt = `${withAll(out.video_prompt, kw, VIDEO_FIX)} Camera and motion: ${genre.motion}. ${VIDEO_REALISM} ${VIDEO_GUARD}`;
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);
@@ -149,9 +234,13 @@ Random seed: ${seed}.`;
   }
 
   return {
-    story: { ...story, genre: { id: genre.id, ko: genre.ko, en: genre.en }, videoKo: videoPromptKo({ genre, kw }), offer: offerFor(seed, kw.what?.price) },
+    // story.* and story.prompts keep the keyword tags for display; the prompts sent to the models are plain.
+    story: {
+      ...story, genre: { id: genre.id, ko: genre.ko, en: genre.en }, videoKo: videoPromptKo({ genre, kw }), offer: offerFor(seed, kw.what?.price),
+      prompts: { poster: pPrompt, video: vPrompt },
+    },
     keywords: Object.fromEntries(Object.entries(kw).map(([k, v]) => [k, { idx: v.idx, ko: v.ko }])),
-    posterPrompt: pPrompt,
-    videoPrompt: vPrompt,
+    posterPrompt: stripMarks(pPrompt),
+    videoPrompt: stripMarks(vPrompt),
   };
 }

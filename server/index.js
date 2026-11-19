@@ -6,7 +6,7 @@ import { config, PUBLIC_DIR, MEDIA_DIR } from './config.js';
 import { createSession, getSession, getSessionByToken, updateSession, query, queryOne, logEvent } from './db.js';
 import { publicContent, getContent, saveContent, containsBanned } from './content.js';
 import { normalizePhone, maskPhone, hashPhone, encrypt, token } from './privacy.js';
-import { buildStory } from './story.js';
+import { buildStory, stripMarks } from './story.js';
 import {
   dailyLeft, assertDaily, isTestSession, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
   allowlistCount, allowlistRecent, parseNumbers, saveAllowlist, clearAllowlist, phoneStatus, grantExtraFlow,
@@ -132,7 +132,7 @@ function resultView(s) {
   return {
     title: s.story?.title,
     tagline: s.story?.tagline,
-    logline: s.story?.logline,
+    logline: stripMarks(s.story?.logline),
     genre: s.story?.genre,
     director: s.director,
     seed: s.seed,
@@ -372,7 +372,7 @@ function screenItem(s, kind) {
     id: s.screen_id,
     title: s.story?.title,
     tagline: s.story?.tagline,
-    logline: s.story?.logline,
+    logline: stripMarks(s.story?.logline),
     director: s.director,
     seed: s.seed,
     offer: s.story?.offer || null,

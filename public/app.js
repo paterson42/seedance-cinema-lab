@@ -19,6 +19,11 @@ const offerOf = (info) => info?.offer || offer(info?.seed);
 // Path prefix when the app is hosted under one (BASE_PATH on the server), and the path inside it.
 const BASE = window.__BASE__ || '';
 const herePath = () => (BASE && location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) || '/' : location.pathname);
+// Generated texts carry <who>…</who>-style tags around the words that reflect each picked keyword.
+// markKw turns them into coloured highlights; plainKw drops them (older ads have no tags at all).
+const KW_SLOTS = ['who', 'when', 'where', 'what', 'how', 'why'];
+const markKw = (t) => esc(t).replace(/&lt;(\/?)(who|when|where|what|how|why)&gt;/g, (_, c, k) => (c ? '</mark>' : `<mark class="kw kw-${k}">`));
+const plainKw = (t) => String(t ?? '').replace(/<\/?(who|when|where|what|how|why)>/g, '');
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // ───────────────────────── icons ─────────────────────────
@@ -587,7 +592,9 @@ async function makeStory() {
 VIEWS.story = () => {
   const s = S.session;
   const st = s.story;
-  const tags = Object.values(s.keywords || {}).map((k) => `<span class="tag">${esc(k.ko)}</span>`).join('');
+  // The six picked keywords, each in its own colour: the same colours mark where they show up in the texts below.
+  const catKo = Object.fromEntries((S.content.categories || []).map((c) => [c.id, c.ko]));
+  const tags = KW_SLOTS.filter((k) => s.keywords?.[k]).map((k) => `<span class="kw-chip kw-${k}"><i>${esc(catKo[k] || '')}</i>${esc(s.keywords[k].ko)}</span>`).join('');
   const hasKV = s.poster.status === 'done' && S.kvSeed === s.seed; // a key visual already exists for this copy
   const el = render(`
     <p class="scene">${sceneLabel('story')}</p>
@@ -595,14 +602,15 @@ VIEWS.story = () => {
     <h2 class="story-title">${esc(st.title)}</h2>
     <p class="story-tagline">“${esc(st.tagline)}”</p>
     <div class="story-meta"><span class="tag" style="color:var(--accent);border-color:rgba(185,162,255,.4)">${esc(st.genre.ko)}</span><span class="tag">기획 ${esc(s.director)}</span><span class="tag">${won(offerOf({ offer: st.offer, seed: s.seed }).price)} (-${offerOf({ offer: st.offer, seed: s.seed }).off}%)</span></div>
-    <p class="story-body">${esc(st.logline)}</p>
-    <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${esc(st.synopsis)}</p></div></details>
+    <div class="kw-legend">${tags}</div>
+    <p class="small kw-note">색으로 표시된 부분이 내가 뽑은 키워드가 반영된 곳이에요.</p>
+    <p class="story-body">${markKw(st.logline)}</p>
+    <details class="prompt-box"><summary>상세페이지 카피 읽기</summary><div class="p-body"><p class="story-body" style="margin:0">${markKw(st.synopsis)}</p></div></details>
     <details class="prompt-box" id="promptBox"><summary>자동 생성된 키비주얼 제작 프롬프트</summary>
-      <div class="p-body"><pre>${esc(s.posterPrompt)}</pre>
+      <div class="p-body"><pre>${markKw(st.prompts?.poster || s.posterPrompt)}</pre>
         <div class="p-meta"><span>SEEDREAM 9:16${st.source === 'seed-llm' ? ', Seed 작성' : ''}</span><button class="copy-btn" data-copy>복사</button></div>
       </div>
     </details>
-    <div class="story-meta" style="margin-top:14px">${tags}</div>
     <div class="cta-bar">
       <div class="notice"><span class="ico">✦</span><span>${esc(S.content.copy.posterNotice)}</span></div>
       <button class="btn btn-primary btn-block" id="makePoster">${hasKV ? `만든 키비주얼 보기 ${ic('arrow')}` : `키비주얼 만들기 ${ic('sparkle')}`}</button>
@@ -736,10 +744,10 @@ VIEWS.trailer = () => {
       <div><p class="scene" style="margin:0">${sceneLabel('trailer')}</p><p class="big-q">이 광고가<br><em style="color:var(--accent);font-style:normal">움직인다면?</em></p></div>
     </div>
     ${failed ? `<div class="error-box"><b>광고 영상 생성 실패</b>${esc(s.video.error || '')}</div>` : ''}
-    <p class="story-body">${esc(s.story.videoKo)}</p>
+    <p class="story-body">${markKw(s.story.videoKo)}</p>
     <p class="small" style="margin:-10px 0 18px">${esc(S.content.copy.videoNotice)}</p>
     <details class="prompt-box"><summary>자동 생성된 광고 영상 제작 프롬프트</summary>
-      <div class="p-body"><pre>${esc(s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE 이미지→영상</span><button class="copy-btn" data-copy>복사</button></div></div>
+      <div class="p-body"><pre>${markKw(s.story.prompts?.video || s.videoPrompt)}</pre><div class="p-meta"><span>SEEDANCE 이미지→영상</span><button class="copy-btn" data-copy>복사</button></div></div>
     </details>
     <div class="cta-bar">
       ${noMore ? `<div class="notice"><span class="ico">✦</span><span>${s.video.dailyLeft <= 0
