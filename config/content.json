@@ -54,12 +54,50 @@
       "style": "grounded live-action action film, shot on 35mm anamorphic, practical stunts and real fire, warm firelight and sodium-vapor streetlight against cool dusk, sweat, dust and grit on skin and clothes, low-angle hero framing, slight motion blur",
       "motion": "the hero moves with force and purpose, real dust and sparks drifting past, quick but physically believable action",
       "camera": [
-        "a low-angle tracking shot racing alongside the hero",
-        "a fast push-in that ends in a crash zoom on the hero's eyes",
-        "a 180-degree orbit around the hero mid-action",
-        "a speed ramp: real-time motion slowing into dramatic slow motion at the peak moment",
-        "a handheld whip pan that catches the action",
-        "a crane down from above as dust and debris settle"
+        {
+          "type": "track",
+          "text": "a low-angle tracking shot racing alongside the hero"
+        },
+        {
+          "type": "orbit",
+          "text": "a fast 180-degree orbit around the hero mid-action"
+        },
+        {
+          "type": "speed",
+          "text": "a speed ramp: real-time motion slowing into dramatic slow motion at the peak moment"
+        },
+        {
+          "type": "pan",
+          "text": "a handheld whip pan that snaps onto the action"
+        },
+        {
+          "type": "crane",
+          "text": "a crane down from high above as dust and debris settle"
+        },
+        {
+          "type": "drone",
+          "text": "a drone shot rising fast from ground level to reveal the whole scene"
+        },
+        {
+          "type": "truck",
+          "text": "a fast lateral truck shot sliding past foreground objects, parallax wiping across the frame"
+        },
+        {
+          "type": "pull",
+          "text": "a rapid pull-back from the hero's face to a wide shot of the chaos"
+        },
+        {
+          "type": "tilt",
+          "text": "a low-angle tilt-up from boots to face as the hero rises"
+        },
+        {
+          "type": "roll",
+          "text": "a handheld camera that jolts and rolls slightly with the impact"
+        },
+        {
+          "type": "push",
+          "text": "a fast push-in that ends in a crash zoom on the hero's eyes"
+        }
       ],
       "titles": [
         "{n} 작전",
@@ -86,11 +124,50 @@
       "style": "live-action romance film still, late-afternoon natural backlight, soft halation, muted warm film tones, shallow depth of field on a 50mm lens, the lead in a candid, unposed moment, a loved one only glimpsed from behind or softly out of focus",
       "motion": "a light breeze moving hair and clothes, sunlight flickering through leaves, a small natural smile and a held glance",
       "camera": [
-        "a slow arc shot circling the lead",
-        "a gentle dolly-in from a wide shot to an intimate close-up",
-        "a rack focus from a foreground detail to the lead's face",
-        "a backlit tracking shot walking alongside the lead with soft lens flare",
-        "a slow crane up revealing the glowing city behind the lead"
+        {
+          "type": "orbit",
+          "text": "a slow arc shot circling the lead"
+        },
+        {
+          "type": "focus",
+          "text": "a rack focus from a foreground detail to the lead's face"
+        },
+        {
+          "type": "track",
+          "text": "a backlit tracking shot walking alongside the lead with soft lens flare"
+        },
+        {
+          "type": "crane",
+          "text": "a slow crane up revealing the glowing city behind the lead"
+        },
+        {
+          "type": "truck",
+          "text": "a gentle lateral truck past blossoms or window frames, the lead revealed between them"
+        },
+        {
+          "type": "pull",
+          "text": "a slow pull-back from a close-up to a wide shot, leaving the lead small in a beautiful place"
+        },
+        {
+          "type": "tilt",
+          "text": "a slow tilt-down from the sky and falling light to the lead"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan following the lead's gaze to what they are looking at"
+        },
+        {
+          "type": "speed",
+          "text": "a dreamy slow-motion moment as hair, petals and light drift"
+        },
+        {
+          "type": "drone",
+          "text": "a soft drone shot drifting backward and upward over the scene"
+        },
+        {
+          "type": "push",
+          "text": "a gentle dolly-in from a wide shot to an intimate close-up"
+        }
       ],
       "titles": [
         "너와 나의 {n}",
@@ -117,11 +194,50 @@
       "style": "live-action psychological thriller, cold desaturated grade, a single practical light source, wet streets and real rain, deep shadows, tense restrained performance, gritty 35mm texture",
       "motion": "a practical light flickers, rain streaks past, the subject freezes and glances toward an off-screen sound",
       "camera": [
-        "a slow, creeping dolly-in toward the subject",
-        "a dolly zoom (vertigo effect) as the realization hits",
-        "a Dutch-angle handheld shot that tilts as tension rises",
-        "a rack focus revealing a small, silhouetted figure deep in the background",
-        "an over-the-shoulder push through a doorway into darkness"
+        {
+          "type": "zoom",
+          "text": "a dolly zoom (vertigo effect) as the realization hits"
+        },
+        {
+          "type": "handheld",
+          "text": "a Dutch-angle handheld shot that tilts as tension rises"
+        },
+        {
+          "type": "focus",
+          "text": "a rack focus revealing a small, silhouetted figure deep in the background"
+        },
+        {
+          "type": "track",
+          "text": "an over-the-shoulder follow through a doorway into darkness"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan across the empty space that stops on the subject"
+        },
+        {
+          "type": "top",
+          "text": "a top-down overhead shot slowly rotating above the subject"
+        },
+        {
+          "type": "truck",
+          "text": "a slow lateral truck behind pillars or bars, the subject glimpsed between them"
+        },
+        {
+          "type": "pull",
+          "text": "a slow pull-back revealing how alone and exposed the subject is"
+        },
+        {
+          "type": "tilt",
+          "text": "a slow tilt-up from a detail on the ground to the subject's face"
+        },
+        {
+          "type": "static",
+          "text": "a locked-off static frame where only the light and shadows move"
+        },
+        {
+          "type": "push",
+          "text": "a slow, creeping dolly-in toward the subject"
+        }
       ],
       "titles": [
         "{n}의 밤",
@@ -148,11 +264,50 @@
       "style": "grounded live-action science fiction, practical sets and real locations with subtle futuristic details, cool cyan and amber practical lighting, atmospheric haze, large-format cinematography, believable scale",
       "motion": "haze drifting through shafts of light, practical screens flickering, distant movement deep in the background",
       "camera": [
-        "a sweeping crane up revealing the vast futuristic scale",
-        "an FPV-style fly-through gliding past the hero",
-        "a slow 360-degree orbit around the hero with parallax in the background",
-        "a long tracking shot down a corridor of lights",
-        "a pull-back from an extreme close-up of the eye to a wide establishing shot"
+        {
+          "type": "crane",
+          "text": "a sweeping crane up revealing the vast futuristic scale"
+        },
+        {
+          "type": "drone",
+          "text": "an FPV-style fly-through gliding past the hero"
+        },
+        {
+          "type": "orbit",
+          "text": "a slow 360-degree orbit around the hero with parallax in the background"
+        },
+        {
+          "type": "track",
+          "text": "a long tracking shot down a corridor of lights"
+        },
+        {
+          "type": "pull",
+          "text": "a pull-back from an extreme close-up of the eye to a wide establishing shot"
+        },
+        {
+          "type": "truck",
+          "text": "a smooth lateral truck past glass and screens, reflections sliding across the frame"
+        },
+        {
+          "type": "tilt",
+          "text": "a slow tilt-up from the hero to a massive structure in the sky"
+        },
+        {
+          "type": "top",
+          "text": "a top-down shot descending toward the hero from far above"
+        },
+        {
+          "type": "roll",
+          "text": "a slow barrel roll of the camera as gravity seems to fade"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan across the horizon that settles on the hero"
+        },
+        {
+          "type": "push",
+          "text": "a slow push toward the hero as lights power up behind them"
+        }
       ],
       "titles": [
         "{n} 신호",
@@ -179,11 +334,46 @@
       "style": "live-action fantasy film shot on location, an old forest or ancient architecture, moonlight and lantern light, natural mist, costumes with real fabric texture, restrained in-camera magic, muted earthy palette",
       "motion": "mist drifting, lantern light flickering, cloaks and hair moving in the wind, a few faint motes of light rising",
       "camera": [
-        "a sweeping aerial crane shot gliding over the landscape down to the hero",
-        "a slow orbit around the hero as motes of light rise",
-        "a floating push-in through mist and foliage",
-        "a tilt-up from the ground revealing the towering world",
-        "a slow pull-back revealing the scale of the magical place"
+        {
+          "type": "drone",
+          "text": "a sweeping aerial shot gliding over the landscape down to the hero"
+        },
+        {
+          "type": "orbit",
+          "text": "a slow orbit around the hero as motes of light rise"
+        },
+        {
+          "type": "tilt",
+          "text": "a tilt-up from the ground revealing the towering world"
+        },
+        {
+          "type": "pull",
+          "text": "a slow pull-back revealing the scale of the magical place"
+        },
+        {
+          "type": "truck",
+          "text": "a lateral truck through tree trunks or pillars, the hero glimpsed between them"
+        },
+        {
+          "type": "crane",
+          "text": "a crane down through falling leaves or snow to the hero"
+        },
+        {
+          "type": "track",
+          "text": "a floating tracking shot following the hero along a path"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan from the hero to the wonder they are looking at"
+        },
+        {
+          "type": "speed",
+          "text": "a slow-motion moment as magic sparks drift through the air"
+        },
+        {
+          "type": "push",
+          "text": "a floating push-in through mist and foliage"
+        }
       ],
       "titles": [
         "{n}의 이름",
@@ -210,11 +400,46 @@
       "style": "live-action comedy film still, bright natural daylight, warm everyday colors, a real neighborhood location, believable understated comedic expressions, the lead in sharp focus with bystanders small and soft in the background, light film grain",
       "motion": "a natural comedic beat and a small double-take, the lead reacts with real timing and a believable expression",
       "camera": [
-        "a snap crash zoom onto a reaction for the punchline",
-        "a whip pan that lands on the lead's startled reaction",
-        "a perfectly centered, symmetrical dolly-in",
-        "a handheld push-in on a deadpan reaction",
-        "a quick tracking shot following a clumsy chase"
+        {
+          "type": "zoom",
+          "text": "a snap crash zoom onto a reaction for the punchline"
+        },
+        {
+          "type": "pan",
+          "text": "a whip pan that lands on the lead's startled reaction"
+        },
+        {
+          "type": "track",
+          "text": "a quick tracking shot following a clumsy chase"
+        },
+        {
+          "type": "static",
+          "text": "a deadpan locked-off wide shot where only the lead moves"
+        },
+        {
+          "type": "truck",
+          "text": "a perfectly symmetrical lateral truck along a row of things, stopping on the lead"
+        },
+        {
+          "type": "pull",
+          "text": "a quick pull-back revealing the absurd situation around the lead"
+        },
+        {
+          "type": "top",
+          "text": "a top-down overhead shot of the lead's predicament"
+        },
+        {
+          "type": "tilt",
+          "text": "a quick tilt-down from the lead's face to the cause of the trouble"
+        },
+        {
+          "type": "handheld",
+          "text": "a shaky handheld follow as everything goes wrong"
+        },
+        {
+          "type": "push",
+          "text": "a perfectly centered, symmetrical dolly-in"
+        }
       ],
       "titles": [
         "대환장 {n}",
@@ -241,11 +466,46 @@
       "style": "live-action human drama, natural soft window light, warm analog film tones, intimate close framing, subtle real emotion, 35mm film grain",
       "motion": "light shifting through a window, a subtle change in expression, breath visible, dust floating in the light",
       "camera": [
-        "a slow push-in to an emotional close-up",
-        "a rack focus from the background to the lead's face",
-        "a gentle handheld follow from behind the subject",
-        "a slow dolly-out leaving the character alone in the frame",
-        "a quiet frame that slowly drifts as the light changes"
+        {
+          "type": "handheld",
+          "text": "a gentle handheld follow from behind the subject"
+        },
+        {
+          "type": "pull",
+          "text": "a slow dolly-out leaving the character alone in the frame"
+        },
+        {
+          "type": "focus",
+          "text": "a rack focus from the background to the lead's face"
+        },
+        {
+          "type": "static",
+          "text": "a quiet locked-off frame where only the light changes"
+        },
+        {
+          "type": "truck",
+          "text": "a slow lateral truck past a window, the lead seen through the glass"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan following the lead's gaze out of the window"
+        },
+        {
+          "type": "tilt",
+          "text": "a slow tilt-down from the sky to the lead"
+        },
+        {
+          "type": "orbit",
+          "text": "a slow half-circle around the lead as they turn"
+        },
+        {
+          "type": "crane",
+          "text": "a slow crane up and away, the lead growing smaller"
+        },
+        {
+          "type": "push",
+          "text": "a slow push-in to an emotional close-up"
+        }
       ],
       "titles": [
         "{n}의 온도",
@@ -272,11 +532,46 @@
       "style": "live-action mystery film, foggy streets and real interiors, muted teal and amber grade, practical lamp light, chiaroscuro shadows, old props with real wear",
       "motion": "fog rolling past, candle flames flickering, the subject notices something off-screen and leans closer",
       "camera": [
-        "a slow dolly through fog toward a hidden detail",
-        "a rack focus from a clue in the foreground to the subject",
-        "a low-angle tilt-up revealing a looming silhouette",
-        "a dolly zoom on the moment of discovery",
-        "a slow tracking shot past shelves and doorways, peeking around corners"
+        {
+          "type": "track",
+          "text": "a slow tracking shot past shelves and doorways, peeking around corners"
+        },
+        {
+          "type": "focus",
+          "text": "a rack focus from a clue in the foreground to the subject"
+        },
+        {
+          "type": "tilt",
+          "text": "a low-angle tilt-up revealing a looming silhouette"
+        },
+        {
+          "type": "zoom",
+          "text": "a dolly zoom on the moment of discovery"
+        },
+        {
+          "type": "truck",
+          "text": "a lateral truck behind objects, the subject glimpsed in the gaps"
+        },
+        {
+          "type": "top",
+          "text": "a top-down shot looking down on the subject and the clue"
+        },
+        {
+          "type": "pan",
+          "text": "a slow pan across the room that stops on something out of place"
+        },
+        {
+          "type": "pull",
+          "text": "a slow pull-back from a clue to reveal the whole scene"
+        },
+        {
+          "type": "crane",
+          "text": "a crane down from the ceiling through hanging fog"
+        },
+        {
+          "type": "push",
+          "text": "a slow dolly through fog toward a hidden detail"
+        }
       ],
       "titles": [
         "{n}의 수수께끼",

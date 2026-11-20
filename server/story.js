@@ -52,7 +52,7 @@ const POSTER_REALISM = 'Photographed as a still from a real live-action feature 
 // Several large faces in one image tend to come out identical and break the trailer, so every poster
 // has exactly one large, clear face; everyone else is kept small, turned away or out of focus.
 const POSTER_ONE_FACE = 'Casting and framing: exactly one main character, and only that person\'s face is shown large and in sharp focus. Anyone else stays small in the background, seen from behind, in silhouette, partly out of frame or softly out of focus; never a second large, clearly visible face, no rows or crowds of faces, no mirrors, reflections or pictures repeating a face. Every person looks clearly different; no identical or twin-looking faces.';
-const VIDEO_ONE_FACE = 'Keep exactly the people that are in the poster: do not add new faces, and do not turn a background figure into a second close-up face; close-ups stay on the main character.';
+const VIDEO_ONE_FACE = 'Keep exactly the people that are in the poster: do not add new faces, and do not turn a background figure into a second close-up face; any close-up is of the main character.';
 const VIDEO_REALISM = 'Live-action film footage: real camera movement with natural motion blur, realistic physics and weight, natural human motion and micro-expressions, faces and hands stay consistent with the poster without morphing, 24fps film look with gentle grain.';
 const SECS = () => config.ark.videoDuration;
 
@@ -69,19 +69,25 @@ function posterPrompt({ genre, kw }) {
   ].join(' ');
 }
 
-// Two-beat camera plan for the trailer, picked per visitor (by seed) from the genre's signature moves.
+// Two-beat camera plan for the trailer, picked per visitor (by seed) from the genre's library.
+// Moves are typed (push, pull, orbit, crane, truck, pan, tilt, track, ...): the opening move is
+// never a push-in (the model's own default) and the closing move is a different type, so each
+// trailer gets two clearly different camera moves. Plain strings in content.json still work.
+const asMove = (x) => (typeof x === 'string' ? { type: x.includes('push') || x.includes('dolly-in') ? 'push' : 'other', text: x } : x);
 function cameraPlan(genre, seed) {
-  const moves = genre.camera?.length ? genre.camera : [];
+  const moves = (genre.camera || []).map(asMove).filter((x) => x?.text);
   if (!moves.length) return null;
   const r = rng(Math.imul((seed ^ 0x9e3779b9) >>> 0, 2654435761) >>> 0); // mix: nearby seeds pick different moves
   r(); r();
-  const a = Math.floor(r() * moves.length);
-  let b = Math.floor(r() * moves.length);
-  if (moves.length > 1 && b === a) b = (a + 1) % moves.length;
-  return { open: moves[a], close: moves.length > 1 ? moves[b] : null };
+  const pick = (list) => list[Math.floor(r() * list.length)];
+  const openers = moves.filter((x) => x.type !== 'push');
+  const open = pick(openers.length ? openers : moves);
+  const closers = moves.filter((x) => x !== open && x.type !== open.type);
+  const close = closers.length ? pick(closers) : null;
+  return { open: open.text, close: close?.text || null };
 }
 const cameraText = (genre, plan) => (plan
-  ? `Camera plan for this ${SECS()}-second ${genre.en.toLowerCase()} trailer shot: open with ${plan.open}${plan.close ? `, then move into ${plan.close}` : ''}, ending on a striking final frame. Dynamic, deliberate trailer-style camera work with smooth, motivated movement.`
+  ? `Camera plan for this ${SECS()}-second ${genre.en.toLowerCase()} trailer shot: open with ${plan.open}${plan.close ? `, then move into ${plan.close}` : ''}, ending on a striking final frame. Make both camera moves clearly visible, with real direction and speed; do not replace them with a plain slow zoom or push-in.`
   : '');
 
 function videoPrompt({ genre, kw, plan }) {
@@ -108,7 +114,7 @@ Return ONLY a JSON object with keys:
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
 "poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Exactly ONE character's face may be large and clearly visible; if the story has other people (a partner, a rival, a robot), show them small in the background, from behind, in silhouette or out of focus, never as a second large face, and never as a crowd of faces or a face repeated in a mirror or reflection. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
-"video_prompt" (English prompt, 2-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot. Build it around the given camera plan (opening move, then closing move) and describe what the actors physically do during each beat, plus small details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
+"video_prompt" (English prompt, 2-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot. Use exactly the two camera moves of the given camera plan, in that order, describing each with its direction and speed (do not fall back to a slow push-in or dolly-in unless the plan names one), and describe what the actors physically do during each beat, plus small details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly.`;
 
 export async function buildStory({ genreId, keywordIdx, director, seed }) {
