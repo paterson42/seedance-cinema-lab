@@ -41,29 +41,35 @@
     h1 em { font-style: normal; background: linear-gradient(90deg, var(--film), var(--ads)); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .lead { margin: 14px 0 26px; color: var(--muted); font-size: 15px; line-height: 1.65; word-break: keep-all; }
 
-    .choices { display: grid; gap: 14px; }
-    .choice { --c: var(--film); --ink: var(--film-ink); position: relative; display: block; overflow: hidden; border-radius: 20px; padding: 22px 20px 20px;
-      background: linear-gradient(150deg, color-mix(in srgb, var(--c) 13%, transparent), transparent 55%), var(--panel);
-      border: 1px solid color-mix(in srgb, var(--c) 38%, transparent);
+    /* FILM on the left, ADS on the right */
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
+    .choice { --c: var(--film); --ink: var(--film-ink); position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; padding: 16px 14px 14px; min-height: 300px;
+      background: linear-gradient(160deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 60%), var(--panel);
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
       box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--c) 45%, transparent);
       transition: transform .18s ease, border-color .18s ease; -webkit-tap-highlight-color: transparent; }
     .choice.ads { --c: var(--ads); --ink: var(--ads-ink); }
-    .choice:active { transform: scale(.985); }
+    .choice:active { transform: scale(.98); }
     @media (hover: hover) { .choice:hover { transform: translateY(-2px); border-color: var(--c); } }
-    .choice .word { position: absolute; right: -6px; top: -14px; font-family: var(--latin); font-size: 118px; line-height: 1; letter-spacing: .02em; color: var(--c); opacity: .09; pointer-events: none; }
-    .choice small { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .16em; color: var(--c); }
-    .choice small i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
-    .choice h2 { margin: 10px 0 6px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1.15; }
-    .choice p { margin: 0; color: #cfcfc6; font-size: 14.5px; line-height: 1.6; word-break: keep-all; max-width: 30em; }
-    .choice .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chips span { font-size: 12.5px; padding: 5px 10px; border-radius: 99px; border: 1px solid var(--line-strong); color: #deded6; }
-    .go { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px 0 18px; border-radius: 14px; background: var(--c); color: var(--ink); font-weight: 900; font-size: 15px; }
-    .go svg { width: 18px; height: 18px; }
-    /* film strip / phone frame motifs */
-    .choice.film::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; opacity: .35;
-      background: repeating-linear-gradient(90deg, var(--c) 0 10px, transparent 10px 18px); }
-    .choice.ads::after { content: ''; position: absolute; right: 22px; top: 22px; width: 22px; height: 38px; border-radius: 6px; border: 2px solid var(--c); opacity: .5; }
+    .choice .word { position: absolute; right: -4px; top: -8px; font-family: var(--latin); font-size: 74px; line-height: 1; letter-spacing: .02em; color: var(--c); opacity: .1; pointer-events: none; }
+    .choice small { position: relative; display: flex; align-items: flex-start; gap: 6px; font-family: var(--mono); font-size: 10px; line-height: 1.4; letter-spacing: .08em; color: var(--c); }
+    .choice small i { flex: none; width: 6px; height: 6px; margin-top: 4px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+    .choice h2 { position: relative; margin: 10px 0 6px; font-family: var(--display); font-weight: 400; font-size: 23px; line-height: 1.15; word-break: keep-all; }
+    .choice p { position: relative; margin: 0; color: #cfcfc6; font-size: 13px; line-height: 1.55; word-break: keep-all; }
+    .chips { position: relative; display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0 14px; }
+    .chips span { font-size: 11.5px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line-strong); color: #deded6; }
+    .go { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border-radius: 12px; background: var(--c); color: var(--ink); font-weight: 900; font-size: 15px; }
+    .go svg { width: 17px; height: 17px; }
+    /* film strip under the FILM card */
+    .choice.film::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; opacity: .35;
+      background: repeating-linear-gradient(90deg, var(--c) 0 9px, transparent 9px 16px); }
+    @media (min-width: 520px) {
+      .choice { padding: 20px 18px 18px; min-height: 320px; }
+      .choice .word { font-size: 96px; }
+      .choice small { font-size: 11px; letter-spacing: .12em; }
+      .choice h2 { font-size: 27px; }
+      .choice p { font-size: 14px; }
+    }
 
     .note { margin: 22px 0 0; text-align: center; color: var(--dim); font-size: 13px; line-height: 1.6; word-break: keep-all; }
     .foot { padding: 18px 20px calc(18px + var(--safe-b)); text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--dim); border-top: 1px solid var(--line); }
@@ -75,7 +81,7 @@
   <main>
     <p class="eyebrow">SEEDANCE @SEOUL 2026 · AI FESTIVAL</p>
     <h1>오늘은 무엇을<br><em>만들어 볼까요?</em></h1>
-    <p class="lead">하나를 고르면 바로 시작해요. 휴대폰 하나로 몇 분이면 완성되고, 완성작은 부스 스크린에도 상영돼요.</p>
+    <p class="lead">영화 또는 광고를 직접 제작해보세요! 완성작은 부스 스크린에서 상영됩니다!</p>
 
     <nav class="choices" aria-label="체험 선택">
       <a class="choice film" href="/film/" data-to="/film/">
@@ -83,20 +89,16 @@
         <small><i></i>AI FILM FESTIVAL</small>
         <h2>나만의 영화</h2>
         <p>장르와 키워드를 고르면 Seed가 시나리오를 쓰고, 영화 포스터와 예고편이 완성돼요.</p>
-        <div class="row">
-          <div class="chips"><span>시나리오</span><span>포스터</span><span>예고편</span></div>
-          <span class="go">시작 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </div>
+        <div class="chips"><span>시나리오</span><span>포스터</span><span>예고편</span></div>
+        <span class="go">시작 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
       <a class="choice ads" href="/ad/" data-to="/ad/">
         <span class="word" aria-hidden="true">ADS</span>
         <small><i></i>AI AD FESTIVAL</small>
         <h2>나만의 광고</h2>
         <p>상품과 무드를 고르면 광고 문구와 키비주얼, 숏폼 광고 영상이 완성돼요.</p>
-        <div class="row">
-          <div class="chips"><span>광고 문구</span><span>키비주얼</span><span>광고 영상</span></div>
-          <span class="go">시작 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </div>
+        <div class="chips"><span>광고 문구</span><span>키비주얼</span><span>광고 영상</span></div>
+        <span class="go">시작 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
     </nav>
     <p class="note">두 가지 모두 체험할 수 있어요. 각 체험에서 휴대폰 번호를 입력하면 나중에 결과를 다시 찾을 수 있어요.</p>
