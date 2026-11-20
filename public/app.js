@@ -933,7 +933,7 @@ async function showResultPage(tok) {
         ? `<div class="notice"><span class="ico">⏱</span><span>트레일러를 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
         : r.videoStatus === 'failed' ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(r.videoError || '')}</div>` : ''}
       <div class="btn-row"><button class="btn" id="psave">${ic('download')}포스터 저장</button><button class="btn" id="pshare">${ic('share')}공유하기</button></div>
-      <p style="text-align:center;margin-top:18px"><a class="linkish" href="/">나도 만들어보기</a></p>`);
+      <p style="text-align:center;margin-top:18px"><a class="linkish" href="${BASE}/">나도 만들어보기</a></p>`);
     const src = await getComposedPoster(info, r.posterUrl, r.posterFinalUrl);
     $('#stage .boot', el)?.remove();
     $('#stage', el).insertAdjacentHTML('afterbegin', `<img class="${making ? 'kenburns' : 'reveal'}" src="${esc(src)}" alt="">`);
@@ -973,13 +973,18 @@ function loadImg(src) {
   });
 }
 
-async function fontsReady() {
+// Korean web fonts come in many unicode-range pieces; load the pieces for the text actually drawn
+// (title, tagline, names, credits) so no syllable falls back to another font.
+async function fontsReady(text = '') {
   if (!document.fonts?.load) return;
+  const sample = `가A${text}`;
   await Promise.race([
-    Promise.all(['80px "Black Han Sans"', '40px "Bebas Neue"', '500 30px "Noto Sans KR"', '700 30px "Noto Sans KR"', '500 20px "IBM Plex Mono"'].map((f) => document.fonts.load(f, '가A'))),
-    sleep(2500),
+    Promise.all(['80px "Black Han Sans"', '40px "Bebas Neue"', '500 30px "Noto Sans KR"', '700 30px "Noto Sans KR"', '500 20px "IBM Plex Mono"'].map((f) => document.fonts.load(f, sample))),
+    sleep(4000),
   ]).catch(() => {});
 }
+const drawnText = (info) => [info.title, info.tagline, info.director, info.genre?.en, info.genre?.ko,
+  ...(S.content?.event?.credits || []).flatMap((c) => [c.label, c.value])].filter(Boolean).join('');
 
 function spaced(ctx, text, x, y, font, spacing, color) {
   ctx.font = font;
@@ -1001,7 +1006,7 @@ function wrapLines(ctx, text, maxW, sep = ' ') {
 }
 
 async function composePoster(src, info) {
-  await fontsReady();
+  await fontsReady(drawnText(info));
   const img = await loadImg(src);
   // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
   const W = 1125, H = 2000, OUT_W = 1080;
@@ -1093,7 +1098,7 @@ function rrect(x, X, Y, w, h, r) {
 }
 
 async function composeTicket(posterSrc, info) {
-  await fontsReady();
+  await fontsReady(drawnText(info));
   const img = await loadImg(posterSrc);
   const W = 900, H = 1500, M = 40;
   const accent = '#d4ff3a', bg = '#0a0a0b';

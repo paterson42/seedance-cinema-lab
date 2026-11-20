@@ -69,14 +69,9 @@ systemctl enable cinema >/dev/null
 systemctl restart cinema
 
 echo "==> caddy (HTTPS for $DOMAIN)"
-cat > /etc/caddy/Caddyfile <<EOF
-$DOMAIN {
-	encode gzip
-	reverse_proxy 127.0.0.1:3000
-}
-EOF
 systemctl enable caddy >/dev/null
-systemctl reload caddy || systemctl restart caddy
+# Routes: film at / , or with BASE_PATH set (e.g. /film): entrance page at /, film, ads at /ad
+APP_DIR="$APP_DIR" bash "$APP_DIR/deploy/routes.sh" "$DOMAIN"
 
 sleep 2
 systemctl is-active --quiet cinema && echo "cinema: running" || { journalctl -u cinema -n 30 --no-pager; exit 1; }

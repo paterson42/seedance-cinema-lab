@@ -6,6 +6,12 @@
       "runtimeExecutable": "/Users/bytedance/.local/node/bin/node",
       "runtimeArgs": ["--no-warnings=ExperimentalWarning", "--watch", "server/index.js"],
       "port": 3000
+    },
+    {
+      "name": "cinema-lab-film",
+      "runtimeExecutable": "/usr/bin/env",
+      "runtimeArgs": ["BASE_PATH=/film", "PORT=3010", "/Users/bytedance/.local/node/bin/node", "--no-warnings=ExperimentalWarning", "server/index.js"],
+      "port": 3010
     }
   ]
 }

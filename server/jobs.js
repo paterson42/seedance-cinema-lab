@@ -14,7 +14,9 @@ let videoPolling = false;
 let submitting = 0;
 
 function saveMedia(buffer, ext) {
-  const name = `${crypto.randomBytes(16).toString('base64url')}.${ext}`;
+  let id;
+  do id = crypto.randomBytes(16).toString('base64url'); while (id.startsWith('_')); // "_" marks temp files
+  const name = `${id}.${ext}`;
   fs.writeFileSync(path.join(MEDIA_DIR, name), buffer);
   return name;
 }

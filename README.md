@@ -161,6 +161,15 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 5. 부스 태블릿은 `/?booth=1` 로 한 번 접속해 두기
 6. 대형 스크린 PC 2대에서 `/screen/poster`, `/screen/trailer` 전체 화면 (절전 모드 해제)
 
+## 부스 입구: QR 하나 → FILM / ADS 선택 (landing/)
+
+부스 입구의 QR은 도메인 루트(`https://도메인/`) 하나만 씁니다. 루트에는 `landing/index.html` 선택 화면이 뜨고, 방문자가 **FILM**(`/film/`) 또는 **ADS**(`/ad/`)를 고릅니다.
+
+- 영화 앱: `.env`에 `BASE_PATH=/film` → `/film/`, 스크린 `/film/poster` · `/film/trailer`, 관리 `/film/admin`
+- 광고 앱: `commerce-ad-lab` 브랜치를 별도 서비스(포트 3001, `BASE_PATH=/ad`)로 실행
+- Caddy 라우팅은 `bash deploy/routes.sh <도메인>` 로 씁니다 (`deploy/setup.sh`도 이 스크립트를 호출). 루트는 선택 화면, `/film`·`/ad`는 각 앱, 그 밖의 예전 영화 주소(공유된 `/r/…` 결과 링크, `/screen/…`, `/admin`)는 `/film/…`으로 리다이렉트되어 계속 열립니다
+- 광고 쪽 `deploy/setup-ad.sh`를 다시 실행하면 Caddy 설정을 덮어쓰므로, 그 뒤에 `deploy/routes.sh`를 한 번 더 실행하세요
+
 ## 한 도메인에 다른 데모와 함께 올리기 (BASE_PATH)
 
 `.env`에 `BASE_PATH=/cinema`를 넣으면 앱 전체가 그 경로 아래에서 동작합니다 (`PUBLIC_BASE_URL`은 경로 없이 도메인까지만).
