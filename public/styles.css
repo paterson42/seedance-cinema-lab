@@ -65,6 +65,7 @@ img, video { display: block; max-width: 100%; }
 .top-back[hidden] { display: none; }
 @media (max-width: 480px) { .top-back:not([hidden]) + .brand .brand-sub { display: none; } }
 .brand { display: flex; align-items: baseline; gap: 7px; text-decoration: none; } /* SEOUL sits on the same baseline as the wordmark */
+.brand-logo { display: block; height: 34px; width: auto; align-self: center; }
 .brand-mark { font-weight: 900; letter-spacing: -0.02em; font-size: 18px; }
 .brand-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; }
 .top-right { display: flex; align-items: center; gap: 10px; }
@@ -468,3 +469,9 @@ mark.kw { background: none; color: var(--accent); font-weight: 700; }
 /* No visible scroll bars anywhere; everything still scrolls by touch, wheel and keyboard. */
 * { scrollbar-width: none; -ms-overflow-style: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Pre-registered number notice above the phone field (shown while the list restriction is on) */
+.reg-notice { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px; padding: 12px 14px; border-radius: 12px;
+  background: rgba(185, 162, 255, .12); border: 1px solid rgba(185, 162, 255, .5); color: var(--text); font-size: 14px; line-height: 1.55; word-break: keep-all; }
+.reg-notice .ico { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 900; font-size: 13px; margin-top: 1px; }
+.reg-notice b { color: var(--accent); }

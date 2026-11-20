@@ -172,6 +172,7 @@ route('GET', '/api/bootstrap', async (req, res) => {
     kakao: { enabled: kakaoEnabled(), provider: config.kakao.provider, jsKey: config.kakao.jsKey || null },
     videoEtaSec: etaSec('video'),
     publicBaseUrl: config.publicBaseUrlSet ? config.publicBaseUrl : null,
+    allowlist: allowlistEnabled(), // the ticket page then reminds visitors to use their registered number
     session: sessionView(s),
   });
 });

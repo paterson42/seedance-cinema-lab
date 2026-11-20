@@ -349,6 +349,7 @@ VIEWS.landing = () => {
       </div>
       <div class="ticket-perf"></div>
       <div class="ticket-body">
+      ${S.boot.allowlist ? '<div class="reg-notice" role="note"><span class="ico">!</span><span><b>행사 등록 시 입력한 휴대폰 번호</b>와 일치해야 참여할 수 있어요.</span></div>' : ''}
       <label class="field">
         <span>${S.boot.kakao.enabled ? "결과를 받을 휴대폰 번호" : "내 결과를 다시 찾을 휴대폰 번호"}</span>
         <input class="input" id="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" maxlength="13" required>
