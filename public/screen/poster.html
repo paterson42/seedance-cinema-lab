@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NOW SHOWING — Seedance Cinema Lab 포스터 스크린</title>
+  <title>NOW SHOWING — Seedance @ Seoul AI Film Festival 포스터 스크린</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,7 +128,7 @@
     <main>
       <div class="slot" id="slot">
         <div class="lightbox"><div class="glass" id="glass"></div></div>
-        <div class="plate" id="plate"><b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span></div>
+        <div class="plate" id="plate"><b>COMING SOON</b><span>SEEDANCE @ SEOUL AI FILM FESTIVAL</span></div>
       </div>
     </main>
     <footer class="ticker">
@@ -193,7 +193,7 @@
       glass.style.setProperty('--glow', it ? `rgba(${hexRgb(it.genre?.color)}, .4)` : 'rgba(255,240,210,.12)');
       $('#plate').innerHTML = it
         ? `<b>〈${esc(it.title)}〉</b><span>A FILM BY ${esc(it.director)} · ${esc(it.genre?.en || '')}</span>`
-        : '<b>COMING SOON</b><span>SEEDANCE CINEMA LAB</span>';
+        : '<b>COMING SOON</b><span>SEEDANCE @ SEOUL AI FILM FESTIVAL</span>';
       $('#slot .new-tag')?.remove();
       if (it && newIds.has(it.id)) $('#slot').insertAdjacentHTML('afterbegin', '<div class="new-tag">NEW</div>');
     }

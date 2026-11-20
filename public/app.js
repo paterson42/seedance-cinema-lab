@@ -1,4 +1,4 @@
-// Seedance Seoul Cinema Lab — booth client (vanilla JS, mobile first)
+// Seedance @ Seoul AI Film Festival — booth client (vanilla JS, mobile first)
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -292,7 +292,7 @@ VIEWS.landing = () => {
   const c = S.content.copy;
   const title = esc(c.heroTitle).replace(/영화\./, '<em>영화.</em>');
   const el = render(`
-    <p class="eyebrow">${esc(S.content.event.name)} · ${esc(S.content.event.city)} ${esc(S.content.event.year)}</p>
+    <p class="eyebrow">${esc(S.content.event.name)} ${esc(S.content.event.year)}</p>
     <h1 class="h1">${title}</h1>
     <p class="lead">${esc(c.heroSub)}</p>
     <div class="hero-strip">
@@ -303,7 +303,7 @@ VIEWS.landing = () => {
     <form class="ticket" id="phoneForm" novalidate>
       <div class="ticket-head">
         <div class="ticket-top"><span>ADMIT ONE</span><span>№ ${pad(Math.floor(Math.random() * 9999), 4)}</span></div>
-        <div class="ticket-name">SEEDANCE CINEMA LAB</div>
+        <div class="ticket-name">SEEDANCE @ SEOUL<br>AI FILM FESTIVAL</div>
         <div class="ticket-meta">
           <div><small>SCREEN</small><b>01</b></div>
           <div><small>DATE</small><b>${today()}</b></div>
@@ -312,6 +312,7 @@ VIEWS.landing = () => {
       </div>
       <div class="ticket-perf"></div>
       <div class="ticket-body">
+      ${S.boot.allowlist ? '<div class="reg-notice" role="note"><span class="ico">!</span><span><b>행사 등록 시 입력한 휴대폰 번호</b>와 일치해야 참여할 수 있어요.</span></div>' : ''}
       <label class="field">
         <span>${S.boot.kakao.enabled ? "티켓 발급 · 결과를 받을 휴대폰 번호" : "티켓 발급 · 내 결과를 다시 찾을 휴대폰 번호"}</span>
         <input class="input" id="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000" maxlength="13" required>
@@ -326,7 +327,7 @@ VIEWS.landing = () => {
       <button class="btn btn-primary btn-block" id="startBtn" type="submit" style="margin-top:8px">티켓 받고 입장하기 ${ic('arrow')}</button>
       </div>
       <div class="ticket-perf"></div>
-      <div class="ticket-stub"><span class="barcode" aria-hidden="true"></span><span>NON-TRANSFERABLE<br>SEOUL 2026</span></div>
+      <div class="ticket-stub"><span class="barcode" aria-hidden="true"></span><span>Seedance @ Seoul 2026</span></div>
     </form>
     <p style="text-align:center;margin-top:18px"><button class="linkish" id="toLookup" type="button">이미 체험했나요? 내 결과 다시 보기</button></p>
   `);
@@ -458,7 +459,7 @@ VIEWS.cast = () => {
       <span>감독 이름 · 포스터에 "A FILM BY ___" 로 들어가요</span>
       <input class="input" id="director" type="text" maxlength="12" placeholder="예) 홍길동" autocomplete="nickname" value="${esc(S.director)}">
     </label>
-    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>Seed로 이야기 만들기 ${ic('arrow')}</button></div>
+    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>BytePlus Seed(LLM)으로 이야기 만들기 ${ic('arrow')}</button></div>
   `);
   $('[data-back]', el).onclick = () => go('genre');
 
@@ -847,7 +848,7 @@ async function renderResult(r) {
       : kakaoCard(false, '', '', '언제든 다시 보고, 포스터와 영상을 저장할 수 있어요')) : ''}
     <div class="end-card">
       <div class="big">${r.own ? '이 영화의 첫 관객은 당신입니다.' : '나도 나만의 영화를 만들어 볼까요?'}</div>
-      <p class="small">${r.own ? '포스터와 트레일러를 간직하고, 다음 장면을 상상해 보세요.' : 'Seedance Seoul Cinema Lab 부스에서 직접 체험해 보세요.'}</p>
+      <p class="small">${r.own ? '포스터와 트레일러를 간직하고, 다음 장면을 상상해 보세요.' : 'Seedance @ Seoul AI Film Festival 부스에서 직접 체험해 보세요.'}</p>
       <button class="btn btn-ghost btn-block" id="again" style="margin-top:12px">${r.own ? (S.booth ? '다음 관람객 시작하기' : '처음부터 다시 체험하기') : '나도 만들어보기'}</button>
     </div>
   `);
@@ -877,7 +878,7 @@ async function renderResult(r) {
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance Seoul Cinema Lab`;
+  const summary = () => `🎬 ${r.title}\n“${r.tagline}”\nA FILM BY ${r.info.director}\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/\s/g, '')}`).join(' ')}\n\n내 영화 보러가기 → ${link}\nSeedance @ Seoul AI Film Festival`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -1184,7 +1185,7 @@ async function composeTicket(posterSrc, info) {
   while (bx < px + 330) { const w = 2 + Math.floor(rnd() * 5); if (rnd() > 0.35) x.fillRect(bx, by, w, bh); bx += w + 2 + Math.floor(rnd() * 4); }
   x.textAlign = 'right';
   spaced(x, 'ADMIT ONE', px + pw, by + 40, '50px "Bebas Neue", sans-serif', 6, accent);
-  spaced(x, 'SEEDANCE CINEMA LAB', px + pw, by + 80, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.75)');
+  spaced(x, 'SEEDANCE @ SEOUL AI FILM FESTIVAL', px + pw, by + 80, '500 15px "IBM Plex Mono", monospace', 1.5, 'rgba(255,255,255,.75)');
   spaced(x, 'SEOUL 2026', px + pw, by + 112, '500 19px "IBM Plex Mono", monospace', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 

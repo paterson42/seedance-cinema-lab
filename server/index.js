@@ -171,6 +171,7 @@ route('GET', '/api/bootstrap', async (req, res) => {
     kakao: { enabled: kakaoEnabled(), provider: config.kakao.provider, jsKey: config.kakao.jsKey || null },
     videoEtaSec: etaSec('video'),
     publicBaseUrl: config.publicBaseUrlSet ? config.publicBaseUrl : null,
+    allowlist: allowlistEnabled(), // the ticket page then reminds visitors to use their registered number
     session: sessionView(s),
   });
 });
@@ -608,7 +609,7 @@ const server = http.createServer(async (req, res) => {
 
 startJobs();
 server.listen(config.port, () => {
-  console.log(`\n🎬 Seedance Seoul Cinema Lab  →  http://localhost:${config.port}${BASE}/`);
+  console.log(`\n🎬 Seedance @ Seoul AI Film Festival  →  http://localhost:${config.port}${BASE}/`);
   console.log(`   mode: ${config.mock ? 'MOCK (데모 — ARK_API_KEY 미설정)' : 'LIVE'}  ·  kakao: ${config.kakao.provider}`);
   console.log(`   admin: http://localhost:${config.port}${BASE}/admin?token=${config.adminToken}`);
   console.log(`   screens: http://localhost:${config.port}${BASE}/screen/poster  ·  /screen/trailer\n`);

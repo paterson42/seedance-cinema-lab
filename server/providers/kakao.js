@@ -34,7 +34,7 @@ export async function sendTrailerReady(session) {
   const payload = {
     template_code: config.kakao.templateCode,
     variables: { director, title, link },
-    text: `[Seedance Cinema Lab]\n${director} 감독님의 영화 <${title}> 트레일러가 완성되었습니다!\n\n아래 버튼을 눌러 포스터와 트레일러를 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
+    text: `[Seedance @ Seoul AI Film Festival]\n${director} 감독님의 영화 <${title}> 트레일러가 완성되었습니다!\n\n아래 버튼을 눌러 포스터와 트레일러를 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
     buttons: [{ type: 'WL', name: '내 영화 보러가기', url_mobile: link, url_pc: link }],
   };
 
