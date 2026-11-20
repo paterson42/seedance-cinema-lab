@@ -583,7 +583,9 @@ const server = http.createServer(async (req, res) => {
 
     if (p.startsWith('/media/')) {
       const name = path.basename(p);
-      if (name.startsWith('_') || !serveFile(req, res, path.join(MEDIA_DIR, name), {
+      // Only our temp files are private (_mock_*, _conv_*, _ov_*). Random names can start with "_" too
+      // (base64url), so blocking every leading underscore hid about 1 in 64 real key visuals/videos.
+      if (/^_(mock|conv|ov)_/.test(name) || !serveFile(req, res, path.join(MEDIA_DIR, name), {
         cache: 'public, max-age=604800, immutable',
         download: url.searchParams.get('dl') ? `seedance-commerce-${name.slice(0, 6)}${path.extname(name)}` : undefined,
       })) fail(404, 'not found');
