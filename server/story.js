@@ -49,6 +49,10 @@ function templateStory({ genre, kw, director, seed }) {
 // Appended to every poster / trailer prompt (Seed-written or template) so results read as a
 // still and footage from a real live-action film, not a glossy AI render.
 const POSTER_REALISM = 'Photographed as a still from a real live-action feature film: shot on 35mm film with a cinema camera and real lenses, natural skin texture with pores and fine lines, real fabric and material texture, practical motivated lighting, gentle film grain and halation, natural color, believable human proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration; no airbrushed or plastic-looking skin, no over-sharpened HDR look.';
+// Several large faces in one image tend to come out identical and break the trailer, so every poster
+// has exactly one large, clear face; everyone else is kept small, turned away or out of focus.
+const POSTER_ONE_FACE = 'Casting and framing: exactly one main character, and only that person\'s face is shown large and in sharp focus. Anyone else stays small in the background, seen from behind, in silhouette, partly out of frame or softly out of focus; never a second large, clearly visible face, no rows or crowds of faces, no mirrors, reflections or pictures repeating a face. Every person looks clearly different; no identical or twin-looking faces.';
+const VIDEO_ONE_FACE = 'Keep exactly the people that are in the poster: do not add new faces, and do not turn a background figure into a second close-up face; close-ups stay on the main character.';
 const VIDEO_REALISM = 'Live-action film footage: real camera movement with natural motion blur, realistic physics and weight, natural human motion and micro-expressions, faces and hands stay consistent with the poster without morphing, 24fps film look with gentle grain.';
 const SECS = () => config.ark.videoDuration;
 
@@ -59,6 +63,7 @@ function posterPrompt({ genre, kw }) {
     `Setting: ${kw.where.en}, ${kw.when.en}.`,
     `Style: ${genre.style}.`,
     'A single strong moment that tells the story, real location with depth, theatrical one-sheet composition.',
+    POSTER_ONE_FACE,
     POSTER_REALISM,
     'Keep the lower third darker and uncluttered for title placement. No text, no letters, no words, no logos, no watermark.',
   ].join(' ');
@@ -86,6 +91,7 @@ function videoPrompt({ genre, kw, plan }) {
     cameraText(genre, plan),
     `Action and atmosphere: ${genre.motion}.`,
     'Keep the same characters, wardrobe, palette and composition as the poster.',
+    VIDEO_ONE_FACE,
     VIDEO_REALISM,
     'No text or titles on screen.',
   ].join(' ');
@@ -101,7 +107,7 @@ Return ONLY a JSON object with keys:
 "tagline" (Korean, one sentence, max 30 characters),
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
-"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Exactly ONE character's face may be large and clearly visible; if the story has other people (a partner, a rival, a robot), show them small in the background, from behind, in silhouette or out of focus, never as a second large face, and never as a crowd of faces or a face repeated in a mirror or reflection. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
 "video_prompt" (English prompt, 2-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot. Build it around the given camera plan (opening move, then closing move) and describe what the actors physically do during each beat, plus small details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly.`;
 
@@ -132,8 +138,8 @@ Camera plan for the trailer: open with ${plan.open}${plan.close ? `, then ${plan
           director,
           source: 'seed-llm',
         };
-        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_REALISM}`;
-        vPrompt = [out.video_prompt.trim(), cameraText(genre, plan), `Action and atmosphere: ${genre.motion}.`, VIDEO_REALISM].filter(Boolean).join(' ');
+        pPrompt = `${out.poster_prompt.trim()} Style: ${genre.style}. ${POSTER_ONE_FACE} ${POSTER_REALISM}`;
+        vPrompt = [out.video_prompt.trim(), cameraText(genre, plan), `Action and atmosphere: ${genre.motion}.`, VIDEO_ONE_FACE, VIDEO_REALISM].filter(Boolean).join(' ');
       }
     } catch (e) {
       console.warn('[seed-llm] fallback to template:', e.message);

@@ -83,14 +83,14 @@
         "#ff7aa8",
         "#2a0f1c"
       ],
-      "style": "live-action romance film still, late-afternoon natural backlight, soft halation, muted warm film tones, shallow depth of field on a 50mm lens, a candid unposed moment between two people",
+      "style": "live-action romance film still, late-afternoon natural backlight, soft halation, muted warm film tones, shallow depth of field on a 50mm lens, the lead in a candid, unposed moment, a loved one only glimpsed from behind or softly out of focus",
       "motion": "a light breeze moving hair and clothes, sunlight flickering through leaves, a small natural smile and a held glance",
       "camera": [
-        "a slow arc shot circling the two characters",
+        "a slow arc shot circling the lead",
         "a gentle dolly-in from a wide shot to an intimate close-up",
-        "a rack focus from a foreground detail to the characters' faces",
-        "a backlit tracking shot walking alongside them with soft lens flare",
-        "a slow crane up revealing the glowing city behind them"
+        "a rack focus from a foreground detail to the lead's face",
+        "a backlit tracking shot walking alongside the lead with soft lens flare",
+        "a slow crane up revealing the glowing city behind the lead"
       ],
       "titles": [
         "너와 나의 {n}",
@@ -120,7 +120,7 @@
         "a slow, creeping dolly-in toward the subject",
         "a dolly zoom (vertigo effect) as the realization hits",
         "a Dutch-angle handheld shot that tilts as tension rises",
-        "a rack focus revealing a figure in the background",
+        "a rack focus revealing a small, silhouetted figure deep in the background",
         "an over-the-shoulder push through a doorway into darkness"
       ],
       "titles": [
@@ -207,11 +207,11 @@
         "#ffd23f",
         "#1a1405"
       ],
-      "style": "live-action comedy film still, bright natural daylight, warm everyday colors, a real neighborhood location, believable understated comedic expressions, candid ensemble framing, light film grain",
-      "motion": "a natural comedic beat and a small double-take, characters react with real timing and believable expressions",
+      "style": "live-action comedy film still, bright natural daylight, warm everyday colors, a real neighborhood location, believable understated comedic expressions, the lead in sharp focus with bystanders small and soft in the background, light film grain",
+      "motion": "a natural comedic beat and a small double-take, the lead reacts with real timing and a believable expression",
       "camera": [
         "a snap crash zoom onto a reaction for the punchline",
-        "a whip pan between two characters",
+        "a whip pan that lands on the lead's startled reaction",
         "a perfectly centered, symmetrical dolly-in",
         "a handheld push-in on a deadpan reaction",
         "a quick tracking shot following a clumsy chase"
@@ -242,7 +242,7 @@
       "motion": "light shifting through a window, a subtle change in expression, breath visible, dust floating in the light",
       "camera": [
         "a slow push-in to an emotional close-up",
-        "a rack focus between two faces",
+        "a rack focus from the background to the lead's face",
         "a gentle handheld follow from behind the subject",
         "a slow dolly-out leaving the character alone in the frame",
         "a quiet frame that slowly drifts as the light changes"
