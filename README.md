@@ -160,3 +160,15 @@ data/                 app.db, media/ (런타임 생성, git 제외)
 4. 카카오 알림톡 채널·템플릿 심사 완료 후 `KAKAO_PROVIDER=webhook`
 5. 부스 태블릿은 `/?booth=1` 로 한 번 접속해 두기
 6. 대형 스크린 PC 2대에서 `/screen/poster`, `/screen/trailer` 전체 화면 (절전 모드 해제)
+
+## 한 도메인에 다른 데모와 함께 올리기 (BASE_PATH)
+
+`.env`에 `BASE_PATH=/cinema`를 넣으면 앱 전체가 그 경로 아래에서 동작합니다 (`PUBLIC_BASE_URL`은 경로 없이 도메인까지만).
+
+| 주소 | 화면 |
+|---|---|
+| `https://도메인/cinema/` | 관객 사이트 (QR) |
+| `https://도메인/cinema/poster` | 포스터 스크린 (`/cinema/screen/poster`도 동일) |
+| `https://도메인/cinema/trailer` | 예고편 스크린 (`/cinema/screen/trailer`도 동일) |
+
+비워 두면 지금처럼 도메인 루트에서 동작합니다. 프록시는 경로를 떼지 않고 그대로 넘겨야 합니다 (Caddy `handle`).

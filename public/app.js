@@ -4,6 +4,9 @@ const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const pad = (n, w = 6) => String(n ?? 0).padStart(w, '0');
+// Path prefix when the app is hosted under one (BASE_PATH on the server), and the path inside it.
+const BASE = window.__BASE__ || '';
+const herePath = () => (BASE && location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) || '/' : location.pathname);
 const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 // ───────────────────────── icons ─────────────────────────
@@ -171,7 +174,7 @@ function go(view, { push = true, slate } = {}) {
   const step = STEP_OF[view];
   $('#stepCount').textContent = step ? `${pad(step, 2)} / 06` : '';
   $('#progressBar').style.width = step ? `${(step / 6) * 100}%` : '0';
-  if (push && location.pathname === '/' && history.state?.view !== view) history.pushState({ view }, '', '/');
+  if (push && herePath() === '/' && history.state?.view !== view) history.pushState({ view }, '', `${BASE}/`);
   (VIEWS[view] || VIEWS.landing)();
   window.scrollTo({ top: 0 });
   track(`view_${view}`);
@@ -199,7 +202,7 @@ function resume(opts) {
 
 document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-action="home"]');
-  if (a) { e.preventDefault(); if (location.pathname !== '/') location.href = '/'; else resume(); }
+  if (a) { e.preventDefault(); if (herePath() !== '/') location.href = `${BASE}/`; else resume(); }
 });
 
 // Every in-progress step gets a small "start over" link; it only acts after a confirmation.
@@ -886,7 +889,7 @@ async function renderResult(r) {
     if (a === 'tsave') { download(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`); track('ticket_saved'); toast('티켓을 저장했어요'); }
     if (a === 'tshare') { shareFile(await getTicket(r.info, posterSrc), `${fileBase}-ticket.jpg`, r.title, link); track('ticket_shared'); }
   };
-  $('#again', el).onclick = () => (!r.own ? (location.href = '/') : S.booth ? restart() : confirmRestart());
+  $('#again', el).onclick = () => (!r.own ? (location.href = `${BASE}/`) : S.booth ? restart() : confirmRestart());
 }
 
 // newNumber: forget the phone too (another person on this phone, or a typo) -> back to the ticket page.
@@ -1255,12 +1258,12 @@ if (S.booth) {
   }
   S.content = S.boot.content;
   $('#modeBadge').hidden = S.boot.mode !== 'mock';
-  const m = location.pathname.match(/^\/r\/([\w-]+)/);
+  const m = herePath().match(/^\/r\/([\w-]+)/);
   if (m) return showResultPage(m[1]);
   if (!S.session) {
     try { await api('/api/session', { method: 'POST', body: { entry: S.booth ? 'booth' : 'qr' } }); } catch (e) { return handleError(e); }
   }
-  history.replaceState({ view: null }, '', '/' );
+  history.replaceState({ view: null }, '', `${BASE}/`);
   resume({ push: false, slate: false });
-  history.replaceState({ view: S.view }, '', '/');
+  history.replaceState({ view: S.view }, '', `${BASE}/`);
 })();
