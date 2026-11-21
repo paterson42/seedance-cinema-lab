@@ -246,7 +246,7 @@ img, video { display: block; max-width: 100%; }
 .kenburns { animation: kb 14s ease-in-out infinite alternate; transform-origin: 50% 40%; }
 @keyframes kb { from { transform: scale(1.02); } to { transform: scale(1.14) translateY(-2%); } }
 .wait-card { position: relative; }
-.wait-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; background: linear-gradient(to top, rgba(0,0,0,.9) 15%, transparent 60%); }
+.wait-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; background: linear-gradient(to top, rgba(0,0,0,.94) 26%, rgba(0,0,0,.55) 48%, transparent 70%); }
 .bar { height: 6px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; margin: 10px 0 8px; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 1s linear; box-shadow: 0 0 12px var(--accent); }
 .wait-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: #d0d0c8; }
@@ -408,3 +408,13 @@ img, video { display: block; max-width: 100%; }
 .reg-notice .ico { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 900; font-size: 13px; margin-top: 1px; }
 .reg-notice b { color: var(--accent); }
 .ticket-stub > span:last-child { white-space: nowrap; }
+
+/* Story button: always two centred lines */
+.btn-2l { display: block; flex: 1; text-align: center; line-height: 1.3; padding: 10px 0; }
+#castNext { padding-left: 22px; }
+/* Trailer progress block (waiting view + shared result link) */
+.wait-status { font-family: var(--sans); font-size: 15px; font-weight: 800; letter-spacing: 0; color: var(--accent); }
+.bar.bar-lg { height: 14px; margin: 12px 0 12px; background: rgba(255,255,255,.16); }
+.bar.bar-lg i { box-shadow: 0 0 16px var(--accent); }
+.wait-time { font-size: 24px; font-weight: 900; line-height: 1.2; color: #fff; letter-spacing: -0.01em; }
+.wait-msg { margin-top: 4px; font-size: 13px; color: #d6d6ce; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

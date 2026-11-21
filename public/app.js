@@ -459,7 +459,7 @@ VIEWS.cast = () => {
       <span>감독 이름 · 포스터에 "A FILM BY ___" 로 들어가요</span>
       <input class="input" id="director" type="text" maxlength="12" placeholder="예) 홍길동" autocomplete="nickname" value="${esc(S.director)}">
     </label>
-    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled>BytePlus Seed(LLM)으로 이야기 만들기 ${ic('arrow')}</button></div>
+    <div class="cta-bar"><button class="btn btn-primary btn-block" id="castNext" disabled><span class="btn-2l">BytePlus Seed(LLM)으로<br>이야기 만들기</span>${ic('arrow')}</button></div>
   `);
   $('[data-back]', el).onclick = () => go('genre');
 
@@ -512,7 +512,7 @@ async function makeStory() {
     <div class="loading-stage" style="aspect-ratio:auto;min-height:60vh;width:100%">
       <div>
         <div class="countdown" style="--p:0%"><b>S</b></div>
-        <div class="loading-msg">Seed가 <b>${esc(director)}</b> 감독님의<br>시놉시스를 생성 중…</div>
+        <div class="loading-msg">BytePlus Seed(LLM)이<br><b>${esc(director)}</b> 감독님의 시놉시스를 생성 중…</div>
         <div class="loading-sub">GENRE + 6 KEYWORDS → STORY & PROMPT</div>
       </div>
       <div class="film-strip"></div>
@@ -755,9 +755,10 @@ const RENDER_MSGS = ['포스터 속 인물에게 숨을 불어넣는 중', '카�
 // Seedance gives no progress, so: linear to 90% at the learned estimate, then creeping towards 99%,
 // with a blinking status, rotating messages and the remaining time, so it never looks frozen.
 const progressMarkup = (msg = RENDER_MSGS[0]) => `<div class="wait-overlay">
-    <span class="status-dot" id="wStatus">RENDERING</span>
-    <div class="bar"><i id="wBar"></i></div>
-    <div class="wait-row"><span id="wMsg">${msg}</span><span id="wTime"></span></div>
+    <span class="status-dot wait-status" id="wStatus">트레일러를 만들고 있어요</span>
+    <div class="bar bar-lg"><i id="wBar"></i></div>
+    <div class="wait-time" id="wTime">&nbsp;</div>
+    <div class="wait-msg" id="wMsg">${msg}</div>
   </div>`;
 function trailerProgress(el, get, alive) {
   let i = 0;
@@ -769,7 +770,7 @@ function trailerProgress(el, get, alive) {
       const pct = sec < eta ? (sec / eta) * 90 : 99 - 9 * Math.exp(-(sec - eta) / (eta * 0.5));
       $('#wBar', el).style.width = `${pct}%`;
       $('#wTime', el).textContent = sec < eta ? `약 ${fmtDur(eta - sec)} 남음` : '거의 다 됐어요';
-      $('#wStatus', el).textContent = st.queuePos > 1 ? `QUEUED · 앞에 ${st.queuePos - 1}명 대기 중` : 'RENDERING';
+      $('#wStatus', el).textContent = st.queuePos > 1 ? `앞에 ${st.queuePos - 1}명 대기 중 · 곧 시작해요` : '트레일러를 만들고 있어요';
       if (Math.floor(sec) % 6 === 0) $('#wMsg', el).textContent = RENDER_MSGS[i++ % RENDER_MSGS.length];
       await sleep(1000);
     }
@@ -928,7 +929,7 @@ async function showResultPage(tok) {
       <p class="scene">NOW SHOWING · SOON</p>
       <h2 class="story-title" style="font-size:clamp(34px,10vw,52px)">${esc(r.title)}</h2>
       <p class="story-tagline">“${esc(r.tagline)}”</p>
-      <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup('트레일러 편집 중…') : ''}</div>
+      <div class="poster-wrap"><div class="poster-stage${making ? ' wait-card' : ''}" id="stage"><div class="boot"><div class="spinner"></div></div>${making ? progressMarkup() : ''}</div>
       <div class="poster-caption"><span>${esc(r.genre?.en || '')}</span><span>A FILM BY ${esc(r.director)}</span></div></div>
       ${making
         ? `<div class="notice"><span class="ico">⏱</span><span>트레일러를 만들고 있어요. 이 페이지를 열어 두면 완성되는 즉시 재생돼요.</span></div>`
