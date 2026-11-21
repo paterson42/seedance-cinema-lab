@@ -37,7 +37,7 @@
       box-shadow: 0 0 calc(var(--u) * 8) rgba(160,190,255,.12), 0 0 0 1px rgba(255,255,255,.05); }
     .screen::after { /* projector falloff */ content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 8;
       background: radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.45)); }
-    .scene { position: absolute; inset: 0; opacity: 0; transition: opacity .9s ease; }
+    .scene { position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; }
     .scene.on { opacity: 1; }
 
     /* pre-show card */
@@ -171,7 +171,7 @@
     const qrRight = new URLSearchParams(location.search).get('qr') === 'right';
     document.body.classList.toggle('qr-right', qrRight);
     if (qrRight) $('.curtain-title .arr').textContent = '→';
-    const PRE_MS = 4000, END_MS = 7000, MAX_VIDEO_MS = 40000;
+    const PRE_MS = 2000, END_MS = 2000, MAX_VIDEO_MS = 40000; // short pre-show and end cards so the queue keeps moving at peak times
 
     let items = [];          // newest first (live trailers)
     let known = null;

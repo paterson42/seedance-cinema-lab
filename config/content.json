@@ -632,6 +632,66 @@
         {
           "ko": "첫 출근한 신입 마케터",
           "en": "a rookie marketer on their first day at work"
+        },
+        {
+          "ko": "동네 세탁소 사장님",
+          "en": "the owner of a small neighborhood laundromat"
+        },
+        {
+          "ko": "은퇴한 서커스 곡예사",
+          "en": "a retired circus acrobat"
+        },
+        {
+          "ko": "마지막 남은 등대지기",
+          "en": "the last remaining lighthouse keeper"
+        },
+        {
+          "ko": "꿈을 배달하는 우체부",
+          "en": "a mail carrier who delivers dreams"
+        },
+        {
+          "ko": "길을 잃은 배달 로봇",
+          "en": "a delivery robot that has lost its way"
+        },
+        {
+          "ko": "겁 많은 야간 경비원",
+          "en": "a timid night security guard"
+        },
+        {
+          "ko": "서울의 마지막 오락실 주인",
+          "en": "the owner of the last arcade in Seoul"
+        },
+        {
+          "ko": "시간여행을 하는 택시 기사",
+          "en": "a time-traveling taxi driver"
+        },
+        {
+          "ko": "은둔형 천재 해커",
+          "en": "a reclusive genius hacker"
+        },
+        {
+          "ko": "무대 공포증이 있는 가수",
+          "en": "a singer with stage fright"
+        },
+        {
+          "ko": "수습 마법사",
+          "en": "an apprentice wizard"
+        },
+        {
+          "ko": "전직 탁구 국가대표",
+          "en": "a former national table tennis champion"
+        },
+        {
+          "ko": "한밤의 라디오 DJ",
+          "en": "a late-night radio DJ"
+        },
+        {
+          "ko": "비 오는 날에만 나타나는 탐정",
+          "en": "a detective who only appears on rainy days"
+        },
+        {
+          "ko": "고장 난 시계를 고치는 수리공",
+          "en": "a repairer who mends broken clocks"
         }
       ]
     },
@@ -679,6 +739,66 @@
         {
           "ko": "조선시대의 어느 보름밤",
           "en": "on a full-moon night in the Joseon dynasty"
+        },
+        {
+          "ko": "태풍이 서울을 지나가는 밤",
+          "en": "on the night a typhoon sweeps through Seoul"
+        },
+        {
+          "ko": "수능 시험 전날 밤",
+          "en": "on the night before the national college entrance exam"
+        },
+        {
+          "ko": "한여름 열대야",
+          "en": "during a sweltering tropical night in midsummer"
+        },
+        {
+          "ko": "해가 지지 않는 백야",
+          "en": "during a white night when the sun never sets"
+        },
+        {
+          "ko": "크리스마스이브 자정",
+          "en": "at midnight on Christmas Eve"
+        },
+        {
+          "ko": "마지막 지하철이 떠난 직후",
+          "en": "right after the last subway train leaves"
+        },
+        {
+          "ko": "서울 하늘에 오로라가 뜬 날",
+          "en": "on the day an aurora lights up the sky over Seoul"
+        },
+        {
+          "ko": "설날 아침",
+          "en": "on the morning of Lunar New Year"
+        },
+        {
+          "ko": "1988년 올림픽 개막식 날",
+          "en": "on the opening day of the 1988 Seoul Olympics"
+        },
+        {
+          "ko": "모든 전화가 끊긴 날",
+          "en": "on the day every phone line goes dead"
+        },
+        {
+          "ko": "단풍이 절정인 가을 오후",
+          "en": "on an autumn afternoon at the peak of the fall foliage"
+        },
+        {
+          "ko": "세상의 모든 소리가 사라진 순간",
+          "en": "the moment every sound in the world disappears"
+        },
+        {
+          "ko": "일주일째 비가 그치지 않는 날",
+          "en": "on the seventh straight day of rain"
+        },
+        {
+          "ko": "해 뜨기 직전 푸른 새벽",
+          "en": "in the blue hour just before sunrise"
+        },
+        {
+          "ko": "100년 만의 유성우가 쏟아지는 밤",
+          "en": "on the night of a once-in-a-century meteor shower"
         }
       ]
     },
@@ -726,6 +846,66 @@
         {
           "ko": "끝없는 사막의 영화관에서",
           "en": "in a movie theater in the middle of an endless desert"
+        },
+        {
+          "ko": "남산타워 꼭대기에서",
+          "en": "at the very top of N Seoul Tower"
+        },
+        {
+          "ko": "비밀의 지하 레코드 가게에서",
+          "en": "in a secret underground record shop"
+        },
+        {
+          "ko": "제주도 바닷가 등대에서",
+          "en": "at a seaside lighthouse on Jeju Island"
+        },
+        {
+          "ko": "문 닫은 동네 목욕탕에서",
+          "en": "in a closed-down neighborhood bathhouse"
+        },
+        {
+          "ko": "눈 덮인 설악산 산장에서",
+          "en": "in a snowbound mountain lodge in Seoraksan"
+        },
+        {
+          "ko": "한밤의 광장시장에서",
+          "en": "in Gwangjang Market late at night"
+        },
+        {
+          "ko": "버려진 우주정거장에서",
+          "en": "aboard an abandoned space station"
+        },
+        {
+          "ko": "끝없이 이어지는 도서관 계단에서",
+          "en": "on an endless staircase inside a library"
+        },
+        {
+          "ko": "물에 잠긴 지하철역에서",
+          "en": "in a flooded subway station"
+        },
+        {
+          "ko": "하늘을 나는 버스 안에서",
+          "en": "aboard a bus flying through the sky"
+        },
+        {
+          "ko": "시간이 멈춘 사진관에서",
+          "en": "in an old photo studio where time has stopped"
+        },
+        {
+          "ko": "끝없는 해바라기 밭에서",
+          "en": "in an endless sunflower field"
+        },
+        {
+          "ko": "비 내리는 한옥 마을에서",
+          "en": "in a traditional hanok village in the rain"
+        },
+        {
+          "ko": "깊은 바닷속 유리 돔에서",
+          "en": "inside a glass dome deep under the sea"
+        },
+        {
+          "ko": "불 꺼진 백화점에서",
+          "en": "in a department store after closing time, with the lights off"
         }
       ]
     },
@@ -783,6 +963,81 @@
           "ko": "첫사랑에게 고백한다",
           "en": "finally confesses to their first love",
           "n": "고백"
+        },
+        {
+          "ko": "사라진 그림 한 점을 되찾는다",
+          "en": "tries to recover a single stolen painting",
+          "n": "그림"
+        },
+        {
+          "ko": "도시에 다시 불을 밝힌다",
+          "en": "tries to bring the lights back to the whole city",
+          "n": "불빛"
+        },
+        {
+          "ko": "마지막 무대에 오른다",
+          "en": "steps onto one final stage",
+          "n": "무대"
+        },
+        {
+          "ko": "잃어버린 열쇠를 찾는다",
+          "en": "searches for a lost key",
+          "n": "열쇠"
+        },
+        {
+          "ko": "세상에서 가장 작은 영화관을 연다",
+          "en": "opens the smallest movie theater in the world",
+          "n": "영화관"
+        },
+        {
+          "ko": "하늘을 나는 법을 배운다",
+          "en": "learns how to fly",
+          "n": "비행"
+        },
+        {
+          "ko": "비밀 레시피를 지킨다",
+          "en": "protects a secret family recipe",
+          "n": "레시피"
+        },
+        {
+          "ko": "오래된 라디오로 미래와 통화한다",
+          "en": "talks to the future through an old radio",
+          "n": "라디오"
+        },
+        {
+          "ko": "무너진 다리를 다시 잇는다",
+          "en": "rebuilds a collapsed bridge",
+          "n": "다리"
+        },
+        {
+          "ko": "멀리 떠난 친구에게 생일 케이크를 전한다",
+          "en": "delivers a birthday cake to a friend who moved far away",
+          "n": "케이크"
+        },
+        {
+          "ko": "도시 전체에 꽃을 피운다",
+          "en": "makes flowers bloom across the whole city",
+          "n": "꽃"
+        },
+        {
+          "ko": "사진으로 잃어버린 기억을 되살린다",
+          "en": "brings lost memories back to life through photographs",
+          "n": "기억"
+        },
+        {
+          "ko": "전설의 보물 지도를 해독한다",
+          "en": "deciphers a legendary treasure map",
+          "n": "보물"
+        },
+        {
+          "ko": "멈춰버린 회전목마를 다시 돌린다",
+          "en": "gets a stopped carousel turning again",
+          "n": "회전목마"
+        },
+        {
+          "ko": "세상에 단 하나뿐인 향수를 만든다",
+          "en": "creates a perfume unlike any other in the world",
+          "n": "향기"
         }
       ]
     },
@@ -830,6 +1085,66 @@
         {
           "ko": "오직 직감만 믿고",
           "en": "trusting nothing but instinct"
+        },
+        {
+          "ko": "휴대폰 없이",
+          "en": "without a phone"
+        },
+        {
+          "ko": "우산 하나만 들고",
+          "en": "carrying nothing but an umbrella"
+        },
+        {
+          "ko": "노래로만 대화하며",
+          "en": "speaking only in song"
+        },
+        {
+          "ko": "아무도 모르게",
+          "en": "without anyone ever knowing"
+        },
+        {
+          "ko": "단 하루뿐인 휴가를 써서",
+          "en": "using their one and only day off"
+        },
+        {
+          "ko": "낡은 자전거를 타고",
+          "en": "riding an old bicycle"
+        },
+        {
+          "ko": "종이 지도 한 장에 의지해",
+          "en": "relying on a single paper map"
+        },
+        {
+          "ko": "마지막 남은 동전 하나로",
+          "en": "with the very last coin they have"
+        },
+        {
+          "ko": "눈을 감은 채",
+          "en": "with their eyes closed"
+        },
+        {
+          "ko": "매일 밤 몰래",
+          "en": "secretly, night after night"
+        },
+        {
+          "ko": "손글씨 편지로",
+          "en": "through handwritten letters"
+        },
+        {
+          "ko": "할머니의 비법대로",
+          "en": "following grandma's secret method"
+        },
+        {
+          "ko": "발소리를 죽이고",
+          "en": "tiptoeing without making a sound"
+        },
+        {
+          "ko": "단 3분 안에",
+          "en": "within just three minutes"
+        },
+        {
+          "ko": "자신의 그림자에게 도움을 받아",
+          "en": "with help from their own shadow"
         }
       ]
     },
@@ -877,6 +1192,66 @@
         {
           "ko": "내일을 바꾸기 위해",
           "en": "to change tomorrow"
+        },
+        {
+          "ko": "첫 월급으로 부모님께 선물하기 위해",
+          "en": "to buy their parents a gift with their very first paycheck"
+        },
+        {
+          "ko": "사라질 위기의 동네 가게를 지키기 위해",
+          "en": "to save a beloved neighborhood shop from closing"
+        },
+        {
+          "ko": "잊고 있던 꿈을 다시 꾸기 위해",
+          "en": "to chase a dream they had forgotten"
+        },
+        {
+          "ko": "오랜 친구와 화해하기 위해",
+          "en": "to make up with an old friend"
+        },
+        {
+          "ko": "단 한 사람을 웃게 하기 위해",
+          "en": "to make one single person smile"
+        },
+        {
+          "ko": "사라진 동생을 찾기 위해",
+          "en": "to find their missing younger sibling"
+        },
+        {
+          "ko": "세계 기록을 깨기 위해",
+          "en": "to break a world record"
+        },
+        {
+          "ko": "지구를 떠나기 전 마지막 소원을 이루기 위해",
+          "en": "to fulfil one last wish before leaving Earth"
+        },
+        {
+          "ko": "모두가 잊은 약속을 지키기 위해",
+          "en": "to keep a promise everyone else has forgotten"
+        },
+        {
+          "ko": "할머니의 레시피를 이어가기 위해",
+          "en": "to carry on grandma's recipe"
+        },
+        {
+          "ko": "고향 마을에 다시 불을 밝히기 위해",
+          "en": "to light up their hometown once again"
+        },
+        {
+          "ko": "자신의 이름을 되찾기 위해",
+          "en": "to win back their own name"
+        },
+        {
+          "ko": "집으로 돌아가는 길을 찾기 위해",
+          "en": "to find the way back home"
+        },
+        {
+          "ko": "마지막 콘서트 티켓을 구하기 위해",
+          "en": "to get a ticket to the very last concert"
+        },
+        {
+          "ko": "진실을 세상에 알리기 위해",
+          "en": "to tell the world the truth"
         }
       ]
     }
