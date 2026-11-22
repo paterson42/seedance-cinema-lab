@@ -171,7 +171,7 @@
     const qrRight = new URLSearchParams(location.search).get('qr') === 'right';
     document.body.classList.toggle('qr-right', qrRight);
     if (qrRight) $('.curtain-title .arr').textContent = '→';
-    const PRE_MS = 2000, END_MS = 2000, MAX_VIDEO_MS = 40000; // short pre-show and end cards so the queue keeps moving at peak times
+    const PRE_MS = 3000, END_MS = 3000, MAX_VIDEO_MS = 40000; // short pre-show and end cards so the queue keeps moving at peak times
 
     let items = [];          // newest first (live trailers)
     let known = null;
