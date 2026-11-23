@@ -106,6 +106,16 @@
     .qr-right .curtain-title .scan { flex-direction: row-reverse; }
     .qr-right .curtain-title .arr { animation-name: nudge; }
     @keyframes nudge { 50% { transform: translateX(calc(var(--u) * 1.1)); } }
+    /* A brand-new trailer: the curtain snaps shut on WORLD PREMIERE (as on the poster screen), then opens on it. */
+    .curtain-title.ct-prem { display: none; }
+    .premiere-cut .curtain-title.ct-idle { display: none; }
+    .premiere-cut .curtain-title.ct-prem { display: grid; }
+    .premiere-cut .curtain { transition-duration: .45s; }
+    .premiere-cut.closed .curtain-title { transition: opacity .2s .3s; }
+    .ct-prem .eyebrow { font-family: var(--mono); font-size: calc(var(--u) * 1.4); letter-spacing: .4em; color: var(--accent); }
+    .ct-prem .wp { font-family: var(--display); font-size: calc(var(--u) * 8.6); line-height: .9; letter-spacing: .03em; margin-top: calc(var(--u) * .8);
+      background: linear-gradient(180deg, #fff, #d9c9a8); -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(0,0,0,.55)); }
     @keyframes nudge-l { 50% { transform: translateX(calc(var(--u) * -1.1)); } }
 
     /* ── bottom bar ── */
@@ -149,12 +159,13 @@
     <div class="curtain l"></div><div class="curtain r"></div>
     <div class="valance"></div>
     <div class="marquee"><div class="bulbs"></div><div class="bulbs b2"></div><h1>NOW SHOWING</h1><p>SEEDANCE @ SEOUL AI FILM FESTIVAL · SCREEN 01</p></div>
-    <div class="curtain-title">
+    <div class="curtain-title ct-idle">
       <small>TRAILERS TODAY · <span id="count">0</span></small>
       <b>NEXT<br>SHOWING<br>SOON</b>
       <span>포스터가 움직이는 순간,<br>당신의 예고편이<br>이 스크린에 걸립니다</span>
       <div class="scan"><span class="arr" aria-hidden="true">←</span><span>QR을 스캔하세요</span></div>
     </div>
+    <div class="curtain-title ct-prem"><div><div class="eyebrow">JUST SUBMITTED · 방금 도착한 신작</div><div class="wp">WORLD PREMIERE</div></div></div>
     <footer class="bar">
       <div class="row"><span class="screen-no">SCREEN 01</span><span class="now row"><i></i>NOW <b id="nowT">—</b></span></div>
       <div class="row"><span>UP NEXT</span><b id="nextT">—</b><span class="clock" id="clock">--:--</span></div>
@@ -172,12 +183,14 @@
     document.body.classList.toggle('qr-right', qrRight);
     if (qrRight) $('.curtain-title .arr').textContent = '→';
     const PRE_MS = 3000, END_MS = 3000, MAX_VIDEO_MS = 40000; // short pre-show and end cards so the queue keeps moving at peak times
+    const PREMIERE_CUT_MS = 1500; // curtain shut on WORLD PREMIERE before a brand-new trailer
 
     let items = [];          // newest first (live trailers)
     let known = null;
     const fresh = [];        // new submissions — they jump the rotation
     let rot = 0;
     let current = null;
+    let premiere = false;    // the trailer just picked is a new submission
     let credits = [];        // 제작 / 배급 / 상영관, from the feed
 
     const hexRgb = (h) => { const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})/i.exec(h || ''); return m ? m.slice(1).map((x) => parseInt(x, 16)).join(',') : '212,255,58'; };
@@ -185,7 +198,8 @@
     const alive = (it) => items.some((x) => x.id === it.id);
 
     function pick() {
-      while (fresh.length) { const f = fresh.shift(); if (alive(f)) return f; }
+      premiere = false;
+      while (fresh.length) { const f = fresh.shift(); if (alive(f)) { premiere = true; return f; } }
       if (!items.length) return null;
       for (let i = 0; i < items.length; i++) {
         const it = items[rot++ % items.length];
@@ -228,6 +242,7 @@
       $('#preGenre').textContent = `${it.genre?.en || ''} · ${it.genre?.ko || ''}`;
       show('sPre');
       $('#hall').classList.remove('closed');
+      setTimeout(() => $('#hall').classList.remove('premiere-cut'), 900); // once the quick curtain is open again
       await sleep(PRE_MS);
       // trailer
       $('#playTag').innerHTML = `<b style="--g:${esc(it.genre?.color || '')}">${esc(it.genre?.en || '')}</b>`;
@@ -264,9 +279,9 @@
           await sleep(2000);
           continue;
         }
+        // A new submission: the curtain closes on WORLD PREMIERE for a moment, then opens on it.
+        if (premiere) { $('#hall').classList.add('premiere-cut', 'closed'); await sleep(PREMIERE_CUT_MS); }
         await feature(it);
-        // close the curtain between features when there is a premiere waiting
-        if (fresh.some(alive)) { $('#hall').classList.add('closed'); await sleep(2600); }
         if (chrome.stale()) location.reload();
       }
     })();
