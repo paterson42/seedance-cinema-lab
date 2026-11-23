@@ -50,13 +50,22 @@ function readBody(req, limit = 64 * 1024) {
   });
 }
 
-function cookies(req) {
-  return Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=').map(decodeURIComponent)).filter((p) => p[0]));
+// All values of one cookie, most specific first. A browser can hold the same name for several paths:
+// before BASE_PATH existed the session cookie was set on Path=/, now on Path=/film, and both get sent.
+function cookieAll(req, name) {
+  const out = [];
+  for (const c of (req.headers.cookie || '').split(';')) {
+    const i = c.indexOf('=');
+    if (i > 0 && c.slice(0, i).trim() === name) { try { out.push(decodeURIComponent(c.slice(i + 1).trim())); } catch {} }
+  }
+  return out;
 }
 
 const SECURE = config.publicBaseUrl.startsWith('https');
 function sessionCookie(id) {
-  return `scl_sid=${id}; Path=${BASE || '/'}; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
+  const c = `scl_sid=${id}; Path=${BASE || '/'}; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}${SECURE ? '; Secure' : ''}`;
+  // Also drop a leftover cookie from before BASE_PATH (Path=/), which would otherwise shadow this one.
+  return BASE ? [c, `scl_sid=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${SECURE ? '; Secure' : ''}`] : c;
 }
 
 const routes = [];
@@ -153,7 +162,8 @@ function resultView(s) {
 
 // ───────────── session helpers ─────────────
 function current(req) {
-  return getSession(cookies(req).scl_sid);
+  for (const id of cookieAll(req, 'scl_sid')) { const s = id && getSession(id); if (s) return s; }
+  return null;
 }
 function requireSession(req, { phone = true } = {}) {
   const s = current(req);
@@ -311,7 +321,7 @@ route('GET', '/api/result/:token', async (req, res, { token: t }) => {
   const s = getSessionByToken(t);
   if (!s || s.poster_status !== 'done') fail(404, '결과를 찾을 수 없어요.', 'NOT_FOUND');
   if (s.result_expires_at && s.result_expires_at < Date.now()) fail(410, '결과 링크 보관 기간이 지났어요.', 'EXPIRED');
-  const own = cookies(req).scl_sid === s.id;
+  const own = cookieAll(req, 'scl_sid').includes(s.id);
   json(res, 200, { result: resultView(s), own });
 });
 
