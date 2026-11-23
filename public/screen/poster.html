@@ -154,8 +154,8 @@
     document.body.classList.toggle('qr-left', qrLeft);
     const ARROW = qrLeft ? '←' : '→';
 
-    const HOLD_MS = 10000;      // each poster stays in the lightbox this long
-    const PREMIERE_MS = 9000;   // takeover for a brand-new poster
+    const HOLD_MS = 6000;       // each poster stays in the frame this long during rotation
+    const PREMIERE_MS = 5000;   // full-screen takeover for a brand-new poster (then straight on to the next one)
     $('#canvas').style.setProperty('--hold', `${HOLD_MS / 1000}s`);
 
     let items = [];             // newest first
@@ -243,19 +243,20 @@
       $('#flash').classList.remove('go'); void $('#flash').offsetWidth; $('#flash').classList.add('go');
       p.classList.add('on');
       await sleep(PREMIERE_MS);
-      setSlot(it); // hang it in the lightbox behind the takeover
-      p.classList.remove('on');
+      setSlot(it); // behind the takeover, so rotation skips it next (it was just shown full screen)
       cursor = 0;  // carry on from the newest
     }
+    const endPremiere = () => $('#premiere').classList.remove('on');
 
     (async function program() {
       for (;;) {
         const n = nextItem();
-        if (!n) { hold(false); setSlot(null); await sleep(1000); continue; }
-        if (n.premiere) await premiere(n.it);
+        if (!n) { endPremiere(); hold(false); setSlot(null); await sleep(1000); continue; }
+        if (n.premiere) { await premiere(n.it); continue; } // no second showing in the frame right after
         if (!alive(n.it)) continue;
         await preload(n.it.poster);
         setSlot(n.it);
+        endPremiere(); // the takeover fades out onto the next poster
         hold(true);
         await waitFor(HOLD_MS, n.it);
         if (chrome.stale() && !fresh.length) location.reload();
