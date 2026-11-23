@@ -114,6 +114,20 @@ PRD 4.6 메모처럼 알림톡은 **채널 개설 + 템플릿 심사 + 발신 �
 
 단계별 이벤트(`session_start` → `phone_ok` → `genre_selected` → `story_built` → `poster_requested/done` → `video_requested/done` → `kakao_sent` → `result_viewed`)와 저장·공유·복사 행동을 `events` 테이블에 기록합니다. `/admin` 에서 퍼널, 평균 생성 시간, 실패 내역, 최근 체험 목록(리드), 카카오톡 발송 기록을 볼 수 있습니다.
 
+### 번호별 참여 기록 (리워드 지급용)
+
+방문자 화면에는 보이지 않는 서버 쪽 기록입니다. 번호마다 Seed(시나리오)·Seedream(포스터)·Seedance(트레일러)를 요청했는지, 트레일러가 실제로 완성됐는지를 CSV로 뽑습니다. DB는 읽기 전용으로 열고, 실행 중인 서비스는 건드리지 않습니다.
+
+```bash
+# 서버에서 (root). 번호는 가려서(010-****-1234) 화면에 출력
+node deploy/phone-report.mjs film=/opt/seedance-cinema-lab ad=/opt/seedance-commerce-lab
+# 실제 번호는 파일로만 (권한 600)
+node deploy/phone-report.mjs film=/opt/seedance-cinema-lab ad=/opt/seedance-commerce-lab --full --out /root/rewards.csv
+```
+
+- `video_ok` = 트레일러가 한 편 이상 완성됨. `*_requested` = 해당 단계를 한 번 이상 요청함. 영화·광고 두 앱은 번호 기준으로 합쳐집니다
+- 번호는 세션 시작 후 `RETENTION_DAYS`(30일)가 지나면 지워지므로 그 전에 뽑아야 합니다. 뽑은 파일에는 실제 번호가 들어 있으니 지급이 끝나면 삭제하세요
+
 ## 8. 구조
 
 ```
