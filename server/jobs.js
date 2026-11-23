@@ -77,7 +77,8 @@ async function runPoster(s) {
   const started = Date.now();
   updateSession(s.id, { poster_status: 'running' });
   try {
-    const { buffer, ext } = await generateImage({ prompt: s.poster_prompt, seed: s.seed, genreId: s.genre });
+    // A poster made again gets another image seed: the same prompt with the same seed would give the same picture.
+    const { buffer, ext } = await generateImage({ prompt: s.poster_prompt, seed: s.seed + (s.poster_count || 0) * 7919, genreId: s.genre });
     const file = saveMedia(buffer, ext);
     // The lettering is added here, not on the visitor's phone. If that fails the plain picture is used.
     const titled = await composePoster(buffer, {
