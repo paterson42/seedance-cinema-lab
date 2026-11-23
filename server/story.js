@@ -80,12 +80,19 @@ const NOT_HUMAN = /\b(cat|dog|robot|alien|android|ghost|dragon|monster|puppet)\b
 const IS_WOMAN = /\b(grandmother|mother|woman|girl|queen|actress|aunt|sister|daughter|witch|she|her)\b/i;
 const IS_MAN = /\b(grandfather|father|man|boy|king|uncle|brother|son|he|his)\b/i;
 const AGE_GIVEN = /\b\d{1,3}(st|nd|rd|th)?\b|\b(child|kid|teen|baby|grandmother|grandfather|elderly)\b/i;
-const AGES = [ // first match wins
-  [/\b(trainee|rookie|apprentice|student|intern|newcomer)\b/i, 19, 29],
-  [/\b(retire\w*|last remaining)\b/i, 58, 78],
-  [/\b(former|owner|keeper|veteran|master)\b/i, 38, 70],
-  [/./, 21, 72],
+// Age by role, as weighted bands [from, to, weight]; first matching role wins. Mostly twenties to
+// forties, with a real share of older leads but not half of them (a flat 21-72 gave 46% over fifty).
+const AGES = [
+  [/\b(trainee|rookie|apprentice|student|intern|newcomer)\b/i, [[19, 29, 1]]],
+  [/\b(retire\w*|last remaining)\b/i, [[52, 59, 5], [60, 68, 5]]],
+  [/\b(former|owner|keeper|veteran|master)\b/i, [[30, 39, 30], [40, 49, 30], [50, 59, 25], [60, 68, 15]]],
+  [/./, [[21, 29, 30], [30, 39, 28], [40, 49, 22], [50, 59, 13], [60, 69, 5], [70, 76, 2]]],
 ];
+function drawAge(r, bands) {
+  let x = r() * bands.reduce((n, b) => n + b[2], 0);
+  const [lo, hi] = bands.find((b) => (x -= b[2]) < 0) || bands[bands.length - 1];
+  return lo + Math.floor(r() * (hi - lo + 1));
+}
 const CAST_NOTE = 'Cast like a distinctive character actor, not a model or an idol: an ordinary, memorable, slightly asymmetric face, not a generically handsome or pretty one.';
 
 /** The lead's look for this visitor, or null when the role is not a person. */
@@ -94,11 +101,10 @@ export function casting(role, seed) {
   const r = rng(Math.imul((seed ^ 0x51ed270b) >>> 0, 2246822519) >>> 0); // mixed: nearby seeds cast differently
   r(); r();
   const woman = IS_WOMAN.test(role) ? true : IS_MAN.test(role) ? false : r() < 0.5;
-  const [, lo, hi] = AGES.find(([re]) => re.test(role));
-  const age = lo + Math.floor(r() * (hi - lo + 1));
+  const age = drawAge(r, AGES.find(([re]) => re.test(role))[1]);
   const person = `${CAST_ORIGIN ? `${CAST_ORIGIN} ` : ''}${woman ? 'woman' : 'man'}`;
   const who = AGE_GIVEN.test(role) ? `a ${person}` : `a ${age}-year-old ${person}`;
-  const old = AGE_GIVEN.test(role) ? /100|grand|elderly/i.test(role) : age >= 55;
+  const old = AGE_GIVEN.test(role) ? /100|grand|elderly/i.test(role) : age >= 62; // grey or white hair only from here
   const young = !old && age < 35;
   let hair = pick(r, woman ? CAST.hairWoman : CAST.hairMan);
   const colour = old ? pick(r, ['grey', 'white', 'salt-and-pepper'])
