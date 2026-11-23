@@ -67,6 +67,7 @@ async function api(path, { method = 'GET', body, retries } = {}) {
     if (res.status >= 500 && i < retries) { await sleep(700 * 2 ** i); continue; }
     if (!res.ok) {
       if (data.session !== undefined) S.session = data.session;
+      if (data.code === 'NO_SESSION') S.session = null; // server no longer has it (expired / cleared): start a fresh one next time
       throw Object.assign(new Error(data.error || '문제가 생겼어요. 다시 시도해 주세요.'), { status: res.status, code: data.code });
     }
     if (data.session !== undefined) S.session = data.session;
@@ -352,8 +353,11 @@ VIEWS.landing = () => {
     const btn = $('#startBtn');
     btn.disabled = true;
     try {
-      if (!S.session || S.session.story) await api('/api/session', { method: 'POST', body: { entry: S.booth ? 'booth' : 'qr' } });
-      await api('/api/session/phone', { method: 'POST', body: { phone: d, consentPrivacy: true } });
+      const fresh = () => api('/api/session', { method: 'POST', body: { entry: S.booth ? 'booth' : 'qr' } });
+      const sendPhone = () => api('/api/session/phone', { method: 'POST', body: { phone: d, consentPrivacy: true } });
+      if (!S.session || S.session.story) await fresh();
+      // A page left open while its session expired or was cleared: open a new session and send the number again.
+      await sendPhone().catch(async (err) => { if (err.code !== 'NO_SESSION') throw err; await fresh(); return sendPhone(); });
       go('genre');
     } catch (err) {
       btn.disabled = false;
