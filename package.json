@@ -10,5 +10,8 @@
   "scripts": {
     "start": "node --no-warnings=ExperimentalWarning server/index.js",
     "dev": "node --no-warnings=ExperimentalWarning --watch server/index.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "1.2.0"
   }
 }

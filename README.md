@@ -4,7 +4,7 @@ Seedance Seoul Cinema Lab 체험 부스를 위한 모바일 우선 체험 사이
 
 **QR 진입 → 전화번호 입력 → 장르 선택 → 육하원칙 키워드 뽑기 → Seed 스토리·프롬프트 → Seedream 포스터(9:16) → Seedance 트레일러(비동기) → 카카오톡 결과 알림 / 재접속 조회 / 공유**
 
-- 외부 패키지 없음 (Node.js 22.13+ 내장 `node:sqlite`, `fetch`만 사용) → `npm install` 불필요
+- 외부 패키지는 하나: 포스터에 제목·크레딧을 그려 넣는 `@napi-rs/canvas` (`npm install`). 나머지는 Node.js 22.13+ 내장 `node:sqlite`, `fetch`만 사용. 패키지가 없어도 서버는 뜨고, 그때는 글자가 없는 원본 포스터가 쓰입니다
 - `ARK_API_KEY`가 없으면 **데모(MOCK) 모드**로 전체 흐름이 그대로 돌아갑니다 (ffmpeg가 있으면 데모 포스터/영상도 실제 파일로 생성)
 
 ---
@@ -12,6 +12,7 @@ Seedance Seoul Cinema Lab 체험 부스를 위한 모바일 우선 체험 사이
 ## 1. 빠른 시작
 
 ```bash
+npm install               # 포스터 글자 합성용 캔버스 라이브러리
 cp .env.example .env      # 필요 시 값 채우기 (비워두면 데모 모드)
 npm start                 # http://localhost:3000
 ```

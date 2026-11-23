@@ -11,7 +11,7 @@ import {
   dailyLeft, assertDaily, isTestSession, assertPhoneMayEnter, assertMayGenerate, flowInfo, allowlistEnabled, setAllowlistEnabled,
   allowlistCount, allowlistRecent, parseNumbers, saveAllowlist, clearAllowlist, phoneStatus, grantExtraFlow,
 } from './limits.js';
-import { enqueuePoster, enqueueVideo, postPosterToScreen, queuePosition, queueStats, saveFinalPoster, startJobs } from './jobs.js';
+import { enqueuePoster, enqueueVideo, queuePosition, queueStats, startJobs } from './jobs.js';
 import { kakaoEnabled } from './providers/kakao.js';
 import { etaSec } from './eta.js';
 import { BASE, withBase, insideBase, rebased, rebaseText } from './basepath.js';
@@ -285,19 +285,6 @@ route('POST', '/api/poster', async (req, res) => {
   enqueuePoster(s.id);
   logEvent(s.id, 'poster_requested');
   json(res, 200, { session: sessionView(getSession(s.id)) });
-});
-
-route('POST', '/api/poster/final', async (req, res) => {
-  const s = requireSession(req);
-  if (s.poster_status !== 'done') fail(400, '포스터가 아직 준비되지 않았어요.');
-  const { dataUrl } = await readBody(req, 8 * 1024 * 1024);
-  const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
-  if (!m) fail(400, '이미지 형식이 올바르지 않아요.');
-  const buf = Buffer.from(m[1], 'base64');
-  if (buf[0] !== 0xff || buf[1] !== 0xd8) fail(400, '이미지 형식이 올바르지 않아요.');
-  saveFinalPoster(s.id, buf);
-  const updated = postPosterToScreen(s.id); // titled poster is ready: hang it on the booth screen
-  json(res, 200, { session: sessionView(updated) });
 });
 
 route('POST', '/api/video', async (req, res) => {

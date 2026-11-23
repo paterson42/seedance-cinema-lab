@@ -1,4 +1,5 @@
 // Seedance @ Seoul AI Film Festival — booth client (vanilla JS, mobile first)
+import { POSTER_W, POSTER_H, drawPoster, spaced } from './poster-art.js';
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -30,7 +31,7 @@ const S = {
   cast: {},
   director: '',
   pollId: 0,
-  posterData: null, // composed poster dataURL
+  posterData: null, // poster drawn here as a dataURL (only when the server sent no titled one)
   posterFor: null,  // raw url the composition was made from
   takes: {},        // clapperboard TAKE count per scene
   booth: false,
@@ -627,7 +628,10 @@ VIEWS.poster = () => {
   })();
 };
 
+// The titled poster comes from the server. Only when it could not make one is the lettering drawn
+// here, for this visitor's screen alone (nothing is uploaded).
 async function getComposedPoster(info, rawUrl, finalUrl) {
+  if (finalUrl) return finalUrl;
   if (S.posterFor === rawUrl && S.posterData) return S.posterData;
   S.posterData = await composePoster(rawUrl, info).catch(() => null);
   S.posterFor = rawUrl;
@@ -655,11 +659,6 @@ async function renderPosterDone() {
   const src = await getComposedPoster(infoFromSession(s), s.poster.url, s.poster.finalUrl);
   if (S.view !== 'poster') return;
   $('#stage', el).innerHTML = `<img class="reveal" src="${esc(src)}" alt="${esc(s.story.title)} 포스터">`;
-  // Uploading the titled poster also hangs it on the booth poster screen (server side).
-  if (src.startsWith('data:') && !s.poster.finalUrl) {
-    api('/api/poster/final', { method: 'POST', body: { dataUrl: src }, retries: 3 })
-      .then(() => S.view === 'poster' && refreshScreenCard(el, S.session.screen)).catch(() => {});
-  }
   const fname = `seedance-cinema-${pad(s.seed)}.jpg`;
   $('#save', el).onclick = () => { download(src.startsWith('data:') ? src : `${src}?dl=1`, fname); track('poster_saved'); toast('포스터를 저장했어요'); };
   $('#share', el).onclick = () => { shareFile(src, fname, `${s.story.title} — A FILM BY ${s.director}`, absUrl(s.resultUrl)); track('poster_shared'); };
@@ -676,7 +675,7 @@ VIEWS.trailer = () => {
   const el = render(`
     <button class="back" data-back>← 포스터로 돌아가기</button>
     <div class="trailer-head">
-      <img src="${esc(S.posterData || s.poster.finalUrl || s.poster.url)}" alt="">
+      <img src="${esc(s.poster.finalUrl || S.posterData || s.poster.url)}" alt="">
       <div><p class="scene" style="margin:0">${sceneLabel('trailer')}</p><p class="big-q">이 포스터가<br><em style="color:var(--accent);font-style:normal">움직인다면?</em></p></div>
     </div>
     ${failed ? `<div class="error-box"><b>트레일러 생성 실패</b>${esc(s.video.error || '')}</div>` : ''}
@@ -718,9 +717,6 @@ function screenCard(state = {}, { poster = false, trailer = false } = {}) {
     <div class="sc-head"><span class="sc-ico">${ic('screen')}</span><div><b>부스 대형 스크린에 자동 상영</b>
       <span>완성된 포스터와 트레일러는 감독 이름·영화 제목과 함께 부스 스크린에 자동으로 걸려요.</span></div></div>
     <div class="sc-rows">${rows}</div></div>`;
-}
-function refreshScreenCard(el, state = {}) {
-  $$('[data-sc]', el).forEach((n) => { n.innerHTML = screenState(state?.[n.dataset.sc]); });
 }
 
 function kakaoCard(enabled, title, sub, saveSub = '트레일러가 완성되면 같은 링크에서 바로 볼 수 있어요') {
@@ -783,7 +779,7 @@ function trailerProgress(el, get, alive) {
 
 VIEWS.waiting = () => {
   const s = S.session;
-  const poster = S.posterData || s.poster.finalUrl || s.poster.url;
+  const poster = s.poster.finalUrl || S.posterData || s.poster.url;
   const link = absUrl(s.resultUrl);
   const el = render(`
     <p class="scene">${sceneLabel('waiting')}</p>
@@ -992,101 +988,12 @@ async function fontsReady(text = '') {
 const drawnText = (info) => [info.title, info.tagline, info.director, info.genre?.en, info.genre?.ko,
   ...(S.content?.event?.credits || []).flatMap((c) => [c.label, c.value])].filter(Boolean).join('');
 
-function spaced(ctx, text, x, y, font, spacing, color) {
-  ctx.font = font;
-  ctx.fillStyle = color;
-  if ('letterSpacing' in ctx) { ctx.letterSpacing = `${spacing}px`; ctx.fillText(text, x + spacing / 2, y); ctx.letterSpacing = '0px'; }
-  else ctx.fillText(text, x, y);
-}
-
-function wrapLines(ctx, text, maxW, sep = ' ') {
-  const words = text.split(sep);
-  const lines = [];
-  let line = '';
-  for (const w of words) {
-    const t = line ? `${line}${sep}${w}` : w;
-    if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
-  }
-  if (line) lines.push(line);
-  return lines;
-}
-
 async function composePoster(src, info) {
   await fontsReady(drawnText(info));
   const img = await loadImg(src);
-  // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
-  const W = 1125, H = 2000, OUT_W = 1080;
   const c = document.createElement('canvas');
-  c.width = OUT_W; c.height = Math.round((OUT_W * H) / W);
-  const x = c.getContext('2d');
-  x.scale(OUT_W / W, OUT_W / W);
-  const r = Math.max(W / img.naturalWidth, H / img.naturalHeight);
-  const iw = img.naturalWidth * r, ih = img.naturalHeight * r;
-  x.drawImage(img, (W - iw) / 2, (H - ih) / 2, iw, ih);
-
-  let g = x.createLinearGradient(0, 0, 0, H * 0.2);
-  g.addColorStop(0, 'rgba(0,0,0,.72)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  x.fillStyle = g; x.fillRect(0, 0, W, H * 0.2);
-  g = x.createLinearGradient(0, H * 0.48, 0, H);
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.42, 'rgba(0,0,0,.7)'); g.addColorStop(1, 'rgba(0,0,0,.95)');
-  x.fillStyle = g; x.fillRect(0, H * 0.48, W, H * 0.52);
-
-  const accent = '#d4ff3a';
-  x.textAlign = 'center';
-  x.textBaseline = 'alphabetic';
-  // Billing block: 제작 / 배급 / 상영관 from content.json (event.credits), shared with the trailer screen.
-  const credits = S.content?.event?.credits || [];
-  const LAB = '500 25px "Noto Sans KR", sans-serif', VAL = '700 27px "Noto Sans KR", sans-serif';
-  x.textAlign = 'left';
-  x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 12;
-  credits.forEach((cr, i) => {
-    const y = 76 + i * 42;
-    const lab = `${cr.label}: `;
-    x.font = LAB; const lw = x.measureText(lab).width;
-    x.font = VAL; const vw = x.measureText(cr.value).width;
-    const x0 = (W - lw - vw) / 2;
-    x.font = LAB; x.fillStyle = 'rgba(255,255,255,.66)'; x.fillText(lab, x0, y);
-    x.font = VAL; x.fillStyle = '#fff'; x.fillText(cr.value, x0 + lw, y);
-  });
-  x.shadowBlur = 0;
-  x.textAlign = 'center';
-
-  // Title (auto-fit, up to 2 lines)
-  const title = info.title;
-  let size = 176;
-  const setT = () => (x.font = `${size}px "Black Han Sans", "Noto Sans KR", sans-serif`);
-  setT();
-  while (x.measureText(title).width > W * 0.86 && size > 96) { size -= 4; setT(); }
-  let tLines = [title];
-  if (x.measureText(title).width > W * 0.86) tLines = wrapLines(x, title, W * 0.86).slice(0, 2);
-  const titleBottom = H - 300;
-  x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 30;
-  x.fillStyle = '#fff';
-  tLines.forEach((l, i) => x.fillText(l, W / 2, titleBottom - (tLines.length - 1 - i) * size * 1.02));
-  x.shadowBlur = 0;
-
-  // Tagline above title
-  x.font = '500 36px "Noto Sans KR", sans-serif';
-  const tag = wrapLines(x, info.tagline || '', W * 0.8).slice(0, 2);
-  const tagBottom = titleBottom - tLines.length * size * 1.02 - 26;
-  x.fillStyle = 'rgba(255,255,255,.9)';
-  tag.forEach((l, i) => x.fillText(l, W / 2, tagBottom - (tag.length - 1 - i) * 50));
-
-  // Credits
-  spaced(x, `A FILM BY ${String(info.director || 'YOU').toUpperCase()}`, W / 2, H - 196, '50px "Bebas Neue", "Noto Sans KR", sans-serif', 10, '#fff');
-  x.globalAlpha = 0.6;
-  spaced(x, 'STORY BY SEED   ·   KEY ART BY SEEDREAM   ·   MOTION BY SEEDANCE', W / 2, H - 132, '24px "Bebas Neue", sans-serif', 3, '#fff');
-  x.globalAlpha = 1;
-
-  x.fillStyle = 'rgba(255,255,255,.25)';
-  x.fillRect(80, H - 72, W - 160, 1);
-  x.textAlign = 'left';
-  spaced(x, String(info.genre?.en || 'FILM').toUpperCase(), 80, H - 34, '30px "Bebas Neue", sans-serif', 4, accent);
-  x.textAlign = 'right';
-  spaced(x, 'SEOUL 2026', W - 84, H - 34, '30px "Bebas Neue", sans-serif', 4, '#fff');
-  x.textAlign = 'center';
-  spaced(x, 'COMING SOON', W / 2, H - 34, '30px "Bebas Neue", sans-serif', 6, 'rgba(255,255,255,.7)');
-
+  c.width = POSTER_W; c.height = POSTER_H;
+  drawPoster(c.getContext('2d'), img, info, S.content?.event?.credits || []);
   return c.toDataURL('image/jpeg', 0.9);
 }
 

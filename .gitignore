@@ -1,4 +1,5 @@
 node_modules/
+.npm/
 data/
 .env
 config/content.json.bak

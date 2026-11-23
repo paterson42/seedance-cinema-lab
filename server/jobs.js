@@ -8,6 +8,8 @@ import { query, queryOne, getSession, updateSession, logEvent, db } from './db.j
 import { generateImage, submitVideo, getVideoTask } from './providers/ark.js';
 import { sendTrailerReady } from './providers/kakao.js';
 import { token } from './privacy.js';
+import { getContent } from './content.js';
+import { composePoster, posterArtReady } from './poster-art.js';
 
 const runningPosters = new Set();
 let videoPolling = false;
@@ -21,18 +23,13 @@ function saveMedia(buffer, ext) {
   return name;
 }
 
-export function saveFinalPoster(sessionId, buffer) {
-  const s = getSession(sessionId);
-  if (s.poster_final_file) fs.rmSync(path.join(MEDIA_DIR, s.poster_final_file), { force: true });
-  return updateSession(sessionId, { poster_final_file: saveMedia(buffer, 'jpg') });
-}
+const dropMedia = (name) => { if (name) fs.rmSync(path.join(MEDIA_DIR, name), { force: true }); };
 
 // ───────────── Poster (Seedream) ─────────────
-// Every finished poster goes on the booth poster screen by itself (staff can hide it in /admin).
-// The phone uploads the titled version a few seconds after "done"; that upload posts it. If it
-// never arrives (visitor closed the page), the raw poster is posted after this delay.
-const AUTO_POST_FALLBACK_MS = 20000;
-// Finished trailers go on the booth trailer screen by themselves too.
+// Two files per poster: the plain Seedream picture (poster_file, also the trailer's first frame)
+// and the titled one made here from it (poster_final_file: phone, sharing, booth screen).
+// Every finished poster goes on the booth poster screen by itself (staff can hide it in /admin),
+// and so do finished trailers.
 export function postTrailerToScreen(sessionId) {
   const s = getSession(sessionId);
   if (!s || s.video_status !== 'done' || !s.video_file || s.screen_video) return s;
@@ -61,6 +58,7 @@ const unlessHidden = (v) => (v === 'hidden' ? 'hidden' : null);
 
 export function enqueuePoster(sessionId) {
   const prev = getSession(sessionId);
+  dropMedia(prev.poster_final_file);
   updateSession(sessionId, {
     screen_poster: unlessHidden(prev.screen_poster),
     screen_video: unlessHidden(prev.screen_video),
@@ -81,11 +79,18 @@ async function runPoster(s) {
   try {
     const { buffer, ext } = await generateImage({ prompt: s.poster_prompt, seed: s.seed, genreId: s.genre });
     const file = saveMedia(buffer, ext);
-    if (s.poster_file) fs.rmSync(path.join(MEDIA_DIR, s.poster_file), { force: true });
+    // The lettering is added here, not on the visitor's phone. If that fails the plain picture is used.
+    const titled = await composePoster(buffer, {
+      title: s.story?.title, tagline: s.story?.tagline, director: s.director, genre: s.story?.genre,
+    }, getContent().event?.credits || []);
+    dropMedia(s.poster_file);
     // Only successful generations count towards the per-session limit.
-    updateSession(s.id, { poster_status: 'done', poster_file: file, poster_count: (getSession(s.id).poster_count || 0) + 1 });
-    logEvent(s.id, 'poster_done', { ms: Date.now() - started });
-    setTimeout(() => postPosterToScreen(s.id), AUTO_POST_FALLBACK_MS);
+    updateSession(s.id, {
+      poster_status: 'done', poster_file: file, poster_final_file: titled ? saveMedia(titled, 'jpg') : null,
+      poster_count: (getSession(s.id).poster_count || 0) + 1,
+    });
+    logEvent(s.id, 'poster_done', { ms: Date.now() - started, titled: !!titled });
+    postPosterToScreen(s.id);
   } catch (e) {
     console.warn(`[poster] ${s.id} failed:`, e.message);
     updateSession(s.id, { poster_status: 'failed', poster_error: e.userMessage || '포스터를 만들지 못했어요. 다시 시도해 주세요.' });
@@ -136,7 +141,7 @@ async function pollVideos() {
         const r = await getVideoTask(s.video_task_id);
         if (r.status === 'succeeded') {
           const file = r.buffer ? saveMedia(r.buffer, 'mp4') : null;
-          if (s.video_file) fs.rmSync(path.join(MEDIA_DIR, s.video_file), { force: true });
+          dropMedia(s.video_file);
           const done = updateSession(s.id, {
             video_status: 'done', video_file: file, video_done_at: Date.now(), video_count: (s.video_count || 0) + 1,
           });
@@ -209,4 +214,5 @@ export function startJobs() {
   setInterval(cleanup, 6 * 3600 * 1000);
   cleanup();
   tick();
+  posterArtReady().then((ok) => console.log(`   posters: ${ok ? 'lettering added on the server' : 'PLAIN PICTURES ONLY — run "npm install" to add the lettering'}`));
 }

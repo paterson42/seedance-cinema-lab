@@ -46,6 +46,9 @@ mkdir -p "$APP_DIR/data"
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 chmod 600 "$APP_DIR/.env"
 
+echo "==> packages (the canvas library that puts the lettering on the posters)"
+(cd "$APP_DIR" && sudo -u "$APP_USER" env HOME="$APP_DIR" npm ci --omit=dev --no-audit --no-fund)
+
 echo "==> systemd service"
 cat > /etc/systemd/system/cinema.service <<EOF
 [Unit]
