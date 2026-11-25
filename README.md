@@ -126,7 +126,10 @@ node deploy/phone-report.mjs film=/opt/seedance-cinema-lab ad=/opt/seedance-comm
 ```
 
 - `video_ok` = 트레일러가 한 편 이상 완성됨. `*_requested` = 해당 단계를 한 번 이상 요청함. 영화·광고 두 앱은 번호 기준으로 합쳐집니다
+- `--since 2026-11-26` 을 붙이면 그날 00:00(서울 시간) 이후의 기록만 셉니다. 행사 전 테스트 기록을 빼는 용도입니다
 - 번호는 세션 시작 후 `RETENTION_DAYS`(30일)가 지나면 지워지므로 그 전에 뽑아야 합니다. 뽑은 파일에는 실제 번호가 들어 있으니 지급이 끝나면 삭제하세요
+
+DB 백업: `node deploy/backup-db.mjs film=/opt/seedance-cinema-lab ad=/opt/seedance-commerce-lab` 가 실행 중에도 안전한 스냅샷을 `/var/backups/seedance/` 에 만들고(권한 600) 7일 지난 것은 지웁니다. 서버에서는 `/etc/cron.d/seedance-backup` 으로 15분마다 돌립니다. 복구: 서비스를 멈추고 백업 파일을 `data/app.db` 로 복사, `app.db-wal`·`app.db-shm` 삭제 후 다시 시작.
 
 ## 8. 구조
 

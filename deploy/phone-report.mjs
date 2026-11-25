@@ -7,6 +7,8 @@
 //   node deploy/phone-report.mjs                          this app, numbers masked, CSV on stdout
 //   node deploy/phone-report.mjs film=/opt/seedance-cinema-lab ad=/opt/seedance-commerce-lab
 //   ... --full --out /root/rewards.csv                    real numbers, into a file only (mode 600)
+//   ... --since 2026-11-26                                only what happened from that day on (00:00
+//                                                         Seoul time), so test runs before the event are left out
 //
 // Phone numbers are cleared RETENTION_DAYS (30) after a session started: export before then.
 import fs from 'node:fs';
@@ -20,7 +22,7 @@ const KINDS = { seed: 'story_built', seedream: 'poster_requested', seedreamDone:
 const COUNTS = [...Object.keys(KINDS), 'seedanceRunning', 'sessions'];
 
 // ── one app (child process: each app loads its own .env and secret, which must not mix) ──
-async function readApp(dir) {
+async function readApp(dir, since) {
   if (!fs.existsSync(path.join(dir, 'data', 'app.db'))) throw new Error(`no database in ${dir}`);
   const at = (f) => pathToFileURL(path.join(dir, 'server', f)).href;
   const { DATA_DIR } = await import(at('config.js'));
@@ -29,7 +31,7 @@ async function readApp(dir) {
 
   const names = Object.values(KINDS);
   const events = new Map(); // session id -> { event name: { n, last } }
-  for (const e of db.prepare(`SELECT session_id AS id, name, COUNT(*) AS n, MAX(ts) AS last FROM events WHERE name IN (${names.map(() => '?').join(',')}) GROUP BY session_id, name`).all(...names)) {
+  for (const e of db.prepare(`SELECT session_id AS id, name, COUNT(*) AS n, MAX(ts) AS last FROM events WHERE ts >= ? AND name IN (${names.map(() => '?').join(',')}) GROUP BY session_id, name`).all(since, ...names)) {
     if (!events.has(e.id)) events.set(e.id, {});
     events.get(e.id)[e.name] = e;
   }
@@ -37,15 +39,17 @@ async function readApp(dir) {
   const byHash = new Map();
   let unreadable = 0;
   for (const s of db.prepare('SELECT id, phone_enc, phone_hash, created_at, video_status FROM sessions WHERE phone_hash IS NOT NULL ORDER BY created_at').all()) {
+    if (s.created_at < since && !events.has(s.id)) continue; // nothing from this session falls in the period
     let r = byHash.get(s.phone_hash);
     if (!r) {
       let phone;
       try { phone = decrypt(s.phone_enc); } catch { unreadable++; byHash.set(s.phone_hash, null); continue; }
-      r = { phone, test: isTestPhone(phone), first: s.created_at, videoAt: null };
+      r = { phone, test: isTestPhone(phone), first: Math.max(s.created_at, since), videoAt: null };
       for (const k of COUNTS) r[k] = 0;
       byHash.set(s.phone_hash, r);
     }
     r.sessions++;
+    r.first = Math.min(r.first, Math.max(s.created_at, since));
     const ev = events.get(s.id) || {};
     for (const [k, name] of Object.entries(KINDS)) r[k] += ev[name]?.n || 0;
     if (ev.video_done) r.videoAt = Math.max(r.videoAt || 0, ev.video_done.last);
@@ -57,7 +61,7 @@ async function readApp(dir) {
 }
 
 if (process.argv[2] === '--read') {
-  try { process.stdout.write(JSON.stringify(await readApp(process.argv[3]))); } catch (e) { console.error(e.message); process.exit(1); }
+  try { process.stdout.write(JSON.stringify(await readApp(process.argv[3], Number(process.argv[4]) || 0))); } catch (e) { console.error(e.message); process.exit(1); }
   process.exit(0);
 }
 
@@ -65,7 +69,10 @@ if (process.argv[2] === '--read') {
 const args = process.argv.slice(2);
 const full = args.includes('--full');
 const out = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
-const apps = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--out').map((a) => {
+const sinceArg = args.includes('--since') ? args[args.indexOf('--since') + 1] : null;
+const since = sinceArg ? Date.parse(`${sinceArg}T00:00:00+09:00`) : 0;
+if (sinceArg && !(/^\d{4}-\d{2}-\d{2}$/.test(sinceArg) && since)) { console.error('--since takes a day, e.g. --since 2026-11-26'); process.exit(1); }
+const apps = args.filter((a, i) => !a.startsWith('--') && !['--out', '--since'].includes(args[i - 1])).map((a) => {
   const i = a.indexOf('=');
   return i > 0 ? [a.slice(0, i), path.resolve(a.slice(i + 1))] : [path.basename(path.resolve(a)), path.resolve(a)];
 });
@@ -74,7 +81,7 @@ if (full && !out) { console.error('--full writes real phone numbers: give a file
 
 const people = new Map(); // phone -> { test, first, videoAt, per: { app: counts } }
 for (const [app, dir] of apps) {
-  const r = spawnSync(process.execPath, ['--no-warnings=ExperimentalWarning', SELF, '--read', dir], { encoding: 'utf8', maxBuffer: 1 << 28 });
+  const r = spawnSync(process.execPath, ['--no-warnings=ExperimentalWarning', SELF, '--read', dir, String(since)], { encoding: 'utf8', maxBuffer: 1 << 28 });
   if (r.status !== 0) { console.error(`${app}: ${(r.stderr || '').trim().split('\n').pop() || 'failed'}`); process.exit(1); }
   const { rows, unreadable, cleared } = JSON.parse(r.stdout);
   for (const x of rows) {
@@ -113,4 +120,4 @@ if (out) { fs.writeFileSync(out, csv, { mode: 0o600 }); fs.chmodSync(out, 0o600)
 
 const real = list.filter((x) => !x.p.test);
 const n = (k) => real.filter((x) => sum(x.p, k) > 0).length;
-console.error(`${real.length} numbers (+${list.length - real.length} test) · seed ${n('seed')} · seedream ${n('seedream')} · seedance ${n('seedance')} · video ok ${n('seedanceDone')}` + (out ? ` → ${out}${full ? ' (real numbers: keep this file private)' : ''}` : ''));
+console.error((sinceArg ? `from ${sinceArg} 00:00 KST · ` : '') + `${real.length} numbers (+${list.length - real.length} test) · seed ${n('seed')} · seedream ${n('seedream')} · seedance ${n('seedance')} · video ok ${n('seedanceDone')}` + (out ? ` → ${out}${full ? ' (real numbers: keep this file private)' : ''}` : ''));
