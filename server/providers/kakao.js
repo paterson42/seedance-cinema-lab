@@ -34,7 +34,7 @@ export async function sendTrailerReady(session) {
   const payload = {
     template_code: config.kakao.templateCode,
     variables: { name: director, director, title, link },
-    text: `[Seedance Commerce Lab]\n${director} 님이 기획한 광고 <${title}> 영상이 완성되었습니다!\n\n아래 버튼을 눌러 키비주얼과 광고 영상을 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
+    text: `[Seedance AI AD Festival]\n${director} 님이 기획한 광고 <${title}> 영상이 완성되었습니다!\n\n아래 버튼을 눌러 키비주얼과 광고 영상을 확인하고 저장하세요.\n(링크는 ${config.resultTtlDays}일간 유효합니다)`,
     buttons: [{ type: 'WL', name: '내 광고 보러가기', url_mobile: link, url_pc: link }],
   };
 

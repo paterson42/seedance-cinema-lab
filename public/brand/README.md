@@ -31,7 +31,7 @@ the layout then needs the bottom-navigation assets as well.
 
 ## BytePlus 마크
 
-`byteplus-icon-white.png`, `byteplus-icon-black.png`은 제공받은 공식 파일입니다. 키비주얼 하단 스폰서 문구 앞에는 흰색 버전이 들어갑니다. 검정 버전은 밝은 배경용으로 보관만 하고 있습니다.
+`byteplus-icon-white.png`, `byteplus-icon-black.png`은 제공받은 공식 파일입니다. 키비주얼 하단 스폰서 문구는 이제 아이콘 없이 글자만 들어가므로, 두 파일 모두 보관만 하고 있습니다.
 
 ## 카카오톡 로고
 

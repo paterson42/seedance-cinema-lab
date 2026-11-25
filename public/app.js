@@ -1,4 +1,4 @@
-// Seedance Seoul Commerce Lab — booth client (vanilla JS, mobile first)
+// Seedance AI AD Festival — booth client (vanilla JS, mobile first)
 // Internal names follow the original flow: genre = ad mood, director = the visitor's name (credited as 기획),
 // poster = ad key visual, trailer/video = short-form ad, ticket = discount coupon.
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -329,7 +329,7 @@ VIEWS.landing = () => {
   const c = S.content.copy;
   const title = esc(c.heroTitle).replace(/광고\./, '<em>광고.</em>');
   const el = render(`
-    <p class="eyebrow">${esc(S.content.event.name)} ${esc(S.content.event.city)} ${esc(S.content.event.year)}</p>
+    <p class="eyebrow">${esc(S.content.event.eyebrow || `${S.content.event.name} ${S.content.event.city} ${S.content.event.year}`)}</p>
     <h1 class="h1">${title}</h1>
     <p class="lead">${esc(c.heroSub)}</p>
     <div class="hero-strip">
@@ -340,11 +340,11 @@ VIEWS.landing = () => {
     <form class="ticket" id="phoneForm" novalidate>
       <div class="ticket-head">
         <div class="ticket-top"><span>참가 패스</span><span>№ ${pad(Math.floor(Math.random() * 9999), 4)}</span></div>
-        <div class="ticket-name">SEEDANCE COMMERCE LAB</div>
+        <div class="ticket-name">Seedance AI AD Festival</div>
         <div class="ticket-meta">
           <div><small>부스</small><b>01</b></div>
           <div><small>날짜</small><b>${today()}</b></div>
-          <div><small>기획자</small><b>나</b></div>
+          <div><small>기획자</small><b>You</b></div>
         </div>
       </div>
       <div class="ticket-perf"></div>
@@ -706,9 +706,8 @@ async function renderPosterDone() {
   const el = render(`
     <p class="scene">${sceneLabel('poster')}</p>
     <h2 class="h2">이 광고의 첫 번째 고객은 <em>당신</em>입니다.</h2>
-    <div class="poster-wrap">
+    <div class="poster-wrap" style="margin-bottom:20px">
       <div class="poster-stage" id="stage"><div class="boot"><div class="spinner"></div></div></div>
-      <div class="poster-caption"><span>기획 ${esc(s.director)}</span><span>${esc(s.story.genre.ko)} 9:16</span></div>
     </div>
     <div class="btn-row"><button class="btn" id="save">${ic('download')}키비주얼 저장</button><button class="btn" id="share">${ic('share')}공유하기</button></div>
     ${screenCard(s.screen, { poster: true })}
@@ -1008,7 +1007,7 @@ async function renderResult(r) {
       : kakaoCard(false, '', '', '언제든 다시 보고, 키비주얼과 영상을 저장할 수 있어요')) : ''}
     <div class="end-card">
       <div class="big">${r.own ? '이 광고의 첫 번째 고객은 당신입니다.' : '나도 나만의 광고를 만들어 볼까요?'}</div>
-      <p class="small">${r.own ? '키비주얼과 광고 영상을 간직하고, 다음 캠페인을 상상해 보세요.' : 'Seedance Seoul Commerce Lab 부스에서 직접 체험해 보세요.'}</p>
+      <p class="small">${r.own ? '키비주얼과 광고 영상을 간직하고, 다음 캠페인을 상상해 보세요.' : 'Seedance AI AD Festival 부스에서 직접 체험해 보세요.'}</p>
       <button class="btn btn-ghost btn-block" id="again" style="margin-top:12px">${r.own ? (S.booth ? '다음 참가자 시작하기' : '처음부터 다시 체험하기') : '나도 만들어보기'}</button>
     </div>
   `);
@@ -1038,7 +1037,7 @@ async function renderResult(r) {
   bindKakaoSave(el, () => ({ title: r.title, director: r.info.director, tagline: r.tagline, image: absUrl(r.posterFinal || r.posterRaw), link }));
   showTab('video');
   tabBtns.forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
-  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director}, ${won(offerOf(r.info).price)} (-${offerOf(r.info).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance Commerce Lab`;
+  const summary = () => `🛍️ ${r.title}\n“${r.tagline}”\n기획 ${r.info.director}, ${won(offerOf(r.info).price)} (-${offerOf(r.info).off}%)\n\n${Object.values(r.info.keywords || {}).map((x) => `#${x.ko.replace(/[\s&+]/g, '')}`).join(' ')}\n\n내 광고 보러가기 → ${link}\nSeedance AI AD Festival`;
   actions.onclick = async (e) => {
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (!a) return;
@@ -1137,7 +1136,7 @@ function loadImg(src) {
 
 // Wait for the faces the canvas needs. Korean web fonts arrive in many small slices, so we ask
 // for the exact characters about to be drawn; otherwise some glyphs fall back to another face.
-const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드쿠폰가정번호사용상품SponsoredbyBytePlusSEOUL0123456789%,:→-—';
+const CANVAS_LABELS = '기획신상출시캠페인특가지금구매하기컨셉키비주얼영상광고ID원가격할인무드쿠폰가정번호사용상품SponsoredbyBytePlusSEOUL@SeedanceAIADFestival 0123456789%,:→-—';
 async function fontsReady(text = '') {
   if (!document.fonts?.load) return;
   const sample = `${CANVAS_LABELS}${text}가A`;
@@ -1168,7 +1167,7 @@ function wrapLines(ctx, text, maxW, sep = ' ') {
 // layer: true draws only the lettering on a transparent canvas (PNG). The server lays that over
 // the finished video, so the video shows the same text as the key visual.
 async function composePoster(src, info, { layer = false } = {}) {
-  await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}${S.content?.event?.sponsor || ''}`);
+  await fontsReady(`${info.title || ''}${info.tagline || ''}${info.director || ''}${info.genre?.ko || ''}${S.content?.event?.sponsor || ''}${S.content?.event?.footer || ''}`);
   const img = layer ? null : await loadImg(src);
   // Laid out on a 1125x2000 grid, drawn at 1080x1920: 9:16 like the booth screens and the trailer.
   const W = 1125, H = 2000, OUT_W = 1080;
@@ -1286,24 +1285,15 @@ async function composePoster(src, info, { layer = false } = {}) {
   spaced(x, '컨셉 Seed       키비주얼 Seedream       영상 Seedance', W / 2, H - 168, '500 25px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, '#fff');
   x.globalAlpha = 1;
 
-  // Footer: ad ID, sponsor, event
+  // Footer: sponsor line on the left, event on the right (text only, no mark and no ad ID)
   x.fillStyle = 'rgba(255,255,255,.25)';
   x.fillRect(80, H - 112, W - 160, 1);
-  x.textAlign = 'left';
-  spaced(x, `광고 ID ${pad(info.seed)}`, 80, H - 58, '700 26px "Pretendard Variable", "Noto Sans KR", sans-serif', 2, accent);
-  x.textAlign = 'right';
-  spaced(x, 'SEOUL 2026', W - 82, H - 58, '30px "Bebas Neue", sans-serif', 4, 'rgba(255,255,255,.75)');
-  // Sponsor line with the BytePlus mark in front (official file, white version on the dark footer).
-  const sponsor = S.content?.event?.sponsor || 'Sponsored by BytePlus';
-  const mark = await loadImg('/brand/byteplus-icon-white.png').catch(() => null);
   x.font = '600 30px "Pretendard Variable", "Noto Sans KR", sans-serif'; x.fillStyle = '#fff';
-  const sw = x.measureText(sponsor).width;
-  // The mark sits inside a 450px square file: 270x194 at (90,129).
-  const mh = 30, mw = mark ? (mh * 270) / 194 : 0, mg = mark ? 14 : 0;
-  const sx = (W - mw - mg - sw) / 2;
-  if (mark) x.drawImage(mark, 90, 129, 270, 194, sx, H - 58 - 26, mw, mh);
   x.textAlign = 'left';
-  x.fillText(sponsor, sx + mw + mg, H - 58);
+  x.fillText(S.content?.event?.sponsor || 'Sponsored by BytePlus', 80, H - 58);
+  x.textAlign = 'right';
+  x.fillStyle = 'rgba(255,255,255,.75)';
+  x.fillText(S.content?.event?.footer || 'Seedance @ Seoul 2026', W - 80, H - 58);
   x.textAlign = 'center';
 
   return layer ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.9);
@@ -1418,7 +1408,7 @@ async function composeTicket(posterSrc, info) {
   while (bx < px + 250) { const w = 2 + Math.floor(rnd() * 5); if (rnd() > 0.35) x.fillRect(bx, by, w, bh); bx += w + 2 + Math.floor(rnd() * 4); }
   x.textAlign = 'right';
   spaced(x, '지금 사용하기', px + pw, by + 36, '700 38px "Pretendard Variable", "Noto Sans KR", sans-serif', 4, accent);
-  spaced(x, 'SEEDANCE COMMERCE LAB', px + pw, by + 80, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.75)');
+  spaced(x, 'Seedance AI AD Festival', px + pw, by + 80, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.75)');
   spaced(x, `SEOUL 2026   쿠폰 번호 ${pad(info.seed)}`, px + pw, by + 112, '500 19px "Pretendard Variable", "Noto Sans KR", sans-serif', 3, 'rgba(255,255,255,.5)');
   x.textAlign = 'left';
 
