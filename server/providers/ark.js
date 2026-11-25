@@ -81,7 +81,9 @@ export async function chatJSON(system, user) {
         { role: 'user', content: user },
       ],
       temperature: 0.9,
-      max_tokens: 1200,
+      // The ad story (Korean copy with keyword tags plus two English prompts) runs to 1100-1500
+      // tokens; at 1200 most answers were cut off before the closing brace and the template was used.
+      max_tokens: 2500,
       thinking: { type: 'disabled' },
     },
   });
