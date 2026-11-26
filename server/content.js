@@ -14,6 +14,7 @@ export function validateContent(c) {
   for (const g of c?.genres || []) {
     for (const k of ['id', 'ko', 'en', 'style', 'motion']) if (!g[k]) errs.push(`genre ${g.id || '?'}: ${k} 누락`);
     if (!g.titles?.length || !g.taglines?.length) errs.push(`genre ${g.id}: titles/taglines 필요`);
+    if (g.looks && !(Array.isArray(g.looks) && g.looks.every((x) => typeof x === 'string' && x.trim()))) errs.push(`genre ${g.id}: looks는 문자열 배열이어야 합니다`);
   }
   const ids = (c?.categories || []).map((x) => x.id).join(',');
   if (ids !== 'who,when,where,what,how,why') errs.push('categories: who,when,where,what,how,why 순서로 6개 필요');

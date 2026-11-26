@@ -51,7 +51,17 @@
         "#ff5a1f",
         "#1a0a05"
       ],
-      "style": "grounded live-action action film, shot on 35mm anamorphic, practical stunts and real fire, warm firelight and sodium-vapor streetlight against cool dusk, sweat, dust and grit on skin and clothes, low-angle hero framing, slight motion blur",
+      "style": "grounded live-action action film, shot on 35mm anamorphic, practical stunts and real fire, sweat, dust and grit on skin and clothes, low-angle hero framing, slight motion blur",
+      "looks": [
+        "warm firelight and sodium-vapor orange against cool dusk blue",
+        "bleach-bypass steel grey and gunmetal, one hard white key light and a single red accent",
+        "sun-bleached bone, sand and rust tones under hard overhead light with crisp black shadows",
+        "acid green and deep black, lit by flickering fluorescent tubes and emergency strobes",
+        "crimson emergency light and black smoke with cold white sparks",
+        "electric blue and magenta neon reflected on wet asphalt, deep violet shadows",
+        "dusty ochre and olive drab with shafts of pale light cutting through smoke",
+        "icy cyan and white breath-fog cold with a few small hot-orange embers"
+      ],
       "motion": "the hero moves with force and purpose, real dust and sparks drifting past, quick but physically believable action",
       "camera": [
         {
@@ -121,8 +131,19 @@
         "#ff7aa8",
         "#2a0f1c"
       ],
-      "style": "live-action romance film still, late-afternoon natural backlight, soft halation, muted warm film tones, shallow depth of field on a 50mm lens, the lead in a candid, unposed moment, a loved one only glimpsed from behind or softly out of focus",
-      "motion": "a light breeze moving hair and clothes, sunlight flickering through leaves, a small natural smile and a held glance",
+      "style": "live-action romance film still, soft halation, shallow depth of field on a 50mm lens, the lead in a candid, unposed moment, a loved one only glimpsed from behind or softly out of focus",
+      "looks": [
+        "golden backlight and muted warm film tones",
+        "soft pastel pink and mint under bright overcast light, airy lifted shadows",
+        "deep indigo blue with small warm lights glowing far behind",
+        "rain-grey and pale lavender seen through wet glass, cool soft light with one bright yellow accent",
+        "clean white and sky blue in bright high-key light, a breezy seaside freshness",
+        "rich autumn reds, burnt orange and deep brown in low raking light",
+        "snow white and pale grey with rosy cheeks and one saturated red accent",
+        "neon pink and soft cyan city glow with dreamy shallow bokeh",
+        "creamy portrait-film tones: peach skin, sage green and faded denim blue in open shade"
+      ],
+      "motion": "a light breeze moving hair and clothes, soft light shifting across the face, a small natural smile and a held glance",
       "camera": [
         {
           "type": "orbit",
@@ -191,7 +212,17 @@
         "#7ad1ff",
         "#050b12"
       ],
-      "style": "live-action psychological thriller, cold desaturated grade, a single practical light source, wet streets and real rain, deep shadows, tense restrained performance, gritty 35mm texture",
+      "style": "live-action psychological thriller, a single practical light source, wet streets and real rain, deep shadows, tense restrained performance, gritty 35mm texture",
+      "looks": [
+        "cold desaturated blue-grey",
+        "sickly green fluorescent light on yellowed walls, crushed blacks",
+        "sodium-orange street light against pitch black, with no blue anywhere",
+        "near-monochrome charcoal and silver with one small blood-red accent",
+        "deep red safelight glow with hard black shadows",
+        "pale washed-out greys and beige, flat and uneasy, with overexposed windows",
+        "murky brown and mustard 1970s paranoia-film tones with heavy grain",
+        "cold white headlight beams cutting through blue-black rain"
+      ],
       "motion": "a practical light flickers, rain streaks past, the subject freezes and glances toward an off-screen sound",
       "camera": [
         {
@@ -261,7 +292,17 @@
         "#8b7bff",
         "#07061a"
       ],
-      "style": "grounded live-action science fiction, practical sets and real locations with subtle futuristic details, cool cyan and amber practical lighting, atmospheric haze, large-format cinematography, believable scale",
+      "style": "grounded live-action science fiction, practical sets and real locations with subtle futuristic details, atmospheric haze, large-format cinematography, believable scale",
+      "looks": [
+        "cool cyan and amber practical lighting",
+        "sterile white and pale grey with thin lines of orange signal light",
+        "deep violet and magenta haze with pinpoints of white light",
+        "dusty rust and ochre with a pale butterscotch glow, like another planet",
+        "emerald green screen-glow on black with wet reflective surfaces",
+        "soft pastel retro-future: cream, mint and coral under even diffuse light",
+        "cobalt blue and silver, moon-cold light with hard shadows and no warm tones",
+        "sodium-yellow industrial light on black steel, heavy haze"
+      ],
       "motion": "haze drifting through shafts of light, practical screens flickering, distant movement deep in the background",
       "camera": [
         {
@@ -331,7 +372,17 @@
         "#c6f432",
         "#08140c"
       ],
-      "style": "live-action fantasy film shot on location, an old forest or ancient architecture, moonlight and lantern light, natural mist, costumes with real fabric texture, restrained in-camera magic, muted earthy palette",
+      "style": "live-action fantasy film shot on location, an old forest or ancient architecture, natural mist, costumes with real fabric texture, restrained in-camera magic",
+      "looks": [
+        "moonlight blue and lantern gold over muted earth tones",
+        "deep emerald moss green and old gold, light filtering down in soft shafts",
+        "autumn crimson, copper and bark brown under a low hazy glow",
+        "frost white and pale silver-blue with one warm ember accent",
+        "deep violet and dusty rose with faint points of pale green light",
+        "ink-wash greys and soft black like an old Korean landscape painting, with a single vermilion accent",
+        "jade green and pearl white in cool misty diffuse light",
+        "burnished bronze and candle yellow against deep indigo shadow"
+      ],
       "motion": "mist drifting, lantern light flickering, cloaks and hair moving in the wind, a few faint motes of light rising",
       "camera": [
         {
@@ -397,7 +448,17 @@
         "#ffd23f",
         "#1a1405"
       ],
-      "style": "live-action comedy film still, bright natural daylight, warm everyday colors, a real neighborhood location, believable understated comedic expressions, the lead in sharp focus with bystanders small and soft in the background, light film grain",
+      "style": "live-action comedy film still, a real neighborhood location, believable understated comedic expressions, the lead in sharp focus with bystanders small and soft in the background, light film grain",
+      "looks": [
+        "bright natural daylight and warm everyday colours",
+        "candy-bright primaries: tomato red, sunflower yellow and sky blue in crisp clear light",
+        "soft pastel peach, mint and baby blue in flat even light",
+        "retro 1980s Korean street tones: faded turquoise, mustard and brick red, slightly sun-bleached",
+        "cool overcast greys with one loud bright-orange accent",
+        "convenience-store fluorescent white and green with small pops of bright packaging colour",
+        "cheerful signboard pinks and blues glowing on a lively street, bright rather than moody",
+        "crisp white, lemon yellow and grass green, fresh and clean"
+      ],
       "motion": "a natural comedic beat and a small double-take, the lead reacts with real timing and a believable expression",
       "camera": [
         {
@@ -463,7 +524,17 @@
         "#ff9f6b",
         "#1c0f08"
       ],
-      "style": "live-action human drama, natural soft window light, warm analog film tones, intimate close framing, subtle real emotion, 35mm film grain",
+      "style": "live-action human drama, intimate close framing, subtle real emotion, 35mm film grain",
+      "looks": [
+        "natural soft window light and warm analog film tones",
+        "cool grey-blue overcast light, quiet and desaturated, with pale skin tones",
+        "faded 1990s photo-album tones: soft green, cream and washed brown",
+        "deep navy and soft black with one small warm lamp",
+        "pale winter whites and slate with a muted red accent",
+        "lush humid greens with yellow-green dappled light",
+        "pale mint and white under soft flat fluorescent light",
+        "dusky mauve and dusty pink with long soft shadows"
+      ],
       "motion": "light shifting through a window, a subtle change in expression, breath visible, dust floating in the light",
       "camera": [
         {
@@ -529,7 +600,17 @@
         "#4fe0b6",
         "#04120e"
       ],
-      "style": "live-action mystery film, foggy streets and real interiors, muted teal and amber grade, practical lamp light, chiaroscuro shadows, old props with real wear",
+      "style": "live-action mystery film, foggy streets and real interiors, practical lamp light, chiaroscuro shadows, old props with real wear",
+      "looks": [
+        "muted teal and amber",
+        "sepia, tobacco brown and brass like an old photograph, in dusty light",
+        "moss green and black with pale yellow pools of lamp light",
+        "foggy pearl grey and bone white with one deep red accent",
+        "midnight blue and cold silver with long hard shadows",
+        "burgundy red and dark wood browns with candle-warm highlights",
+        "dirty yellow-green gaslight tones with deep olive shadows",
+        "plum purple and smoke grey with a thin line of cold white light"
+      ],
       "motion": "fog rolling past, candle flames flickering, the subject notices something off-screen and leans closer",
       "camera": [
         {

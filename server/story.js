@@ -126,7 +126,7 @@ const castingText = (cast) => (cast ? `Casting: the main character is ${cast}. $
 
 // Appended to every poster / trailer prompt (Seed-written or template) so results read as a
 // still and footage from a real live-action film, not a glossy AI render.
-const POSTER_REALISM = 'Photographed as a still from a real live-action feature film: shot on 35mm film with a cinema camera and real lenses, natural skin texture with pores and fine lines, real fabric and material texture, practical motivated lighting, gentle film grain and halation, natural color, believable human proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration; no airbrushed or plastic-looking skin, no over-sharpened HDR look.';
+const POSTER_REALISM = 'Photographed as a still from a real live-action feature film: shot on 35mm film with a cinema camera and real lenses, natural skin texture with pores and fine lines, real fabric and material texture, practical motivated lighting, gentle film grain and halation, real film-stock colour rendition, believable human proportions and restrained, natural expressions. Not CGI, not a 3D render, not an illustration; no airbrushed or plastic-looking skin, no over-sharpened HDR look.';
 // Several large faces in one image tend to come out identical and break the trailer, so every poster
 // has exactly one large, clear face; everyone else is kept small, turned away or out of focus.
 const POSTER_ONE_FACE = 'Casting and framing: exactly one main character, and only that person\'s face is shown large and in sharp focus. Anyone else stays small in the background, seen from behind, in silhouette, partly out of frame or softly out of focus; never a second large, clearly visible face, no rows or crowds of faces, no mirrors, reflections or pictures repeating a face. Every person looks clearly different; no identical or twin-looking faces.';
@@ -134,13 +134,29 @@ const VIDEO_ONE_FACE = 'Keep exactly the people that are in the poster: do not a
 const VIDEO_REALISM = 'Live-action film footage: real camera movement with natural motion blur, realistic physics and weight, natural human motion and micro-expressions, faces and hands stay consistent with the poster without morphing, 24fps film look with gentle grain.';
 const SECS = () => config.ark.videoDuration;
 
-function posterPrompt({ genre, kw, cast }) {
+// Colour and light for this visitor's poster, picked by seed from the genre's `looks`. A genre's
+// style used to name one grade ("warm analog film tones", "muted teal and amber"), so every poster of
+// a genre, and most posters overall, came out warm amber; now the style is colour-free and the look
+// carries the palette. It names colours and light quality only, never a time of day (a keyword does).
+export function lookFor(genre, seed) {
+  const looks = (genre.looks || []).filter((x) => typeof x === 'string' && x.trim());
+  if (!looks.length) return null;
+  const r = rng(Math.imul((seed ^ 0x2c1b3c6d) >>> 0, 3266489917) >>> 0); // mixed: nearby seeds differ
+  r(); r();
+  return pick(r, looks);
+}
+const lookText = (look) => (look
+  ? `Colour and light: ${look}. Build the whole image on this palette (location, wardrobe, props and light sources); it replaces any other colour grade mentioned above.`
+  : '');
+
+function posterPrompt({ genre, kw, cast, look }) {
   return [
     `Photographic one-sheet for a live-action ${genre.en.toLowerCase()} film, tall vertical 9:16 full-bleed composition (portrait phone/kiosk screen), subject centred with headroom.`,
     `Main character: ${kw.who.en}, who ${kw.what.en} ${kw.how.en}, ${kw.why.en}.`,
     castingText(cast),
     `Setting: ${kw.where.en}, ${kw.when.en}.`,
     `Style: ${genre.style}.`,
+    lookText(look),
     'A single strong moment that tells the story, real location with depth, theatrical one-sheet composition.',
     POSTER_ONE_FACE,
     POSTER_REALISM,
@@ -192,7 +208,7 @@ Return ONLY a JSON object with keys:
 "tagline" (Korean, one sentence, max 30 characters),
 "logline" (Korean, 1-2 sentences, must naturally include all six keywords),
 "synopsis" (Korean, 3-4 sentences),
-"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression; when a casting is given for the main character, use that gender, age, face, hair and build as given and do not swap in other ones; choose wardrobe that fits this one character and place, and do not fall back on stock choices such as a twenty-something with messy dark hair, tired gentle eyes and a cream knit sweater), the real location and time of day, the lighting setup and light sources, lens and framing, color grade. Prefer grounded, real-world details over spectacle. Exactly ONE character's face may be large and clearly visible; if the story has other people (a partner, a rival, a robot), show them small in the background, from behind, in silhouette or out of focus, never as a second large face, and never as a crowd of faces or a face repeated in a mirror or reflection. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
+"poster_prompt" (English image prompt for a tall vertical 9:16 full-bleed movie poster (portrait kiosk screen), subject centred with headroom. Write it like a cinematographer's shot description of a still from a real live-action film: the actors (age, look, wardrobe, a natural believable expression; when a casting is given for the main character, use that gender, age, face, hair and build as given and do not swap in other ones; choose wardrobe that fits this one character and place, and do not fall back on stock choices such as a twenty-something with messy dark hair, tired gentle eyes and a cream knit sweater), the real location and time of day, the lighting setup and light sources, lens and framing, and the colour grade. When a colour and light look is given, it is the grade: name its colours, carry them into the location, wardrobe and light sources, and do not write a teal-and-amber, warm amber or \"muted warm film tones\" grade unless the look itself says so. Prefer grounded, real-world details over spectacle. Exactly ONE character's face may be large and clearly visible; if the story has other people (a partner, a rival, a robot), show them small in the background, from behind, in silhouette or out of focus, never as a second large face, and never as a crowd of faces or a face repeated in a mirror or reflection. Do NOT use words like masterpiece, ultra-detailed, 8K, hyper-realistic, digital art, CGI, perfect skin, flawless, epic. MUST end with: "Keep the lower third darker for title placement. No text, no letters, no logos."),
 "video_prompt" (English prompt, 2-3 sentences, describing how this exact poster image comes alive as a ${config.ark.videoDuration}-second live-action trailer shot. Use exactly the two camera moves of the given camera plan, in that order, describing each with its direction and speed (do not fall back to a slow push-in or dolly-in unless the plan names one), and describe what the actors physically do during each beat, plus small details like breath, wind or light changes. Keep motion believable and grounded. No on-screen text).
 Content must be family-friendly.`;
 
@@ -203,7 +219,8 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
   const base = templateStory({ genre, kw, director, seed });
   let story = { ...base, source: 'template' };
   const cast = casting(kw.who.en, seed);
-  let pPrompt = posterPrompt({ genre, kw, cast });
+  const look = lookFor(genre, seed);
+  let pPrompt = posterPrompt({ genre, kw, cast, look });
   const plan = cameraPlan(genre, seed);
   let vPrompt = videoPrompt({ genre, kw, plan });
 
@@ -212,7 +229,8 @@ export async function buildStory({ genreId, keywordIdx, director, seed }) {
       const user = `Genre: ${genre.ko} (${genre.en}). Visual style hint: ${genre.style}.
 Keywords — 누가: ${kw.who.ko} / 언제: ${kw.when.ko} / 어디서: ${kw.where.ko} / 무엇을: ${kw.what.ko} / 어떻게: ${kw.how.ko} / 왜: ${kw.why.ko}.
 Director: ${director}. Random seed: ${seed}.${cast ? `
-Casting for the main character: ${cast}.` : ''}${plan ? `
+Casting for the main character: ${cast}.` : ''}${look ? `
+Colour and light look for the poster: ${look}.` : ''}${plan ? `
 Camera plan for the trailer: open with ${plan.open}${plan.close ? `, then ${plan.close}` : ''}.` : ''}`;
       const out = await chatJSON(LLM_SYSTEM(), user);
       const ok = (s, max) => typeof s === 'string' && s.trim() && s.length <= max;
@@ -225,7 +243,7 @@ Camera plan for the trailer: open with ${plan.open}${plan.close ? `, then ${plan
           director,
           source: 'seed-llm',
         };
-        pPrompt = [out.poster_prompt.trim(), castingText(cast), `Style: ${genre.style}.`, POSTER_ONE_FACE, POSTER_REALISM].filter(Boolean).join(' ');
+        pPrompt = [out.poster_prompt.trim(), castingText(cast), `Style: ${genre.style}.`, lookText(look), POSTER_ONE_FACE, POSTER_REALISM].filter(Boolean).join(' ');
         vPrompt = [out.video_prompt.trim(), cameraText(genre, plan), `Action and atmosphere: ${genre.motion}.`, VIDEO_ONE_FACE, VIDEO_REALISM].filter(Boolean).join(' ');
       }
     } catch (e) {
