@@ -207,7 +207,7 @@
       const one = `${html}<span>★</span>${cta}<span>★</span>`;
       $('#track').innerHTML = one + one;
       $('#track').style.setProperty('--dur', `${Math.max(30, (list.length + 2) * 8)}s`);
-      $('#count').textContent = `${items.length}편`;
+      $('#count').textContent = String(items.length); // the 편 counter word is already in the markup
     }
 
     function nextItem() {
